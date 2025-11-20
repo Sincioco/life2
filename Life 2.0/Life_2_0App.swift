@@ -12,7 +12,7 @@ struct Life_2_0App: App {
     var body: some Scene {
         WindowGroup {
             //ContentView()
-            SwiftUIGridView()
+            SwiftUIGridView(year: 2025, month: 11)
         }
     }
 }
