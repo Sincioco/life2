@@ -11,8 +11,8 @@ import SwiftUI
 struct Life_2_0App: App {
     var body: some Scene {
         WindowGroup {
-            //ContentView()
-            SwiftUIGridView(year: 2025, month: 11)
+            MainView()
+            //SwiftUIGridView(year: 2025, month: 11)
         }
     }
 }

@@ -1,13 +1,12 @@
 //
-//  SwiftUIViewTest.swift
+//  CalendarView.swift
 //  Life 2.0
 //
 //  Created by Sin on 11/21/25.
-//  https://www.youtube.com/watch?v=vfUalXtwth0
 
 import SwiftUI
 
-struct SwiftUIGridView: View {
+struct CalendarView: View {
     let year: Int
     let month: Int // 1...12
 
@@ -52,6 +51,15 @@ struct SwiftUIGridView: View {
     private var daysInCurrentMonth: [Int] {
         let range = calendar.range(of: .day, in: .month, for: monthStart) ?? 1..<29
         return Array(range)
+    }
+    
+    private var monthName: String {
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.locale = calendar.locale
+        formatter.timeZone = calendar.timeZone
+        formatter.dateFormat = "LLLL" // full month name
+        return formatter.string(from: monthStart)
     }
 
     private var weekdaySymbols: [String] { calendar.shortWeekdaySymbols } // Sun..Sat
@@ -144,11 +152,11 @@ struct SwiftUIGridView: View {
                 .padding(8)
                 //.background(Color(white: 0.97))
             }
-            .navigationTitle("Calendar")
+            .navigationTitle(monthName)
         }
     }
 }
 
 #Preview {
-    SwiftUIGridView(year: 2025, month: 11)
+    CalendarView(year: 2025, month: 11)
 }

@@ -14,7 +14,7 @@ struct Event: Identifiable {
     var score: Double
 }
 
-struct ContentView: View {
+struct MainView: View {
     @State private var selectedPerson: Event? = nil
     @State private var showActions: Bool = false
     @State private var showDetails: Bool = false
@@ -159,6 +159,7 @@ struct ContentView: View {
                 }
             }
             Tab("Calendar", systemImage: "calendar") {
+                CalendarView(year: 2025, month: 11)
             }
             Tab("Help", systemImage: "questionmark.circle") {
             }
@@ -207,6 +208,6 @@ struct PersonDetailView: View {
 }
 
 #Preview {
-    ContentView()
+    MainView()
 }
 
