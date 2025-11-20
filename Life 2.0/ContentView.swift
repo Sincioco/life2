@@ -1,4 +1,4 @@
-//
+// ============
 //  ContentView.swift
 //  Life 2.0
 //
