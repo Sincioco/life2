@@ -111,7 +111,8 @@ struct CalendarView: View {
                         case .header(let title):
                             ZStack {
                                 RoundedRectangle(cornerRadius: 0)
-                                    .fill(Color.gray.opacity(0.15))
+                                    //.fill(Color.gray.opacity(0.15))
+                                    .fill(Color(.secondarySystemBackground))
                                 Text(title)
                                     .font(.headline)
                             }
@@ -120,10 +121,12 @@ struct CalendarView: View {
                         case .adjacent(let d, _):
                             ZStack(alignment: .topLeading) {
                                 RoundedRectangle(cornerRadius: 0)
-                                    .fill(Color.white)
+                                    //.fill(Color.white)
+                                    .fill(Color(.systemBackground))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 0)
                                             .stroke(Color.gray.opacity(0.25))
+                                            //.stroke(Color.separator.opacity(0.25))
                                     )
                                 Text("\(d)")
                                     .font(.headline)
@@ -135,7 +138,8 @@ struct CalendarView: View {
                         case .day(let d):
                             ZStack(alignment: .topLeading) {
                                 RoundedRectangle(cornerRadius: 0)
-                                    .fill(Color.white)
+                                    //.fill(Color.white)
+                                    .fill(Color(.systemBackground))
                                     .overlay(
                                         RoundedRectangle(cornerRadius: 0)
                                             .stroke(Color.gray.opacity(0.3))
