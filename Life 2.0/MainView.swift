@@ -22,7 +22,7 @@ struct MainView: View {
     @State private var searchText: String = ""
     @State private var showFilter: Bool = false
     
-    let people: [Event] = [
+    let weekly: [Event] = [
         Event(name: "Walk the Dog", imageName: "pawprint.fill", score: 73),
         Event(name: "Meditate for 5 Minutes", imageName: "figure.mind.and.body", score: 95),
         Event(name: "Run / Exercise", imageName: "figure.run", score: 67)
@@ -30,8 +30,8 @@ struct MainView: View {
     
     var filteredPeople: [Event] {
         let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return people }
-        return people.filter { person in
+        guard !query.isEmpty else { return weekly }
+        return weekly.filter { person in
             person.name.localizedCaseInsensitiveContains(query)
             || String(Int(person.score)).contains(query)
         }
@@ -100,12 +100,12 @@ struct MainView: View {
                     }
                     .searchable(text: $searchText)
                     .searchSuggestions {
-                        ForEach(people.prefix(5)) { item in
-                            Text(item.name)
-                                .searchCompletion(item.name)
+                        ForEach(weekly.prefix(5)) { weekly in
+                            Text(weekly.name)
+                                .searchCompletion(weekly.name)
                         }
                     }
-                    .navigationTitle("Summary")
+                    .navigationTitle("Weekly")
                     .toolbar {
                         ToolbarItem(placement: .topBarLeading) {
                             Button {
