@@ -20,9 +20,14 @@ struct MainView2: View {
             Tab("Calendar", systemImage: "calendar") {
                 CalendarView(year: 2025, month: 11)
             }
-            Tab("Help", systemImage: "questionmark.circle") {
-            }
+//            Tab("Help", systemImage: "questionmark.circle") {
+//            }
             Tab("Options", systemImage: "line.3.horizontal") {
+            }
+            Tab("Search", systemImage: "magnifyingglass", role: .search) {
+     
+                    ListView()
+        
             }
         }
     }
