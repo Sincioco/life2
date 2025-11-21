@@ -14,13 +14,13 @@ struct Life_2_0App: App {
         
         // Test Data Container (Part 1 of 2)
         let previewContainer: ModelContainer = {
-            let schema = Schema([Life2Event.self])
+            let schema = Schema([Activity.self])
             let config = ModelConfiguration(isStoredInMemoryOnly: true)
 
             let container = try! ModelContainer(for: schema, configurations: config)
 
             // Insert test data
-            for event in Life2Event.sampleData {
+            for event in Activity.sampleData {
                 container.mainContext.insert(event)
             }
 
@@ -29,7 +29,7 @@ struct Life_2_0App: App {
         
         WindowGroup {
             //MainView()
-            MainView2()
+            MainView()
             //SwiftUIGridView(year: 2025, month: 11)
         }
         

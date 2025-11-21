@@ -3,9 +3,9 @@ import SwiftUI
 import SwiftData
 
 // MARK: - Row with animated gauge
-struct EventRowView: View {
+struct ActivityRow: View {
     
-    let item: Life2Event
+    let item: Activity
     
     @State private var animatedScore: Double = 0
     @State private var hasAnimated = false
@@ -75,11 +75,11 @@ struct EventRowView: View {
 }
 
 // MARK: - ListView
-struct ListView: View {
+struct ActivitiesView: View {
     
-    @Query var Life2Events: [Life2Event]
+    @Query var Life2Events: [Activity]
     
-    private var groupedByCategory: [String: [Life2Event]] {
+    private var groupedByCategory: [String: [Activity]] {
         Dictionary(grouping: Life2Events, by: { $0.category })
     }
     
@@ -107,7 +107,7 @@ struct ListView: View {
                                 
                                 // --------------------------------
                                 // Use a Custom Row that animates the graph
-                                EventRowView(item: item)   // ← use animated row
+                                ActivityRow(item: item)   // ← use animated row
                             }
                             .padding(0)
                         }
@@ -124,19 +124,19 @@ struct ListView: View {
 // MARK: - Preview code for Canvas
 #Preview {
     let previewContainer: ModelContainer = {
-        let schema = Schema([Life2Event.self])
+        let schema = Schema([Activity.self])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         
         let container = try! ModelContainer(for: schema, configurations: config)
         
         // Insert test data
-        for event in Life2Event.sampleData {
+        for event in Activity.sampleData {
             container.mainContext.insert(event)
         }
         
         return container
     }()
     
-    ListView()   // ← make sure this matches the struct name
+    ActivitiesView()   // ← make sure this matches the struct name
         .modelContainer(previewContainer)
 }

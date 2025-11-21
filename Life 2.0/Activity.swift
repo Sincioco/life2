@@ -9,7 +9,7 @@ import Foundation
 import SwiftData
 
 @Model
-class Life2Event {
+class Activity {
     var name: String
     var score: Double
     var icon: String
@@ -32,16 +32,16 @@ class Life2Event {
     
 }
 
-extension Life2Event {
+extension Activity {
     
     private static func randomScore() -> Double {
         Double(Int.random(in: 1...100))
     }
     
-    static var sampleData: [Life2Event] {
+    static var sampleData: [Activity] {
         [
             // FITNESS
-            Life2Event(
+            Activity(
                 name: "Morning Run",
                 icon: "figure.run",
                 score: randomScore(),
@@ -51,7 +51,7 @@ extension Life2Event {
                 dateCreated: Date().addingTimeInterval(-86400 * 3),
                 dateModified: Date()
             ),
-            Life2Event(
+            Activity(
                 name: "Leg Day",
                 icon: "dumbbell.fill",
                 score: randomScore(),
@@ -61,7 +61,7 @@ extension Life2Event {
                 dateCreated: Date().addingTimeInterval(-86400 * 8),
                 dateModified: Date()
             ),
-            Life2Event(
+            Activity(
                 name: "Yoga & Stretching",
                 icon: "figure.cooldown",
                 score: randomScore(),
@@ -73,7 +73,7 @@ extension Life2Event {
             ),
             
             // PERSONAL
-            Life2Event(
+            Activity(
                 name: "Date Night",
                 icon: "heart.fill",
                 score: randomScore(),
@@ -83,7 +83,7 @@ extension Life2Event {
                 dateCreated: Date().addingTimeInterval(-86400 * 10),
                 dateModified: Date()
             ),
-            Life2Event(
+            Activity(
                 name: "Meditation",
                 icon: "brain.head.profile",
                 score: randomScore(),
@@ -93,7 +93,7 @@ extension Life2Event {
                 dateCreated: Date().addingTimeInterval(-86400 * 1),
                 dateModified: Date()
             ),
-            Life2Event(
+            Activity(
                 name: "Call Parents",
                 icon: "phone.fill",
                 score: randomScore(),
@@ -105,7 +105,7 @@ extension Life2Event {
             ),
             
             // BILLS
-            Life2Event(
+            Activity(
                 name: "Pay Electric Bill",
                 icon: "bolt.fill",
                 score: randomScore(),
@@ -115,7 +115,7 @@ extension Life2Event {
                 dateCreated: Date().addingTimeInterval(-86400 * 30),
                 dateModified: Date()
             ),
-            Life2Event(
+            Activity(
                 name: "Water Bill",
                 icon: "drop.fill",
                 score: randomScore(),
@@ -125,7 +125,7 @@ extension Life2Event {
                 dateCreated: Date().addingTimeInterval(-86400 * 60),
                 dateModified: Date()
             ),
-            Life2Event(
+            Activity(
                 name: "Internet Bill",
                 icon: "wifi",
                 score: randomScore(),
@@ -137,7 +137,7 @@ extension Life2Event {
             ),
             
             // WORK
-            Life2Event(
+            Activity(
                 name: "Weekly Planning",
                 icon: "calendar",
                 score: randomScore(),
@@ -147,7 +147,7 @@ extension Life2Event {
                 dateCreated: Date().addingTimeInterval(-86400 * 6),
                 dateModified: Date()
             ),
-            Life2Event(
+            Activity(
                 name: "1-on-1 Team Meeting",
                 icon: "person.2.fill",
                 score: randomScore(),
@@ -157,7 +157,7 @@ extension Life2Event {
                 dateCreated: Date().addingTimeInterval(-86400 * 14),
                 dateModified: Date()
             ),
-            Life2Event(
+            Activity(
                 name: "Project Refactor",
                 icon: "hammer",
                 score: randomScore(),
@@ -169,7 +169,7 @@ extension Life2Event {
             ),
 
             // MAINTENANCE
-            Life2Event(
+            Activity(
                 name: "Car Maintenance",
                 icon: "car.fill",
                 score: randomScore(),
@@ -179,7 +179,7 @@ extension Life2Event {
                 dateCreated: Date().addingTimeInterval(-86400 * 200),
                 dateModified: Date()
             ),
-            Life2Event(
+            Activity(
                 name: "Aircon Cleaning",
                 icon: "wind",
                 score: randomScore(),
@@ -189,7 +189,7 @@ extension Life2Event {
                 dateCreated: Date().addingTimeInterval(-86400 * 90),
                 dateModified: Date()
             ),
-            Life2Event(
+            Activity(
                 name: "Grocery Restock",
                 icon: "cart.fill",
                 score: randomScore(),
@@ -201,7 +201,7 @@ extension Life2Event {
             ),
             
             // LEARNING
-            Life2Event(
+            Activity(
                 name: "Learn SwiftUI",
                 icon: "book.fill",
                 score: randomScore(),
@@ -211,7 +211,7 @@ extension Life2Event {
                 dateCreated: Date().addingTimeInterval(-86400 * 7),
                 dateModified: Date()
             ),
-            Life2Event(
+            Activity(
                 name: "Read Tech Articles",
                 icon: "newspaper.fill",
                 score: randomScore(),
@@ -221,7 +221,7 @@ extension Life2Event {
                 dateCreated: Date().addingTimeInterval(-86400 * 2),
                 dateModified: Date()
             ),
-            Life2Event(
+            Activity(
                 name: "Watch WWDC Session",
                 icon: "desktopcomputer",
                 score: randomScore(),
