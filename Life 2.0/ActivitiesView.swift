@@ -11,7 +11,54 @@ import Foundation
 import SwiftUI
 import SwiftData
 
-// MARK: - Row with animated gauge
+// MARK: - ListView
+struct ActivitiesView: View {
+    
+    @Query var Activities: [Activity]
+    
+    private var groupedByCategory: [String: [Activity]] {
+        Dictionary(grouping: Activities, by: { $0.category })
+    }
+    
+    var body: some View {
+        
+        NavigationStack{
+            
+            Group {
+                
+                // --------------------------------
+                // Render the list
+                List {
+                    
+                    // --------------------------------
+                    // Group by Category
+                    ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
+                        
+                        // --------------------------------
+                        // Add a Section Header for each Category
+                        Section(header: Text(category)) {
+                            
+                            // --------------------------------
+                            // Render the items under each Category
+                            ForEach(groupedByCategory[category]!) { activity in
+                                
+                                // --------------------------------
+                                // Use a Custom Row that animates the graph
+                                ActivityRow(activity: activity)   // ← use animated row
+                            }
+                            .padding(0)
+                        }
+                        .contentShape(Rectangle())
+                    }
+                }
+                .listRowSeparator(.hidden)
+            }
+            .navigationTitle("Activities")
+        }
+    }
+}
+
+// MARK: - Activity Row with animated gauge
 struct ActivityRow: View {
     
     let activity: Activity
@@ -85,53 +132,6 @@ struct ActivityRow: View {
     }
 }
 
-// MARK: - ListView
-struct ActivitiesView: View {
-    
-    @Query var Activities: [Activity]
-    
-    private var groupedByCategory: [String: [Activity]] {
-        Dictionary(grouping: Activities, by: { $0.category })
-    }
-    
-    var body: some View {
-        
-        NavigationStack{
-            
-            Group {
-                
-                // --------------------------------
-                // Render the list
-                List {
-                    
-                    // --------------------------------
-                    // Group by Category
-                    ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
-                        
-                        // --------------------------------
-                        // Add a Section Header for each Category
-                        Section(header: Text(category)) {
-                            
-                            // --------------------------------
-                            // Render the items under each Category
-                            ForEach(groupedByCategory[category]!) { activity in
-                                
-                                // --------------------------------
-                                // Use a Custom Row that animates the graph
-                                ActivityRow(activity: activity)   // ← use animated row
-                            }
-                            .padding(0)
-                        }
-                        .contentShape(Rectangle())
-                    }
-                }
-                .listRowSeparator(.hidden)
-            }
-            .navigationTitle("Activities")
-        }
-    }
-}
-
 // MARK: - Preview code for Canvas
 #Preview {
     let previewContainer: ModelContainer = {
@@ -148,6 +148,6 @@ struct ActivitiesView: View {
         return container
     }()
     
-    ActivitiesView()   // ← make sure this matches the struct name
+    MainView()   // ← make sure this matches the struct name
         .modelContainer(previewContainer)
 }
