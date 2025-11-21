@@ -29,6 +29,7 @@ class Life2Event {
         self.dateCreated = dateCreated
         self.dateModified = dateModified
     }
+    
 }
 
 extension Life2Event {

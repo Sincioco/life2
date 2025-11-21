@@ -11,50 +11,23 @@ import SwiftData
 
 struct MainView2: View {
     
-    @Query var Life2Events: [Life2Event]
-    
     var body: some View {
         
-        
-        
-        List(Life2Events) { item in
-            VStack {
-                HStack {
-                    Image(systemName: item.icon)
-                        .resizable()
-                        .scaledToFit()
-                        .foregroundStyle(.blue)
-                        .frame(width: 40, height: 40)
-                        .padding(0)
-                    Spacer(minLength: 20)
-                    VStack(alignment: .leading) {
-                        
-                        Text(item.name)
-                            .font(.body)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                        
-                        Gauge(value: item.score, in: 0...100) {
-                            Text("Score")
-                                .fontWeight(.regular)
-                        } currentValueLabel: {
-                            Text("\(Int(item.score))%")
-                                .monospacedDigit()
-                                .fontWeight(.regular)
-                        }
-                        .gaugeStyle(.accessoryLinear)
-                        .tint(.blue)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    }
-                }
+        TabView {
+            Tab("List", systemImage: "list.bullet.rectangle") {
+                ListView()
             }
-            .padding(0)
+            Tab("Calendar", systemImage: "calendar") {
+                CalendarView(year: 2025, month: 11)
+            }
+            Tab("Help", systemImage: "questionmark.circle") {
+            }
+            Tab("Options", systemImage: "line.3.horizontal") {
+            }
         }
-        .contentShape(Rectangle())
-        
     }
     
 }
-
 
 #Preview {
     
