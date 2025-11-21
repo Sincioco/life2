@@ -9,6 +9,7 @@ import SwiftUI
 struct CalendarView: View {
     let year: Int
     let month: Int // 1...12
+    var allowHorizontalScroll: Bool = false
 
     // Deterministic Gregorian calendar (Sunday-first), stable across locales/time zones
     private var calendar: Calendar {
@@ -58,7 +59,7 @@ struct CalendarView: View {
         formatter.calendar = calendar
         formatter.locale = calendar.locale
         formatter.timeZone = calendar.timeZone
-        formatter.dateFormat = "LLLL" // full month name
+        formatter.dateFormat = "LLLL yyyy" // full month name
         return formatter.string(from: monthStart)
     }
 
@@ -93,8 +94,10 @@ struct CalendarView: View {
     }
 
     private var columns: [GridItem] {
-        Array(repeating: GridItem(.fixed(100), spacing: 0), count: 7)
+        Array(repeating: GridItem(.flexible(minimum: 63.0, maximum: 120), spacing: 0), count: 7)
     }
+    
+    private var gridHeight: CGFloat { 40 + 100 * 6 + 16 } // header + 6 rows + vertical padding
 
     enum Cell: Hashable {
         case header(String)
@@ -104,57 +107,115 @@ struct CalendarView: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView([.vertical, .horizontal]) {
-                LazyVGrid(columns: columns, spacing: 0) {
-                    ForEach(cells, id: \.self) { cell in
-                        switch cell {
-                        case .header(let title):
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 0)
-                                    //.fill(Color.gray.opacity(0.15))
-                                    .fill(Color(.secondarySystemBackground))
-                                Text(title)
-                                    .font(.headline)
-                            }
-                            .frame(height: 40)
+            Group {
+                if allowHorizontalScroll {
+                    ScrollView(.vertical) {
+                        ScrollView(.horizontal) {
+                            LazyVGrid(columns: columns, spacing: 0) {
+                                ForEach(cells, id: \.self) { cell in
+                                    switch cell {
+                                    case .header(let title):
+                                        ZStack {
+                                            RoundedRectangle(cornerRadius: 0)
+                                                //.fill(Color.gray.opacity(0.15))
+                                                .fill(Color(.secondarySystemBackground))
+                                            Text(title)
+                                                .font(.headline)
+                                        }
+                                        .frame(height: 40)
 
-                        case .adjacent(let d, _):
-                            ZStack(alignment: .topLeading) {
-                                RoundedRectangle(cornerRadius: 0)
-                                    //.fill(Color.white)
-                                    .fill(Color(.systemBackground))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 0)
-                                            .stroke(Color.gray.opacity(0.25))
-                                            //.stroke(Color.separator.opacity(0.25))
-                                    )
-                                Text("\(d)")
-                                    .font(.headline)
-                                    .foregroundStyle(.secondary)
-                                    .padding(8)
-                            }
-                            .frame(height: 100)
+                                    case .adjacent(let d, _):
+                                        ZStack(alignment: .topLeading) {
+                                            RoundedRectangle(cornerRadius: 0)
+                                                //.fill(Color.white)
+                                                .fill(Color(.systemBackground))
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 0)
+                                                        .stroke(Color.gray.opacity(0.25))
+                                                        //.stroke(Color.separator.opacity(0.25))
+                                                )
+                                            Text("\(d)")
+                                                .font(.headline)
+                                                .foregroundStyle(.secondary)
+                                                .padding(8)
+                                        }
+                                        .frame(height: 70)
 
-                        case .day(let d):
-                            ZStack(alignment: .topLeading) {
-                                RoundedRectangle(cornerRadius: 0)
-                                    //.fill(Color.white)
-                                    .fill(Color(.systemBackground))
-                                    .overlay(
-                                        RoundedRectangle(cornerRadius: 0)
-                                            .stroke(Color.gray.opacity(0.3))
-                                    )
-                                Text("\(d)")
-                                    .font(.headline)
-                                    .padding(8)
-                                    .foregroundStyle(.primary)
+                                    case .day(let d):
+                                        ZStack(alignment: .topLeading) {
+                                            RoundedRectangle(cornerRadius: 0)
+                                                //.fill(Color.white)
+                                                .fill(Color(.systemBackground))
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 0)
+                                                        .stroke(Color.gray.opacity(0.3))
+                                                )
+                                            Text("\(d)")
+                                                .font(.headline)
+                                                .padding(8)
+                                                .foregroundStyle(.primary)
+                                        }
+                                        .frame(height: 70)
+                                    }
+                                }
                             }
-                            .frame(height: 100)
+                            .frame(height: gridHeight)
+                            .padding(8)
                         }
                     }
+                } else {
+                    ScrollView(.vertical) {
+                        LazyVGrid(columns: columns, spacing: 0) {
+                            ForEach(cells, id: \.self) { cell in
+                                switch cell {
+                                case .header(let title):
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 0)
+                                            //.fill(Color.gray.opacity(0.15))
+                                            .fill(Color(.secondarySystemBackground))
+                                        Text(title)
+                                            .font(.headline)
+                                    }
+                                    .frame(height: 40)
+
+                                case .adjacent(let d, _):
+                                    ZStack(alignment: .topLeading) {
+                                        RoundedRectangle(cornerRadius: 0)
+                                            //.fill(Color.white)
+                                            .fill(Color(.systemBackground))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 0)
+                                                    .stroke(Color.gray.opacity(0.25))
+                                                    //.stroke(Color.separator.opacity(0.25))
+                                            )
+                                        Text("\(d)")
+                                            .font(.headline)
+                                            .foregroundStyle(.secondary)
+                                            .padding(8)
+                                    }
+                                    .frame(height: 70)
+
+                                case .day(let d):
+                                    ZStack(alignment: .topLeading) {
+                                        RoundedRectangle(cornerRadius: 0)
+                                            //.fill(Color.white)
+                                            .fill(Color(.systemBackground))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 0)
+                                                    .stroke(Color.gray.opacity(0.3))
+                                            )
+                                        Text("\(d)")
+                                            .font(.headline)
+                                            .padding(8)
+                                            .foregroundStyle(.primary)
+                                    }
+                                    .frame(height: 70)
+                                }
+                            }
+                        }
+                        .padding(8)
+                    }
                 }
-                .padding(8)
-                //.background(Color(white: 0.97))
             }
             .navigationTitle(monthName)
         }
@@ -164,3 +225,4 @@ struct CalendarView: View {
 #Preview {
     CalendarView(year: 2025, month: 11)
 }
+

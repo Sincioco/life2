@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+//import SwiftData
 
 struct Event: Identifiable {
     let id = UUID()
@@ -21,6 +22,8 @@ struct MainView: View {
     @State private var showAddFromToolbar: Bool = false
     @State private var searchText: String = ""
     @State private var showFilter: Bool = false
+    
+//    @Query var Life2Events: [Life2Event]
     
     let weekly: [Event] = [
         Event(name: "Walk the Dog", imageName: "pawprint.fill", score: 73),
@@ -40,12 +43,15 @@ struct MainView: View {
     var body: some View {
         
         TabView {
-            Tab("Summary", systemImage: "list.bullet.rectangle") {
+            Tab("List", systemImage: "list.bullet.rectangle") {
                 NavigationStack {
                     Group {
                         if filteredPeople.isEmpty && !searchText.isEmpty {
                             ContentUnavailableView.search(text: searchText)
                         } else {
+//                            List(Life2Events) { event in
+//                                Text(event.name)
+//                            }
                             List(filteredPeople) { item in
                                 VStack {
                                     HStack {
