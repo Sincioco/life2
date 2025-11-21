@@ -12,53 +12,24 @@ import SwiftData
 struct ListView: View {
     
     @Query var Life2Events: [Life2Event]
+    
     private var groupedByCategory: [String: [Life2Event]] {
         Dictionary(grouping: Life2Events, by: { $0.category })
     }
+    
     var body: some View {
         
-        
-        //                List(Life2Events) { item in
-        //                    VStack {
-        //                        HStack {
-        //                            Image(systemName: item.icon)
-        //                                .resizable()
-        //                                .scaledToFit()
-        //                                .foregroundStyle(.blue)
-        //                                .frame(width: 40, height: 40)
-        //                                .padding(0)
-        //                            Spacer(minLength: 20)
-        //                            VStack(alignment: .leading) {
-        //
-        //                                Text(item.name)
-        //                                    .font(.body)
-        //                                    .frame(maxWidth: .infinity, alignment: .leading)
-        //
-        //                                Gauge(value: item.score, in: 0...100) {
-        //                                    Text("Score")
-        //                                        .fontWeight(.regular)
-        //                                } currentValueLabel: {
-        //                                    Text("\(Int(item.score))%")
-        //                                        .monospacedDigit()
-        //                                        .fontWeight(.regular)
-        //                                }
-        //                                .gaugeStyle(.accessoryLinear)
-        //                                .tint(.blue)
-        //                                .frame(maxWidth: .infinity, alignment: .leading)
-        //                            }
-        //                        }
-        //                    }
-        //                    .padding(0)
-        //                }
-        //                .contentShape(Rectangle())
-        
-        
-        
         List {
+            
             ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
+                
                 Section(header: Text(category)) {
+                    
                     ForEach(groupedByCategory[category]!) { item in
+                        
                         HStack {
+                            
+                            // Event Icon
                             Image(systemName: item.icon)
                                 .resizable()
                                 .scaledToFit()
@@ -66,8 +37,9 @@ struct ListView: View {
                                 .frame(width: 40, height: 40)
                                 .padding(0)
                             Spacer(minLength: 20)
+                            
+                            // Event Name and Progress Bar
                             VStack(alignment: .leading) {
-                                
                                 Text(item.name)
                                     .font(.body)
                                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -84,6 +56,7 @@ struct ListView: View {
                                 .tint(.blue)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                             }
+                            
                         }
                     }
                     .padding(0)
