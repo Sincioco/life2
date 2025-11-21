@@ -75,6 +75,33 @@ struct ActivitiesView: View {
                             prompt: "Search activities")
             }
             .navigationTitle("Activities")
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        
+                    } label: {
+                        Image(systemName: "house")
+                    }
+                    .accessibilityLabel("Home")
+                }
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        
+                    } label: {
+                        Image(systemName: "line.3.horizontal.decrease")
+                    }
+                    .accessibilityLabel("Filter")
+                }
+                ToolbarSpacer()
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add Item")
+                }
+            }
         }
     }
 }
