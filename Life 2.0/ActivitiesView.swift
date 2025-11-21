@@ -193,7 +193,7 @@ struct AddActivityView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    // Available categories
+    // Available Categories
     private let categories = [
         "Bills",
         "Fitness",
@@ -202,6 +202,14 @@ struct AddActivityView: View {
         "Personal",
         "Work",
         "Others"
+    ]
+    
+    // Available Recurrence
+    private let recurrences = [
+        "Daily",
+        "Weekly",
+        "Monthly",
+        "Yearly",
     ]
     
     // Form fields
@@ -227,9 +235,13 @@ struct AddActivityView: View {
                         ForEach(categories, id: \.self) { cat in
                             Text(cat).tag(cat)
                         }
-                    }
+                    }                    
                     
-                    TextField("Recurrence", text: $recurrence)
+                    Picker("Recurrence", selection: $recurrence) {
+                        ForEach(recurrences, id: \.self) { rec in
+                            Text(rec).tag(rec)
+                        }
+                    }
                 }
                 
                 // ----------------------------------------------------
