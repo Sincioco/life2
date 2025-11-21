@@ -53,6 +53,25 @@ struct ActivitiesView: View {
             }
             .navigationTitle("Activities")
             .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        
+                    } label: {
+                        Image(systemName: "house")
+                    }
+                    .accessibilityLabel("Home")
+                }
+                ToolbarItem(placement: .automatic) {
+                    Button {
+                        
+                    } label: {
+                        Image(systemName: "line.3.horizontal.decrease")
+                    }
+                    .accessibilityLabel("Filter")
+                }
+
+                ToolbarSpacer()
+
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         isPresentingAddActivity = true
