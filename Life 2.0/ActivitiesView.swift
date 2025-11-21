@@ -29,7 +29,7 @@ struct ActivitiesView: View {
             activity.category.localizedCaseInsensitiveContains(searchText)
         }
     }
-
+    
     private var groupedByCategory: [String: [Activity]] {
         Dictionary(grouping: filteredActivities, by: { $0.category })
     }
@@ -69,7 +69,7 @@ struct ActivitiesView: View {
                 .searchable(text: $searchText,
                             placement: .navigationBarDrawer(displayMode: .automatic),
                             prompt: "Search activities")
-
+                
             }
             .navigationTitle("Activities")
             
@@ -92,9 +92,9 @@ struct ActivitiesView: View {
                     }
                     .accessibilityLabel("Filter")
                 }
-
+                
                 ToolbarSpacer()
-
+                
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         isPresentingAddActivity = true
@@ -235,7 +235,7 @@ struct AddActivityView: View {
                         ForEach(categories, id: \.self) { cat in
                             Text(cat).tag(cat)
                         }
-                    }                    
+                    }
                     
                     Picker("Recurrence", selection: $recurrence) {
                         ForEach(recurrences, id: \.self) { rec in
@@ -259,6 +259,7 @@ struct AddActivityView: View {
                         Slider(value: $progress, in: 0...100, step: 1) {
                             Text("Progress")
                         }
+                        .tint(Color.green)
                     }
                     .padding(.vertical, 4)
                     .listRowSeparator(.hidden)
