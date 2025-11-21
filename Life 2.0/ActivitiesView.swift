@@ -15,36 +15,54 @@ import SwiftData
 struct ActivitiesView: View {
     
     @Query var Activities: [Activity]
+    @State private var searchText: String = ""
+    
+    // --------------------------------
+    // Filter then group by Category
+    // --------------------------------
+    private var filteredActivities: [Activity] {
+        guard !searchText.isEmpty else { return Activities }
+        
+        return Activities.filter { activity in
+            activity.name.localizedCaseInsensitiveContains(searchText) ||
+            activity.category.localizedCaseInsensitiveContains(searchText)
+        }
+    }
     
     private var groupedByCategory: [String: [Activity]] {
-        Dictionary(grouping: Activities, by: { $0.category })
+        Dictionary(grouping: filteredActivities, by: { $0.category })
     }
     
     var body: some View {
         
-        NavigationStack{
+        NavigationStack {
             
             Group {
                 
                 // --------------------------------
                 // Render the list
+                // --------------------------------
                 List {
                     
                     // --------------------------------
                     // Group by Category
+                    // --------------------------------
                     ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
                         
                         // --------------------------------
                         // Add a Section Header for each Category
+                        // --------------------------------
                         Section(header: Text(category)) {
                             
                             // --------------------------------
                             // Render the items under each Category
-                            ForEach(groupedByCategory[category]!) { activity in
+                            // --------------------------------
+                            ForEach(groupedByCategory[category] ?? []) { activity in
                                 
                                 // --------------------------------
                                 // Use a Custom Row that animates the graph
-                                ActivityRow(activity: activity)   // ← use animated row
+                                // --------------------------------
+                                ActivityRow(activity: activity)
                             }
                             .padding(0)
                         }
@@ -52,6 +70,9 @@ struct ActivitiesView: View {
                     }
                 }
                 .listRowSeparator(.hidden)
+                .searchable(text: $searchText,
+                            placement: .navigationBarDrawer(displayMode: .automatic),
+                            prompt: "Search activities")
             }
             .navigationTitle("Activities")
         }
