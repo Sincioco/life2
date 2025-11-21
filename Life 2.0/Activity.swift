@@ -21,10 +21,10 @@ class Activity {
     var dateCreated: Date
     var dateModified: Date
     
-    init(name: String, icon: String, score: Double, recurrence: String, category: String, notes: String, dateCreated: Date, dateModified: Date) {
+    init(name: String, icon: String, progress: Double, recurrence: String, category: String, notes: String, dateCreated: Date, dateModified: Date) {
         self.name = name
         self.icon = icon
-        self.progress = score
+        self.progress = progress
         self.recurrence = recurrence
         self.category = category
         self.notes = notes
@@ -46,7 +46,7 @@ extension Activity {
             Activity(
                 name: "Morning Run",
                 icon: "figure.run",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Daily",
                 category: "Fitness",
                 notes: "5km easy pace",
@@ -56,7 +56,7 @@ extension Activity {
             Activity(
                 name: "Leg Day",
                 icon: "dumbbell.fill",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Weekly",
                 category: "Fitness",
                 notes: "Squats, Lunges, Leg Press",
@@ -66,7 +66,7 @@ extension Activity {
             Activity(
                 name: "Yoga & Stretching",
                 icon: "figure.cooldown",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Daily",
                 category: "Fitness",
                 notes: "15 minutes morning flexibility",
@@ -78,7 +78,7 @@ extension Activity {
             Activity(
                 name: "Date Night",
                 icon: "heart.fill",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Weekly",
                 category: "Personal",
                 notes: "Dinner with Joy 🍽️",
@@ -88,7 +88,7 @@ extension Activity {
             Activity(
                 name: "Meditation",
                 icon: "brain.head.profile",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Daily",
                 category: "Personal",
                 notes: "10 minutes mindfulness",
@@ -98,7 +98,7 @@ extension Activity {
             Activity(
                 name: "Call Parents",
                 icon: "phone.fill",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Weekly",
                 category: "Personal",
                 notes: "Check in with family",
@@ -110,7 +110,7 @@ extension Activity {
             Activity(
                 name: "Pay Electric Bill",
                 icon: "bolt.fill",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Monthly",
                 category: "Bills",
                 notes: "Due every 25th",
@@ -120,7 +120,7 @@ extension Activity {
             Activity(
                 name: "Water Bill",
                 icon: "drop.fill",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Monthly",
                 category: "Bills",
                 notes: "Auto-debit BPI",
@@ -130,7 +130,7 @@ extension Activity {
             Activity(
                 name: "Internet Bill",
                 icon: "wifi",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Monthly",
                 category: "Bills",
                 notes: "Converge ₱1500",
@@ -142,7 +142,7 @@ extension Activity {
             Activity(
                 name: "Weekly Planning",
                 icon: "calendar",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Weekly",
                 category: "Work",
                 notes: "Review tasks + sprint board",
@@ -152,7 +152,7 @@ extension Activity {
             Activity(
                 name: "1-on-1 Team Meeting",
                 icon: "person.2.fill",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Weekly",
                 category: "Work",
                 notes: "Coaching + updates",
@@ -162,7 +162,7 @@ extension Activity {
             Activity(
                 name: "Project Refactor",
                 icon: "hammer",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "None",
                 category: "Work",
                 notes: "Clean up old Swift code",
@@ -174,7 +174,7 @@ extension Activity {
             Activity(
                 name: "Car Maintenance",
                 icon: "car.fill",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Yearly",
                 category: "Maintenance",
                 notes: "Oil change + tune-up",
@@ -184,7 +184,7 @@ extension Activity {
             Activity(
                 name: "Aircon Cleaning",
                 icon: "wind",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Quarterly",
                 category: "Maintenance",
                 notes: "Split-type deep clean",
@@ -194,7 +194,7 @@ extension Activity {
             Activity(
                 name: "Grocery Restock",
                 icon: "cart.fill",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Weekly",
                 category: "Maintenance",
                 notes: "Vegetables, fruit, chicken, oatmeal",
@@ -206,7 +206,7 @@ extension Activity {
             Activity(
                 name: "Learn SwiftUI",
                 icon: "book.fill",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Daily",
                 category: "Learning",
                 notes: "1 hour coding practice",
@@ -216,7 +216,7 @@ extension Activity {
             Activity(
                 name: "Read Tech Articles",
                 icon: "newspaper.fill",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Daily",
                 category: "Learning",
                 notes: "AI, Swift, and GPU news",
@@ -226,7 +226,7 @@ extension Activity {
             Activity(
                 name: "Watch WWDC Session",
                 icon: "desktopcomputer",
-                score: randomScore(),
+                progress: randomScore(),
                 recurrence: "Weekly",
                 category: "Learning",
                 notes: "Review SwiftData updates",

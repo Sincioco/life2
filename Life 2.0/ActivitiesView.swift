@@ -15,53 +15,33 @@ import SwiftData
 struct ActivitiesView: View {
     
     @Query var Activities: [Activity]
-    @State private var searchText: String = ""
-    
-    // --------------------------------
-    // Filter then group by Category
-    // --------------------------------
-    private var filteredActivities: [Activity] {
-        guard !searchText.isEmpty else { return Activities }
-        
-        return Activities.filter { activity in
-            activity.name.localizedCaseInsensitiveContains(searchText) ||
-            activity.category.localizedCaseInsensitiveContains(searchText)
-        }
-    }
+    @State private var isPresentingAddActivity = false      // ← NEW
     
     private var groupedByCategory: [String: [Activity]] {
-        Dictionary(grouping: filteredActivities, by: { $0.category })
+        Dictionary(grouping: Activities, by: { $0.category })
     }
     
     var body: some View {
-        
-        NavigationStack {
-            
+        NavigationStack{
             Group {
-                
                 // --------------------------------
                 // Render the list
-                // --------------------------------
                 List {
                     
                     // --------------------------------
                     // Group by Category
-                    // --------------------------------
                     ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
                         
                         // --------------------------------
                         // Add a Section Header for each Category
-                        // --------------------------------
                         Section(header: Text(category)) {
                             
                             // --------------------------------
                             // Render the items under each Category
-                            // --------------------------------
                             ForEach(groupedByCategory[category] ?? []) { activity in
                                 
                                 // --------------------------------
                                 // Use a Custom Row that animates the graph
-                                // --------------------------------
                                 ActivityRow(activity: activity)
                             }
                             .padding(0)
@@ -70,37 +50,22 @@ struct ActivitiesView: View {
                     }
                 }
                 .listRowSeparator(.hidden)
-                .searchable(text: $searchText,
-                            placement: .navigationBarDrawer(displayMode: .automatic),
-                            prompt: "Search activities")
             }
             .navigationTitle("Activities")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        
-                    } label: {
-                        Image(systemName: "house")
-                    }
-                    .accessibilityLabel("Home")
-                }
-                ToolbarItem(placement: .automatic) {
-                    Button {
-                        
-                    } label: {
-                        Image(systemName: "line.3.horizontal.decrease")
-                    }
-                    .accessibilityLabel("Filter")
-                }
-                ToolbarSpacer()
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
-                        
+                        isPresentingAddActivity = true
                     } label: {
-                        Image(systemName: "plus")
+                        Label("Add Item", systemImage: "plus")
                     }
-                    .accessibilityLabel("Add Item")
                 }
+            }
+            // --------------------------------
+            // Present sheet to add a new Activity
+            // --------------------------------
+            .sheet(isPresented: $isPresentingAddActivity) {
+                AddActivityView()   // defined below
             }
         }
     }
@@ -177,6 +142,108 @@ struct ActivityRow: View {
                 animatedProgress = activity.progress
             }
         }
+    }
+}
+
+// MARK: - Add Activity View
+struct AddActivityView: View {
+    
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+    
+    // Form fields
+    @State private var name: String = ""
+    @State private var icon: String = "figure.walk"
+    @State private var progress: Double = 0
+    @State private var recurrence: String = "Daily"
+    @State private var category: String = "Fitness"
+    @State private var notes: String = ""
+    
+    var body: some View {
+        NavigationStack {
+            Form {
+                
+                // ----------------------------------------------------
+                // Activity Section
+                // ----------------------------------------------------
+                Section("Activity") {
+                    TextField("Name", text: $name)
+                    TextField("SF Symbol (icon)", text: $icon)
+                    TextField("Category", text: $category)
+                    TextField("Recurrence", text: $recurrence)
+                }
+                
+                // ----------------------------------------------------
+                // Progress Section — cleaned up, no extra lines
+                // ----------------------------------------------------
+                Section("Progress") {
+                    VStack(spacing: 12) {
+                        
+                        // Percentage text centered
+                        HStack {
+                            Spacer()
+                            Text("\(Int(progress))%")
+                                .monospacedDigit()
+                            Spacer()
+                        }
+                        
+                        // Slider
+                        Slider(value: $progress, in: 0...100, step: 1) {
+                            Text("Progress")
+                        }
+                    }
+                    .padding(.vertical, 4)
+                    .listRowSeparator(.hidden)   // hides the extra horizontal divider
+                }
+                
+                // ----------------------------------------------------
+                // Notes
+                // ----------------------------------------------------
+                Section("Notes") {
+                    TextField("Notes", text: $notes, axis: .vertical)
+                        .lineLimit(3, reservesSpace: true)
+                }
+            }
+            .navigationTitle("Add Activity")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        saveActivity()
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                }
+            }
+        }
+    }
+    
+    // ------------------------------------------------------------
+    // Save a new Activity to SwiftData
+    // ------------------------------------------------------------
+    private func saveActivity() {
+        
+        let now = Date()
+        
+        let newActivity = Activity(
+            name: name,
+            icon: icon,
+            progress: progress,
+            recurrence: recurrence,
+            category: category,
+            notes: notes,
+            dateCreated: now,
+            dateModified: now
+        )
+        
+        modelContext.insert(newActivity)
+        dismiss()
     }
 }
 
