@@ -187,13 +187,16 @@ struct ActivityRow: View {
     }
 }
 
+import SwiftUI
+import SwiftData
+
 // MARK: - Add Activity View
 struct AddActivityView: View {
     
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
-    // Available Categories
+    // Available categories
     private let categories = [
         "Bills",
         "Fitness",
@@ -204,21 +207,16 @@ struct AddActivityView: View {
         "Others"
     ]
     
-    // Available Recurrence
-    private let recurrences = [
-        "Daily",
-        "Weekly",
-        "Monthly",
-        "Yearly",
-    ]
-    
     // Form fields
     @State private var name: String = ""
     @State private var icon: String = "figure.walk"
     @State private var progress: Double = 0
     @State private var recurrence: String = "Daily"
-    @State private var category: String = "Fitness"   // default selection
+    @State private var category: String = "Fitness"   // default
     @State private var notes: String = ""
+    
+    // Sheet state
+    @State private var isPresentingIconPicker = false
     
     var body: some View {
         NavigationStack {
@@ -229,7 +227,25 @@ struct AddActivityView: View {
                 // ----------------------------------------------------
                 Section("Activity") {
                     TextField("Name", text: $name)
-                    TextField("SF Symbol (icon)", text: $icon)
+                    
+                    // Icon "field" that opens a picker sheet
+                    Button {
+                        isPresentingIconPicker = true
+                    } label: {
+                        HStack {
+                            Text("Icon")
+                            Spacer()
+                            Image(systemName: icon)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20, height: 20)
+                            Text(icon)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
+                    }
                     
                     Picker("Category", selection: $category) {
                         ForEach(categories, id: \.self) { cat in
@@ -237,11 +253,7 @@ struct AddActivityView: View {
                         }
                     }
                     
-                    Picker("Recurrence", selection: $recurrence) {
-                        ForEach(recurrences, id: \.self) { rec in
-                            Text(rec).tag(rec)
-                        }
-                    }
+                    TextField("Recurrence", text: $recurrence)
                 }
                 
                 // ----------------------------------------------------
@@ -259,7 +271,6 @@ struct AddActivityView: View {
                         Slider(value: $progress, in: 0...100, step: 1) {
                             Text("Progress")
                         }
-                        .tint(Color.green)
                     }
                     .padding(.vertical, 4)
                     .listRowSeparator(.hidden)
@@ -290,6 +301,12 @@ struct AddActivityView: View {
                     .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
+            // Icon picker sheet
+            .sheet(isPresented: $isPresentingIconPicker) {
+                NavigationStack {
+                    IconPickerView(selectedIcon: $icon)
+                }
+            }
         }
     }
     
@@ -304,7 +321,7 @@ struct AddActivityView: View {
             icon: icon,
             progress: progress,
             recurrence: recurrence,
-            category: category,      // ← uses selected category
+            category: category,
             notes: notes,
             dateCreated: now,
             dateModified: now
@@ -312,6 +329,79 @@ struct AddActivityView: View {
         
         modelContext.insert(newActivity)
         dismiss()
+    }
+}
+
+// MARK: - Icon Picker View
+
+struct IconPickerView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selectedIcon: String
+    @State private var searchText: String = ""
+    
+    // A small, extensible set of SF Symbols (add more as needed)
+    private let allSymbols: [String] = [
+        // Fitness / Health
+        "figure.walk", "figure.run", "heart.fill", "bolt.heart",
+        // Bills / Money
+        "creditcard", "creditcard.fill", "banknote", "dollarsign.circle.fill",
+        // Work / Productivity
+        "calendar", "clock", "briefcase.fill", "laptopcomputer",
+        // Learning
+        "book.fill", "graduationcap.fill",
+        // Maintenance
+        "wrench.fill", "gearshape.fill", "paintbrush.fill",
+        // Personal / Misc
+        "house.fill", "car.fill", "cart.fill", "star.fill",
+        "bell.fill", "person.fill", "person.2.fill"
+    ]
+    
+    private var filteredSymbols: [String] {
+        guard !searchText.isEmpty else { return allSymbols }
+        return allSymbols.filter { $0.localizedCaseInsensitiveContains(searchText) }
+    }
+    
+    private let columns: [GridItem] = [
+        GridItem(.adaptive(minimum: 56), spacing: 16)
+    ]
+    
+    var body: some View {
+        ScrollView {
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(filteredSymbols, id: \.self) { symbol in
+                    Button {
+                        selectedIcon = symbol
+                        dismiss()
+                    } label: {
+                        VStack(spacing: 8) {
+                            Image(systemName: symbol)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(height: 28)
+                            
+                            Text(symbol)
+                                .font(.caption2)
+                                .multilineTextAlignment(.center)
+                                .lineLimit(2)
+                        }
+                        .padding(8)
+                        .frame(maxWidth: .infinity)
+                        .background(.thinMaterial)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding()
+        }
+        .navigationTitle("Choose Icon")
+        .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $searchText, prompt: "Search symbols")
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Close") { dismiss() }
+            }
+        }
     }
 }
 
