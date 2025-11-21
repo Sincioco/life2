@@ -27,6 +27,7 @@ struct MainView: View {
             Tab("Options", systemImage: "line.3.horizontal") {
             }
             Tab("Search", systemImage: "magnifyingglass", role: .search) {
+                
             }
         }
     }

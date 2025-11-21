@@ -35,10 +35,10 @@ struct Life2App: App {
             //SwiftUIGridView(year: 2025, month: 11)
         }
         
-        //.modelContainer(for: Life2Event.self)
+        .modelContainer(for: Activity.self)
         
         // Test Data Container (Part 2 of 2)
-        .modelContainer(previewContainer)    
+        //.modelContainer(previewContainer)
         
     }
 }

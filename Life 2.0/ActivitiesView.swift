@@ -116,6 +116,8 @@ struct ActivitiesView: View {
 // MARK: - Activity Row with animated gauge
 struct ActivityRow: View {
     
+    @Environment(\.modelContext) private var modelContext   // ← needed to delete from SwiftData
+    
     let activity: Activity
     
     @State private var animatedProgress: Double = 0
@@ -142,13 +144,11 @@ struct ActivityRow: View {
             // --------------------------------
             VStack(alignment: .leading) {
                 
-                // --------------------------------
                 // Activity Name
                 Text(activity.name)
                     .font(.body)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
-                // --------------------------------
                 // Activity Progress
                 Gauge(value: animatedProgress, in: 0...100) {
                     EmptyView()                                 // no label
@@ -158,9 +158,6 @@ struct ActivityRow: View {
                 .gaugeStyle(.automatic)
                 .tint(.green)                                   // green fill
                 .frame(maxWidth: .infinity)
-                
-                // --------------------------------
-                // Draw Text on top of the guage
                 .overlay {                                      // center the score text on top
                     Text("\(Int(animatedProgress))%")
                         .monospacedDigit()
@@ -171,24 +168,30 @@ struct ActivityRow: View {
             }
         }
         .onAppear {
-            
-            // --------------------------------
             // Only animate once per row
             guard !hasAnimated else { return }
             hasAnimated = true
             
-            // --------------------------------
             // Animate bar graph from 0 to the actual value
             animatedProgress = 0
             withAnimation(.easeOut(duration: 0.8)) {
                 animatedProgress = activity.progress
             }
         }
+        // --------------------------------
+        // Swipe left to delete
+        // --------------------------------
+        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            Button(role: .destructive) {
+                withAnimation {
+                    modelContext.delete(activity)
+                }
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+        }
     }
 }
-
-import SwiftUI
-import SwiftData
 
 // MARK: - Add Activity View
 struct AddActivityView: View {
