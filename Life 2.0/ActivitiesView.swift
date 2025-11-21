@@ -13,10 +13,11 @@ import SwiftData
 
 // MARK: - ListView
 struct ActivitiesView: View {
-    
+    @Environment(\.modelContext) private var modelContext
     @Query var Activities: [Activity]
     @State private var isPresentingAddActivity = false      // ← NEW
     @State private var searchText: String = ""
+    @State private var showEmptyPrompt: Bool = true
     
     // --------------------------------
     // Filter then group by Category
@@ -35,10 +36,16 @@ struct ActivitiesView: View {
     }
     
     var body: some View {
+        
         NavigationStack{
+            
             Group {
+                
+                
+                
                 // --------------------------------
                 // Render the list
+                // --------------------------------
                 List {
                     
                     // --------------------------------
@@ -70,8 +77,51 @@ struct ActivitiesView: View {
                             placement: .navigationBarDrawer(displayMode: .automatic),
                             prompt: "Search activities")
                 
+                
+                .navigationTitle("Activities")
+                .overlay {
+                    if Activities.isEmpty && showEmptyPrompt {
+                        // --------------------------------
+                        // Empty state prompt
+                        // --------------------------------
+                        VStack(spacing: 16) {
+                            Text("No activities found.")
+                                .font(.title3)
+                                .fontWeight(.semibold)
+                            
+                            Text("Would you like me to add a few activities for you to start with?")
+                                .multilineTextAlignment(.center)
+                                .font(.body)
+                                .foregroundStyle(.secondary)
+                                .padding(.horizontal, 24)
+                            
+                            HStack(spacing: 16) {
+                                
+                                // Later button
+                                Button("Later") {
+                                    withAnimation {
+                                        showEmptyPrompt = false
+                                    }
+                                }
+                                .buttonStyle(.bordered)
+                                
+                                // Yes button (default action)
+                                Button("Yes") {
+                                    withAnimation {
+                                        generateStarterActivities()
+                                        showEmptyPrompt = false
+                                    }
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .keyboardShortcut(.defaultAction)   // makes "Yes" the default action
+                            }
+                            .padding(.top, 4)
+                        }
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                }
             }
-            .navigationTitle("Activities")
+            
             
             // --------------------------------
             // Toolbar Items
@@ -110,6 +160,70 @@ struct ActivitiesView: View {
                 AddActivityView()   // defined below
             }
         }
+    }
+    
+    // MARK: - Starter Activities
+    
+    private func generateStarterActivities() {
+        let now = Date()
+        
+        let starters: [Activity] = [
+            Activity(
+                name: "Morning Run",
+                icon: "figure.run",
+                progress: Double(Int.random(in: 10...60)),
+                recurrence: "Daily",
+                category: "Fitness",
+                notes: "Light 5km run to start the day.",
+                dateCreated: now,
+                dateModified: now
+            ),
+            Activity(
+                name: "Pay Electric Bill",
+                icon: "bolt.fill",
+                progress: Double(Int.random(in: 0...10)),
+                recurrence: "Monthly",
+                category: "Bills",
+                notes: "Due near the end of the month.",
+                dateCreated: now,
+                dateModified: now
+            ),
+            Activity(
+                name: "Learn Something New",
+                icon: "book.fill",
+                progress: Double(Int.random(in: 20...70)),
+                recurrence: "Daily",
+                category: "Learning",
+                notes: "Spend at least 30 minutes building UIs.",
+                dateCreated: now,
+                dateModified: now
+            ),
+            Activity(
+                name: "Family Dinner",
+                icon: "person.3.fill",
+                progress: Double(Int.random(in: 0...30)),
+                recurrence: "Weekly",
+                category: "Personal",
+                notes: "Device-free dinner with the family.",
+                dateCreated: now,
+                dateModified: now
+            ),
+            Activity(
+                name: "Weekly Planning",
+                icon: "calendar.badge.clock",
+                progress: Double(Int.random(in: 0...40)),
+                recurrence: "Weekly",
+                category: "Work",
+                notes: "Plan tasks and priorities for the week.",
+                dateCreated: now,
+                dateModified: now
+            )
+        ]
+        
+        for activity in starters {
+            modelContext.insert(activity)
+        }
+        // SwiftData auto-saves with the context; no explicit save call required
     }
 }
 
