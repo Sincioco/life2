@@ -193,12 +193,23 @@ struct AddActivityView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     
+    // Available categories
+    private let categories = [
+        "Bills",
+        "Fitness",
+        "Learning",
+        "Maintenance",
+        "Personal",
+        "Work",
+        "Others"
+    ]
+    
     // Form fields
     @State private var name: String = ""
     @State private var icon: String = "figure.walk"
     @State private var progress: Double = 0
     @State private var recurrence: String = "Daily"
-    @State private var category: String = "Fitness"
+    @State private var category: String = "Fitness"   // default selection
     @State private var notes: String = ""
     
     var body: some View {
@@ -211,17 +222,21 @@ struct AddActivityView: View {
                 Section("Activity") {
                     TextField("Name", text: $name)
                     TextField("SF Symbol (icon)", text: $icon)
-                    TextField("Category", text: $category)
+                    
+                    Picker("Category", selection: $category) {
+                        ForEach(categories, id: \.self) { cat in
+                            Text(cat).tag(cat)
+                        }
+                    }
+                    
                     TextField("Recurrence", text: $recurrence)
                 }
                 
                 // ----------------------------------------------------
-                // Progress Section — cleaned up, no extra lines
+                // Progress Section
                 // ----------------------------------------------------
                 Section("Progress") {
                     VStack(spacing: 12) {
-                        
-                        // Percentage text centered
                         HStack {
                             Spacer()
                             Text("\(Int(progress))%")
@@ -229,13 +244,12 @@ struct AddActivityView: View {
                             Spacer()
                         }
                         
-                        // Slider
                         Slider(value: $progress, in: 0...100, step: 1) {
                             Text("Progress")
                         }
                     }
                     .padding(.vertical, 4)
-                    .listRowSeparator(.hidden)   // hides the extra horizontal divider
+                    .listRowSeparator(.hidden)
                 }
                 
                 // ----------------------------------------------------
@@ -270,7 +284,6 @@ struct AddActivityView: View {
     // Save a new Activity to SwiftData
     // ------------------------------------------------------------
     private func saveActivity() {
-        
         let now = Date()
         
         let newActivity = Activity(
@@ -278,7 +291,7 @@ struct AddActivityView: View {
             icon: icon,
             progress: progress,
             recurrence: recurrence,
-            category: category,
+            category: category,      // ← uses selected category
             notes: notes,
             dateCreated: now,
             dateModified: now
