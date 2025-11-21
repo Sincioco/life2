@@ -14,7 +14,7 @@ struct MainView2: View {
     var body: some View {
         
         TabView {
-            Tab("List", systemImage: "list.bullet.rectangle") {
+            Tab("Activities", systemImage: "list.bullet.rectangle") {
                 ListView()
             }
             Tab("Calendar", systemImage: "calendar") {

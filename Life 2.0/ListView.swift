@@ -18,51 +18,55 @@ struct ListView: View {
     }
     
     var body: some View {
-        
-        List {
-            
-            ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
-                
-                Section(header: Text(category)) {
+        NavigationStack{
+            Group {
+                List {
                     
-                    ForEach(groupedByCategory[category]!) { item in
+                    ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
                         
-                        HStack {
+                        Section(header: Text(category)) {
                             
-                            // Event Icon
-                            Image(systemName: item.icon)
-                                .resizable()
-                                .scaledToFit()
-                                .foregroundStyle(.blue)
-                                .frame(width: 40, height: 40)
-                                .padding(0)
-                            Spacer(minLength: 20)
-                            
-                            // Event Name and Progress Bar
-                            VStack(alignment: .leading) {
-                                Text(item.name)
-                                    .font(.body)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
+                            ForEach(groupedByCategory[category]!) { item in
                                 
-                                Gauge(value: item.score, in: 0...100) {
-                                    Text("Score")
-                                        .fontWeight(.regular)
-                                } currentValueLabel: {
-                                    Text("\(Int(item.score))%")
-                                        .monospacedDigit()
-                                        .fontWeight(.regular)
+                                HStack {
+                                    
+                                    // Event Icon
+                                    Image(systemName: item.icon)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .foregroundStyle(.blue)
+                                        .frame(width: 40, height: 40)
+                                        .padding(0)
+                                    Spacer(minLength: 20)
+                                    
+                                    // Event Name and Progress Bar
+                                    VStack(alignment: .leading) {
+                                        Text(item.name)
+                                            .font(.body)
+                                            .frame(maxWidth: .infinity, alignment: .leading)
+                                        
+                                        Gauge(value: item.score, in: 0...100) {
+                                            Text("Score")
+                                                .fontWeight(.regular)
+                                        } currentValueLabel: {
+                                            Text("\(Int(item.score))%")
+                                                .monospacedDigit()
+                                                .fontWeight(.regular)
+                                        }
+                                        .gaugeStyle(.accessoryLinear)
+                                        .tint(.blue)
+                                        .frame(maxWidth: .infinity, alignment: .leading)
+                                    }
+                                    
                                 }
-                                .gaugeStyle(.accessoryLinear)
-                                .tint(.blue)
-                                .frame(maxWidth: .infinity, alignment: .leading)
                             }
-                            
+                            .padding(0)
                         }
+                        .contentShape(Rectangle())
                     }
-                    .padding(0)
                 }
-                .contentShape(Rectangle())
             }
+            .navigationTitle("Activities")
         }
     }
 }
