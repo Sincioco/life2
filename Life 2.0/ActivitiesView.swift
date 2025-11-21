@@ -16,9 +16,22 @@ struct ActivitiesView: View {
     
     @Query var Activities: [Activity]
     @State private var isPresentingAddActivity = false      // ← NEW
+    @State private var searchText: String = ""
     
+    // --------------------------------
+    // Filter then group by Category
+    // --------------------------------
+    private var filteredActivities: [Activity] {
+        guard !searchText.isEmpty else { return Activities }
+        
+        return Activities.filter { activity in
+            activity.name.localizedCaseInsensitiveContains(searchText) ||
+            activity.category.localizedCaseInsensitiveContains(searchText)
+        }
+    }
+
     private var groupedByCategory: [String: [Activity]] {
-        Dictionary(grouping: Activities, by: { $0.category })
+        Dictionary(grouping: filteredActivities, by: { $0.category })
     }
     
     var body: some View {
@@ -50,8 +63,18 @@ struct ActivitiesView: View {
                     }
                 }
                 .listRowSeparator(.hidden)
+                
+                // --------------------------------
+                // Search
+                .searchable(text: $searchText,
+                            placement: .navigationBarDrawer(displayMode: .automatic),
+                            prompt: "Search activities")
+
             }
             .navigationTitle("Activities")
+            
+            // --------------------------------
+            // Toolbar Items
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
