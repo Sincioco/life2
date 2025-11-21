@@ -333,14 +333,19 @@ struct AddActivityView: View {
 }
 
 // MARK: - Icon Picker View
+struct SymbolItem: Identifiable, Hashable {
+    let id: UUID = UUID()
+    let name: String
+}
 
 struct IconPickerView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedIcon: String
     @State private var searchText: String = ""
+    @State private var allSymbols: [SymbolItem] = []
     
-    // A small, extensible set of SF Symbols (add more as needed)
-    private let allSymbols: [String] = [
+    // Your base symbol names (extend as you like)
+    private let baseSymbolNames: [String] = [
         // Fitness / Health
         "figure.walk", "figure.run", "heart.fill", "bolt.heart",
         // Bills / Money
@@ -353,56 +358,175 @@ struct IconPickerView: View {
         "wrench.fill", "gearshape.fill", "paintbrush.fill",
         // Personal / Misc
         "house.fill", "car.fill", "cart.fill", "star.fill",
-        "bell.fill", "person.fill", "person.2.fill"
+        "bell.fill", "person.fill", "person.2.fill",
+        
+        // People
+        "person",
+            "person.fill",
+            "person.circle",
+            "person.circle.fill",
+            "person.crop.circle",
+            "person.crop.circle.fill",
+            "person.crop.square",
+            "person.crop.square.fill",
+            "person.crop.rectangle",
+            "person.fill.checkmark",
+            "person.fill.questionmark",
+        
+        // School
+        "book.fill",
+            "book.closed.fill",
+            "text.book.closed.fill",
+            "graduationcap.fill",
+            "pencil",
+            "pencil.and.outline",
+            "highlighter",
+            "studentdesk",
+            "function",
+            "brain.head.profile",
+        
+        // Work
+        "briefcase.fill",
+            "calendar",
+            "calendar.badge.clock",
+            "clock",
+            "chart.bar.fill",
+            "chart.line.uptrend.xyaxis",
+            "laptopcomputer",
+            "desktopcomputer",
+            "folder.fill",
+            "tray.full.fill",
+        
+        // Exercise
+        "figure.walk",
+            "figure.run",
+            "figure.strengthtraining.traditional",
+            "dumbbell.fill",
+            "figure.cooldown",
+            "heart.fill",
+            "bolt.heart",
+            "bicycle",
+            "flame.fill",
+            "figure.flexibility",
+        
+        // Lifestyle
+        "sun.max.fill",
+            "moon.stars.fill",
+            "house.fill",
+            "bed.double.fill",
+            "cart.fill",
+            "leaf.fill",
+            "sparkles",
+            "takeoutbag.and.cup.and.straw.fill",
+            "wineglass.fill",
+            "camera.fill",
+        
+        // Sports
+        "sportscourt.fill",
+            "basketball.fill",
+            "soccerball.fill",
+            "football.fill",
+            "tennis.racket",
+            "figure.golf",
+            "figure.skiing.downhill",
+            "flag.fill",
+            "trophy.fill",
+            "medal.fill",
+        
+        // Tech
+        "iphone",
+            "ipad",
+            "laptopcomputer",
+            "desktopcomputer",
+            "keyboard.fill",
+            "cpu",
+            "bolt.fill",
+            "antenna.radiowaves.left.and.right",
+            "wifi",
+            "gearshape.fill",
+        
+        // Family
+        "person.2.fill",
+            "person.3.fill",
+            "figure.child",
+            "house.fill",
+            "heart.fill",
+            "photo.on.rectangle",
+            "calendar.badge.heart",
+            "gift.fill",
+            "car.fill",
+            "hand.raised.fill",
+        
+        // Mindfullness
+        "brain.head.profile",
+            "spa.fill",
+            "waveform",
+            "heart.text.square.fill",
+            "face.smiling",
+            "sparkles",
+            "leaf.fill",
+            "umbrella.fill",
+            "wind",
+            "sun.max"
     ]
     
-    private var filteredSymbols: [String] {
-        guard !searchText.isEmpty else { return allSymbols }
-        return allSymbols.filter { $0.localizedCaseInsensitiveContains(searchText) }
-    }
     
-    private let columns: [GridItem] = [
-        GridItem(.adaptive(minimum: 56), spacing: 16)
-    ]
-    
-    var body: some View {
-        ScrollView {
-            LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(filteredSymbols, id: \.self) { symbol in
-                    Button {
-                        selectedIcon = symbol
-                        dismiss()
-                    } label: {
-                        VStack(spacing: 8) {
-                            Image(systemName: symbol)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(height: 28)
-                            
-                            Text(symbol)
-                                .font(.caption2)
-                                .multilineTextAlignment(.center)
-                                .lineLimit(2)
+        
+        private var filteredSymbols: [SymbolItem] {
+            guard !searchText.isEmpty else { return allSymbols }
+            return allSymbols.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+        }
+        
+        private let columns: [GridItem] = [
+            GridItem(.adaptive(minimum: 56), spacing: 16)
+        ]
+        
+        var body: some View {
+            ScrollView {
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(filteredSymbols) { symbol in
+                        Button {
+                            selectedIcon = symbol.name
+                            dismiss()
+                        } label: {
+                            VStack(spacing: 8) {
+                                Image(systemName: symbol.name)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(height: 28)
+                                
+                                Text(symbol.name)
+                                    .font(.caption2)
+                                    .multilineTextAlignment(.center)
+                                    .lineLimit(2)
+                            }
+                            .padding(8)
+                            .frame(maxWidth: .infinity)
+                            .background(.thinMaterial)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
                         }
-                        .padding(8)
-                        .frame(maxWidth: .infinity)
-                        .background(.thinMaterial)
-                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                        .buttonStyle(.plain)
                     }
-                    .buttonStyle(.plain)
+                }
+                .padding()
+            }
+            .navigationTitle("Choose Icon")
+            .navigationBarTitleDisplayMode(.inline)
+            .searchable(text: $searchText, prompt: "Search symbols")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") { dismiss() }
                 }
             }
-            .padding()
-        }
-        .navigationTitle("Choose Icon")
-        .navigationBarTitleDisplayMode(.inline)
-        .searchable(text: $searchText, prompt: "Search symbols")
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Close") { dismiss() }
+            .onAppear {
+                // Precompute valid symbols once; avoids flicker / reshaping issues.
+                if allSymbols.isEmpty {
+                    allSymbols = baseSymbolNames
+                        .filter { UIImage(systemName: $0) != nil }   // only keep real symbols for this OS
+                        .map { SymbolItem(name: $0) }
+                }
             }
         }
-    }
 }
 
 // MARK: - Preview code for Canvas
