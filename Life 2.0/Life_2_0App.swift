@@ -1,15 +1,17 @@
-//
-//  Life_2_0App.swift
-//  Life 2.0
-//
-//  Created by Sin on 11/19/25.
-//
-
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+//                                      Life 2.0 - App Definition
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// Programmed By:  Louiery R. Sincioco                                                     Version: 1.0
+// Programmed Date:  November 19, 2025                                                      For: iOS 26
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// Purpose:  Bootstraps the data containers and the initial view that loads.
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
 import SwiftUI
 import SwiftData
 
 @main
 struct Life_2_0App: App {
+    
     var body: some Scene {
         
         // Test Data Container (Part 1 of 2)

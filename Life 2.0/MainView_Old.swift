@@ -1,12 +1,13 @@
-// ============
-//  ContentView.swift
-//  Life 2.0
-//
-//  Created by Sin on 11/19/25.
-//
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+//                                         Life 2.0 - Main View
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// Programmed By:  Louiery R. Sincioco                                                     Version: 1.0
+// Programmed Date:  November 19, 2025                                                      For: iOS 26
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// Purpose:  Setup the main Tab view of the application.
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
 
 import SwiftUI
-//import SwiftData
 
 struct Event: Identifiable {
     let id = UUID()
@@ -22,8 +23,6 @@ struct MainView_Old: View {
     @State private var showAddFromToolbar: Bool = false
     @State private var searchText: String = ""
     @State private var showFilter: Bool = false
-    
-//    @Query var Life2Events: [Life2Event]
     
     let weekly: [Event] = [
         Event(name: "Walk the Dog", imageName: "pawprint.fill", score: 73),
@@ -49,9 +48,7 @@ struct MainView_Old: View {
                         if filteredPeople.isEmpty && !searchText.isEmpty {
                             ContentUnavailableView.search(text: searchText)
                         } else {
-//                            List(Life2Events) { event in
-//                                Text(event.name)
-//                            }
+
                             List(filteredPeople) { item in
                                 VStack {
                                     HStack {

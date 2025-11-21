@@ -1,3 +1,12 @@
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+//                                      Life 2.0 - Activity View
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// Programmed By:  Louiery R. Sincioco                                                     Version: 1.0
+// Programmed Date:  November 19, 2025                                                      For: iOS 26
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// Purpose:  A view to render activities.
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+
 import Foundation
 import SwiftUI
 import SwiftData
@@ -5,9 +14,9 @@ import SwiftData
 // MARK: - Row with animated gauge
 struct ActivityRow: View {
     
-    let item: Activity
+    let activity: Activity
     
-    @State private var animatedScore: Double = 0
+    @State private var animatedProgress: Double = 0
     @State private var hasAnimated = false
     
     var body: some View {
@@ -15,9 +24,9 @@ struct ActivityRow: View {
         HStack {
             
             // --------------------------------
-            // Event Icon
+            // Activity Icon
             // --------------------------------
-            Image(systemName: item.icon)
+            Image(systemName: activity.icon)
                 .resizable()
                 .scaledToFit()
                 .foregroundStyle(.blue)
@@ -33,13 +42,13 @@ struct ActivityRow: View {
                 
                 // --------------------------------
                 // Activity Name
-                Text(item.name)
+                Text(activity.name)
                     .font(.body)
                     .frame(maxWidth: .infinity, alignment: .leading)
                 
                 // --------------------------------
                 // Activity Progress
-                Gauge(value: animatedScore, in: 0...100) {
+                Gauge(value: animatedProgress, in: 0...100) {
                     EmptyView()                                 // no label
                 } currentValueLabel: {
                     EmptyView()                                 // we'll draw our own text
@@ -50,8 +59,8 @@ struct ActivityRow: View {
                 
                 // --------------------------------
                 // Draw Text on top of the guage
-                .overlay {                          // center the score text on top
-                    Text("\(Int(animatedScore))%")
+                .overlay {                                      // center the score text on top
+                    Text("\(Int(animatedProgress))%")
                         .monospacedDigit()
                         .font(.caption)
                         .fontWeight(.semibold)
@@ -66,9 +75,11 @@ struct ActivityRow: View {
             guard !hasAnimated else { return }
             hasAnimated = true
             
-            animatedScore = 0
+            // --------------------------------
+            // Animate bar graph from 0 to the actual value
+            animatedProgress = 0
             withAnimation(.easeOut(duration: 0.8)) {
-                animatedScore = item.score
+                animatedProgress = activity.progress
             }
         }
     }
@@ -77,10 +88,10 @@ struct ActivityRow: View {
 // MARK: - ListView
 struct ActivitiesView: View {
     
-    @Query var Life2Events: [Activity]
+    @Query var Activities: [Activity]
     
     private var groupedByCategory: [String: [Activity]] {
-        Dictionary(grouping: Life2Events, by: { $0.category })
+        Dictionary(grouping: Activities, by: { $0.category })
     }
     
     var body: some View {
@@ -103,11 +114,11 @@ struct ActivitiesView: View {
                             
                             // --------------------------------
                             // Render the items under each Category
-                            ForEach(groupedByCategory[category]!) { item in
+                            ForEach(groupedByCategory[category]!) { activity in
                                 
                                 // --------------------------------
                                 // Use a Custom Row that animates the graph
-                                ActivityRow(item: item)   // ← use animated row
+                                ActivityRow(activity: activity)   // ← use animated row
                             }
                             .padding(0)
                         }

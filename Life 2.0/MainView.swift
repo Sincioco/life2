@@ -1,9 +1,11 @@
-//
-//  MainView2.swift
-//  Life 2.0
-//
-//  Created by Sin on 11/22/25.
-//
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+//                                         Life 2.0 - Main View
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// Programmed By:  Louiery R. Sincioco                                                     Version: 1.0
+// Programmed Date:  November 19, 2025                                                      For: iOS 26
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// Purpose:  Setup the main Tab view of the application.
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
 
 import Foundation
 import SwiftUI
@@ -25,9 +27,6 @@ struct MainView: View {
             Tab("Options", systemImage: "line.3.horizontal") {
             }
             Tab("Search", systemImage: "magnifyingglass", role: .search) {
-     
-                    ActivitiesView()
-        
             }
         }
     }

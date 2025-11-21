@@ -1,9 +1,11 @@
-//
-//  Event.swift
-//  Life 2.0
-//
-//  Created by Sin on 11/22/25.
-//
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+//                                      Life 2.0 - Activity Data Model
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// Programmed By:  Louiery R. Sincioco                                                     Version: 1.0
+// Programmed Date:  November 22, 2025                                                      For: iOS 26
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// Purpose:  Defines the Data Model of an Activity.
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
 
 import Foundation
 import SwiftData
@@ -11,7 +13,7 @@ import SwiftData
 @Model
 class Activity {
     var name: String
-    var score: Double
+    var progress: Double
     var icon: String
     var recurrence: String
     var category: String
@@ -22,7 +24,7 @@ class Activity {
     init(name: String, icon: String, score: Double, recurrence: String, category: String, notes: String, dateCreated: Date, dateModified: Date) {
         self.name = name
         self.icon = icon
-        self.score = score
+        self.progress = score
         self.recurrence = recurrence
         self.category = category
         self.notes = notes
