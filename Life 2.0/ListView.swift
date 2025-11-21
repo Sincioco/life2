@@ -37,6 +37,7 @@ struct ListView: View {
                                         .foregroundStyle(.blue)
                                         .frame(width: 40, height: 40)
                                         .padding(0)
+                                    
                                     Spacer(minLength: 20)
                                     
                                     // Event Name and Progress Bar
@@ -46,25 +47,33 @@ struct ListView: View {
                                             .frame(maxWidth: .infinity, alignment: .leading)
                                         
                                         Gauge(value: item.score, in: 0...100) {
-                                            Text("Score")
-                                                .fontWeight(.regular)
+                                            EmptyView()   // no label
                                         } currentValueLabel: {
+                                            EmptyView()   // we'll draw our own text
+                                        }
+                                        .gaugeStyle(.automatic)
+                                        .tint(.green)                       // green fill
+                                        .frame(maxWidth: .infinity)
+                                        //.frame(height: 24)                  // a bit taller
+                                        .overlay {                          // center the score text on top
                                             Text("\(Int(item.score))%")
                                                 .monospacedDigit()
-                                                .fontWeight(.regular)
+                                                .font(.caption)
+                                                .fontWeight(.semibold)
+                                                //.foregroundStyle(.white)
+                                            
                                         }
-                                        .gaugeStyle(.accessoryLinear)
-                                        .tint(.blue)
-                                        .frame(maxWidth: .infinity, alignment: .leading)
                                     }
                                     
                                 }
                             }
                             .padding(0)
+                            //.listRowSeparator(.hidden)
                         }
                         .contentShape(Rectangle())
                     }
                 }
+                .listRowSeparator(.hidden)
             }
             .navigationTitle("Activities")
         }

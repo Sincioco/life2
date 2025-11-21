@@ -33,13 +33,18 @@ class Life2Event {
 }
 
 extension Life2Event {
+    
+    private static func randomScore() -> Double {
+        Double(Int.random(in: 1...100))
+    }
+    
     static var sampleData: [Life2Event] {
         [
             // FITNESS
             Life2Event(
                 name: "Morning Run",
                 icon: "figure.run",
-                score: 10,
+                score: randomScore(),
                 recurrence: "Daily",
                 category: "Fitness",
                 notes: "5km easy pace",
@@ -49,7 +54,7 @@ extension Life2Event {
             Life2Event(
                 name: "Leg Day",
                 icon: "dumbbell.fill",
-                score: 7.5,
+                score: randomScore(),
                 recurrence: "Weekly",
                 category: "Fitness",
                 notes: "Squats, Lunges, Leg Press",
@@ -59,7 +64,7 @@ extension Life2Event {
             Life2Event(
                 name: "Yoga & Stretching",
                 icon: "figure.cooldown",
-                score: 5,
+                score: randomScore(),
                 recurrence: "Daily",
                 category: "Fitness",
                 notes: "15 minutes morning flexibility",
@@ -71,7 +76,7 @@ extension Life2Event {
             Life2Event(
                 name: "Date Night",
                 icon: "heart.fill",
-                score: 8,
+                score: randomScore(),
                 recurrence: "Weekly",
                 category: "Personal",
                 notes: "Dinner with Joy 🍽️",
@@ -81,7 +86,7 @@ extension Life2Event {
             Life2Event(
                 name: "Meditation",
                 icon: "brain.head.profile",
-                score: 4.5,
+                score: randomScore(),
                 recurrence: "Daily",
                 category: "Personal",
                 notes: "10 minutes mindfulness",
@@ -91,7 +96,7 @@ extension Life2Event {
             Life2Event(
                 name: "Call Parents",
                 icon: "phone.fill",
-                score: 3,
+                score: randomScore(),
                 recurrence: "Weekly",
                 category: "Personal",
                 notes: "Check in with family",
@@ -103,7 +108,7 @@ extension Life2Event {
             Life2Event(
                 name: "Pay Electric Bill",
                 icon: "bolt.fill",
-                score: 3,
+                score: randomScore(),
                 recurrence: "Monthly",
                 category: "Bills",
                 notes: "Due every 25th",
@@ -113,7 +118,7 @@ extension Life2Event {
             Life2Event(
                 name: "Water Bill",
                 icon: "drop.fill",
-                score: 2,
+                score: randomScore(),
                 recurrence: "Monthly",
                 category: "Bills",
                 notes: "Auto-debit BPI",
@@ -123,7 +128,7 @@ extension Life2Event {
             Life2Event(
                 name: "Internet Bill",
                 icon: "wifi",
-                score: 2.5,
+                score: randomScore(),
                 recurrence: "Monthly",
                 category: "Bills",
                 notes: "Converge ₱1500",
@@ -135,7 +140,7 @@ extension Life2Event {
             Life2Event(
                 name: "Weekly Planning",
                 icon: "calendar",
-                score: 4,
+                score: randomScore(),
                 recurrence: "Weekly",
                 category: "Work",
                 notes: "Review tasks + sprint board",
@@ -145,7 +150,7 @@ extension Life2Event {
             Life2Event(
                 name: "1-on-1 Team Meeting",
                 icon: "person.2.fill",
-                score: 3.5,
+                score: randomScore(),
                 recurrence: "Weekly",
                 category: "Work",
                 notes: "Coaching + updates",
@@ -155,7 +160,7 @@ extension Life2Event {
             Life2Event(
                 name: "Project Refactor",
                 icon: "hammer",
-                score: 6,
+                score: randomScore(),
                 recurrence: "None",
                 category: "Work",
                 notes: "Clean up old Swift code",
@@ -167,7 +172,7 @@ extension Life2Event {
             Life2Event(
                 name: "Car Maintenance",
                 icon: "car.fill",
-                score: 2,
+                score: randomScore(),
                 recurrence: "Yearly",
                 category: "Maintenance",
                 notes: "Oil change + tune-up",
@@ -177,7 +182,7 @@ extension Life2Event {
             Life2Event(
                 name: "Aircon Cleaning",
                 icon: "wind",
-                score: 3,
+                score: randomScore(),
                 recurrence: "Quarterly",
                 category: "Maintenance",
                 notes: "Split-type deep clean",
@@ -187,7 +192,7 @@ extension Life2Event {
             Life2Event(
                 name: "Grocery Restock",
                 icon: "cart.fill",
-                score: 2.5,
+                score: randomScore(),
                 recurrence: "Weekly",
                 category: "Maintenance",
                 notes: "Vegetables, fruit, chicken, oatmeal",
@@ -199,7 +204,7 @@ extension Life2Event {
             Life2Event(
                 name: "Learn SwiftUI",
                 icon: "book.fill",
-                score: 6.5,
+                score: randomScore(),
                 recurrence: "Daily",
                 category: "Learning",
                 notes: "1 hour coding practice",
@@ -209,7 +214,7 @@ extension Life2Event {
             Life2Event(
                 name: "Read Tech Articles",
                 icon: "newspaper.fill",
-                score: 3,
+                score: randomScore(),
                 recurrence: "Daily",
                 category: "Learning",
                 notes: "AI, Swift, and GPU news",
@@ -219,7 +224,7 @@ extension Life2Event {
             Life2Event(
                 name: "Watch WWDC Session",
                 icon: "desktopcomputer",
-                score: 4,
+                score: randomScore(),
                 recurrence: "Weekly",
                 category: "Learning",
                 notes: "Review SwiftData updates",
