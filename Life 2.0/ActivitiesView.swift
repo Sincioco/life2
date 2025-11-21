@@ -332,203 +332,292 @@ struct AddActivityView: View {
     }
 }
 
-// MARK: - Icon Picker View
+import SwiftUI
+import UIKit
+
+// MARK: - Models
+
 struct SymbolItem: Identifiable, Hashable {
-    let id: UUID = UUID()
+    let id = UUID()
     let name: String
 }
+
+enum IconCategory: String, CaseIterable, Identifiable {
+    case recent
+    case all
+    case school
+    case work
+    case exercise
+    case lifestyle
+    case sports
+    case tech
+    case family
+    case mindfulness
+    case people
+    
+    var id: String { rawValue }
+    
+    var title: String {
+        switch self {
+        case .recent:      return "Recent"
+        case .all:         return "All"
+        case .school:      return "School"
+        case .work:        return "Work"
+        case .exercise:    return "Exercise"
+        case .lifestyle:   return "Lifestyle"
+        case .sports:      return "Sports"
+        case .tech:        return "Tech"
+        case .family:      return "Family"
+        case .mindfulness: return "Mind"
+        case .people:      return "People"
+        }
+    }
+}
+
+// MARK: - Icon Picker View
 
 struct IconPickerView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedIcon: String
+    
     @State private var searchText: String = ""
     @State private var allSymbols: [SymbolItem] = []
+    @State private var recentIcons: [String] = []
     
-    // Your base symbol names (extend as you like)
-    private let baseSymbolNames: [String] = [
-        // Fitness / Health
-        "figure.walk", "figure.run", "heart.fill", "bolt.heart",
-        // Bills / Money
-        "creditcard", "creditcard.fill", "banknote", "dollarsign.circle.fill",
-        // Work / Productivity
-        "calendar", "clock", "briefcase.fill", "laptopcomputer",
-        // Learning
-        "book.fill", "graduationcap.fill",
-        // Maintenance
-        "wrench.fill", "gearshape.fill", "paintbrush.fill",
-        // Personal / Misc
-        "house.fill", "car.fill", "cart.fill", "star.fill",
-        "bell.fill", "person.fill", "person.2.fill",
-        
-        // People
-        "person",
-            "person.fill",
-            "person.circle",
-            "person.circle.fill",
-            "person.crop.circle",
-            "person.crop.circle.fill",
-            "person.crop.square",
-            "person.crop.square.fill",
-            "person.crop.rectangle",
-            "person.fill.checkmark",
-            "person.fill.questionmark",
-        
-        // School
-        "book.fill",
-            "book.closed.fill",
-            "text.book.closed.fill",
-            "graduationcap.fill",
-            "pencil",
-            "pencil.and.outline",
-            "highlighter",
-            "studentdesk",
-            "function",
-            "brain.head.profile",
-        
-        // Work
-        "briefcase.fill",
-            "calendar",
-            "calendar.badge.clock",
-            "clock",
-            "chart.bar.fill",
-            "chart.line.uptrend.xyaxis",
-            "laptopcomputer",
-            "desktopcomputer",
-            "folder.fill",
-            "tray.full.fill",
-        
-        // Exercise
-        "figure.walk",
-            "figure.run",
-            "figure.strengthtraining.traditional",
-            "dumbbell.fill",
-            "figure.cooldown",
-            "heart.fill",
-            "bolt.heart",
-            "bicycle",
-            "flame.fill",
-            "figure.flexibility",
-        
-        // Lifestyle
-        "sun.max.fill",
-            "moon.stars.fill",
-            "house.fill",
-            "bed.double.fill",
-            "cart.fill",
-            "leaf.fill",
-            "sparkles",
-            "takeoutbag.and.cup.and.straw.fill",
-            "wineglass.fill",
-            "camera.fill",
-        
-        // Sports
-        "sportscourt.fill",
-            "basketball.fill",
-            "soccerball.fill",
-            "football.fill",
-            "tennis.racket",
-            "figure.golf",
-            "figure.skiing.downhill",
-            "flag.fill",
-            "trophy.fill",
-            "medal.fill",
-        
-        // Tech
-        "iphone",
-            "ipad",
-            "laptopcomputer",
-            "desktopcomputer",
-            "keyboard.fill",
-            "cpu",
-            "bolt.fill",
-            "antenna.radiowaves.left.and.right",
-            "wifi",
-            "gearshape.fill",
-        
-        // Family
-        "person.2.fill",
-            "person.3.fill",
-            "figure.child",
-            "house.fill",
-            "heart.fill",
-            "photo.on.rectangle",
-            "calendar.badge.heart",
-            "gift.fill",
-            "car.fill",
-            "hand.raised.fill",
-        
-        // Mindfullness
-        "brain.head.profile",
-            "spa.fill",
-            "waveform",
-            "heart.text.square.fill",
-            "face.smiling",
-            "sparkles",
-            "leaf.fill",
-            "umbrella.fill",
-            "wind",
-            "sun.max"
+    @State private var selectedCategory: IconCategory = .all
+    
+    // Persist recent icon names (comma-separated)
+    @AppStorage("recentIconNames") private var recentIconNamesStorage: String = ""
+    
+    // Base symbol names per category (curated)
+    private let schoolSymbols = [
+        "book.fill", "book.closed.fill", "text.book.closed.fill",
+        "graduationcap.fill", "pencil", "pencil.and.outline",
+        "highlighter", "studentdesk", "function", "brain.head.profile"
     ]
     
+    private let workSymbols = [
+        "briefcase.fill", "calendar", "calendar.badge.clock",
+        "clock", "chart.bar.fill", "chart.line.uptrend.xyaxis",
+        "laptopcomputer", "desktopcomputer", "folder.fill", "tray.full.fill"
+    ]
     
-        
-        private var filteredSymbols: [SymbolItem] {
-            guard !searchText.isEmpty else { return allSymbols }
-            return allSymbols.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
-        }
-        
-        private let columns: [GridItem] = [
-            GridItem(.adaptive(minimum: 56), spacing: 16)
-        ]
-        
-        var body: some View {
+    private let exerciseSymbols = [
+        "figure.walk", "figure.run", "figure.strengthtraining.traditional",
+        "dumbbell.fill", "figure.cooldown", "heart.fill", "bolt.heart",
+        "bicycle", "flame.fill", "figure.flexibility"
+    ]
+    
+    private let lifestyleSymbols = [
+        "sun.max.fill", "moon.stars.fill", "house.fill", "bed.double.fill",
+        "cart.fill", "leaf.fill", "sparkles",
+        "takeoutbag.and.cup.and.straw.fill", "wineglass.fill", "camera.fill"
+    ]
+    
+    private let sportsSymbols = [
+        "sportscourt.fill", "basketball.fill", "soccerball.fill",
+        "football.fill", "tennis.racket", "figure.golf",
+        "figure.skiing.downhill", "flag.fill", "trophy.fill", "medal.fill"
+    ]
+    
+    private let techSymbols = [
+        "iphone", "ipad", "laptopcomputer", "desktopcomputer",
+        "keyboard.fill", "cpu", "bolt.fill",
+        "antenna.radiowaves.left.and.right", "wifi", "gearshape.fill"
+    ]
+    
+    private let familySymbols = [
+        "person.2.fill", "person.3.fill", "figure.child",
+        "house.fill", "heart.fill", "photo.on.rectangle",
+        "calendar.badge.heart", "gift.fill", "car.fill", "hand.raised.fill"
+    ]
+    
+    private let mindfulnessSymbols = [
+        "brain.head.profile", "spa.fill", "waveform",
+        "heart.text.square.fill", "face.smiling",
+        "sparkles", "leaf.fill", "umbrella.fill", "wind", "sun.max"
+    ]
+    
+    private let peopleSymbols = [
+        "person", "person.fill", "person.circle", "person.circle.fill",
+        "person.crop.circle", "person.2", "person.2.fill",
+        "person.3", "person.3.fill", "person.2.wave.2"
+    ]
+    
+    private var allBaseNames: [String] {
+        Array(Set(
+            schoolSymbols +
+            workSymbols +
+            exerciseSymbols +
+            lifestyleSymbols +
+            sportsSymbols +
+            techSymbols +
+            familySymbols +
+            mindfulnessSymbols +
+            peopleSymbols
+        ))
+    }
+    
+    private let columns: [GridItem] = [
+        GridItem(.adaptive(minimum: 56), spacing: 16)
+    ]
+    
+    // MARK: - Body
+    
+    var body: some View {
+        VStack {
+            // Category segmented control
+            Picker("Category", selection: $selectedCategory) {
+                ForEach(IconCategory.allCases) { category in
+                    Text(category.title).tag(category)
+                }
+            }
+            .pickerStyle(.segmented)
+            .padding([.horizontal, .top])
+            
             ScrollView {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(filteredSymbols) { symbol in
-                        Button {
-                            selectedIcon = symbol.name
-                            dismiss()
-                        } label: {
-                            VStack(spacing: 8) {
-                                Image(systemName: symbol.name)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(height: 28)
-                                
-                                Text(symbol.name)
-                                    .font(.caption2)
-                                    .multilineTextAlignment(.center)
-                                    .lineLimit(2)
-                            }
-                            .padding(8)
-                            .frame(maxWidth: .infinity)
-                            .background(.thinMaterial)
-                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                if displayedSymbols.isEmpty {
+                    VStack(spacing: 12) {
+                        Text("No symbols")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                        
+                        if selectedCategory == .recent {
+                            Text("Recently used icons will appear here.")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
                         }
-                        .buttonStyle(.plain)
                     }
-                }
-                .padding()
-            }
-            .navigationTitle("Choose Icon")
-            .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $searchText, prompt: "Search symbols")
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
-                }
-            }
-            .onAppear {
-                // Precompute valid symbols once; avoids flicker / reshaping issues.
-                if allSymbols.isEmpty {
-                    allSymbols = baseSymbolNames
-                        .filter { UIImage(systemName: $0) != nil }   // only keep real symbols for this OS
-                        .map { SymbolItem(name: $0) }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .padding()
+                } else {
+                    LazyVGrid(columns: columns, spacing: 16) {
+                        ForEach(displayedSymbols) { symbol in
+                            Button {
+                                select(symbol.name)
+                            } label: {
+                                VStack(spacing: 8) {
+                                    Image(systemName: symbol.name)
+                                        .resizable()
+                                        .scaledToFit()
+                                        .frame(height: 28)
+                                    
+                                    Text(symbol.name)
+                                        .font(.caption2)
+                                        .multilineTextAlignment(.center)
+                                        .lineLimit(2)
+                                }
+                                .padding(8)
+                                .frame(maxWidth: .infinity)
+                                .background(.thinMaterial)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding()
                 }
             }
         }
+        .navigationTitle("Choose Icon")
+        .navigationBarTitleDisplayMode(.inline)
+        .searchable(text: $searchText, prompt: "Search symbols")
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Close") { dismiss() }
+            }
+        }
+        .onAppear {
+            if allSymbols.isEmpty {
+                loadAllSymbols()
+            }
+            loadRecentIcons()
+        }
+    }
+    
+    // MARK: - Filtering
+    
+    private var displayedSymbols: [SymbolItem] {
+        let base = symbolsForSelectedCategory()
+        guard !searchText.isEmpty else { return base }
+        return base.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
+    }
+    
+    private func symbolsForSelectedCategory() -> [SymbolItem] {
+        switch selectedCategory {
+        case .recent:
+            let recentSet = Set(recentIcons)
+            return allSymbols.filter { recentSet.contains($0.name) }
+            
+        case .all:
+            return allSymbols
+            
+        case .school:
+            return allSymbols.filter { schoolSymbols.contains($0.name) }
+        case .work:
+            return allSymbols.filter { workSymbols.contains($0.name) }
+        case .exercise:
+            return allSymbols.filter { exerciseSymbols.contains($0.name) }
+        case .lifestyle:
+            return allSymbols.filter { lifestyleSymbols.contains($0.name) }
+        case .sports:
+            return allSymbols.filter { sportsSymbols.contains($0.name) }
+        case .tech:
+            return allSymbols.filter { techSymbols.contains($0.name) }
+        case .family:
+            return allSymbols.filter { familySymbols.contains($0.name) }
+        case .mindfulness:
+            return allSymbols.filter { mindfulnessSymbols.contains($0.name) }
+        case .people:
+            return allSymbols.filter { peopleSymbols.contains($0.name) }
+        }
+    }
+    
+    // MARK: - Data setup
+    
+    private func loadAllSymbols() {
+        // Only keep symbols that are actually available on this OS
+        allSymbols = allBaseNames
+            .filter { UIImage(systemName: $0) != nil }
+            .sorted()
+            .map { SymbolItem(name: $0) }
+    }
+    
+    private func loadRecentIcons() {
+        guard !recentIconNamesStorage.isEmpty else {
+            recentIcons = []
+            return
+        }
+        recentIcons = recentIconNamesStorage
+            .split(separator: ",")
+            .map { String($0) }
+            .filter { !$0.isEmpty }
+    }
+    
+    private func saveRecentIcons() {
+        recentIconNamesStorage = recentIcons.joined(separator: ",")
+    }
+    
+    // MARK: - Selection / recents
+    
+    private func select(_ symbolName: String) {
+        selectedIcon = symbolName
+        updateRecent(with: symbolName)
+        dismiss()
+    }
+    
+    private func updateRecent(with symbolName: String) {
+        // Move to front, keep unique, limit to 20
+        recentIcons.removeAll { $0 == symbolName }
+        recentIcons.insert(symbolName, at: 0)
+        
+        if recentIcons.count > 20 {
+            recentIcons = Array(recentIcons.prefix(20))
+        }
+        
+        saveRecentIcons()
+    }
 }
-
 // MARK: - Preview code for Canvas
 #Preview {
     let previewContainer: ModelContainer = {
