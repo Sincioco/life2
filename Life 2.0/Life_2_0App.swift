@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 @main
 struct Life_2_0App: App {
@@ -14,5 +15,6 @@ struct Life_2_0App: App {
             MainView()
             //SwiftUIGridView(year: 2025, month: 11)
         }
+        .modelContainer(for: Life2Event.self)
     }
 }
