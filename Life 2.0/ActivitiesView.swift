@@ -56,20 +56,20 @@ struct ActivitiesView: View {
                         
                         // --------------------------------
                         // Add a Section Header for each Category
-//                        Section(header: Text(category)) {
-//                            
-//                            // --------------------------------
-//                            // Render the items under each Category
-//                            ForEach(groupedByCategory[category] ?? []) { activity in
-//                                
-//                                // --------------------------------
-//                                // Use a Custom Row that animates the graph
-//                                ActivityRow(activity: activity)
-//                            }
-//                            .padding(0)
-//                            
-//                            
-//                        }
+                        //                        Section(header: Text(category)) {
+                        //
+                        //                            // --------------------------------
+                        //                            // Render the items under each Category
+                        //                            ForEach(groupedByCategory[category] ?? []) { activity in
+                        //
+                        //                                // --------------------------------
+                        //                                // Use a Custom Row that animates the graph
+                        //                                ActivityRow(activity: activity)
+                        //                            }
+                        //                            .padding(0)
+                        //
+                        //
+                        //                        }
                         Section(header: Text(category)) {
                             
                             if let activitiesInSection = groupedByCategory[category] {
@@ -299,6 +299,10 @@ struct ActivityRow: View {
         else { return .green }
     }
     
+    private var isModifiedToday: Bool {
+        Calendar.current.isDateInToday(activity.dateModified)
+    }
+    
     var body: some View {
         
         HStack {
@@ -312,6 +316,21 @@ struct ActivityRow: View {
                 .foregroundStyle(.blue)
                 .frame(width: 40, height: 40)
                 .padding(0)
+                .overlay {
+                    if (activity.count > 0 && isModifiedToday) {
+                        Image(systemName: "checkmark.circle.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 14, height: 14)
+                            .foregroundStyle(.green)
+                            .background(
+                                Circle()
+                                    .fill(.background)   // small backing to keep it readable
+                            )
+                            .offset(x: 26, y: -17)       // nudge slightly outwards
+                    }
+                }
+            
             
             Spacer(minLength: 20)
             
@@ -334,12 +353,14 @@ struct ActivityRow: View {
                 .gaugeStyle(.automatic)
                 .tint(gaugeColor)                               // dynamic fill color
                 .frame(maxWidth: .infinity)
+                .padding(.top, -8)   // ← pulls gauge closer to the text
                 .overlay {                                      // center the score text on top
                     Text("\(Int(animatedProgress))%")
                         .monospacedDigit()
                         .font(.caption)
                         .fontWeight(.semibold)
                         .foregroundStyle(.primary)
+                        .padding(.top, -8)
                 }
                 
                 HStack(alignment: .firstTextBaseline) {
@@ -356,6 +377,7 @@ struct ActivityRow: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             }
+
         }
         .opacity(isDeletingVisual ? 0.0 : 1.0)
         .scaleEffect(isDeletingVisual ? 0.98 : 1.0)
@@ -546,23 +568,23 @@ struct AddActivityView: View {
                 // ----------------------------------------------------
                 // Progress Section
                 // ----------------------------------------------------
-//                Section("Progress") {
-//                    VStack(spacing: 12) {
-//                        HStack {
-//                            Spacer()
-//                            Text("\(Int(computedProgress))%")
-//                                .monospacedDigit()
-//                            Spacer()
-//                        }
-//                        
-//                        Slider(value: .constant(computedProgress), in: 0...100, step: 1) {
-//                            Text("Progress")
-//                        }
-//                        .disabled(true)
-//                    }
-//                    .padding(.vertical, 4)
-//                    .listRowSeparator(.hidden)
-//                }
+                //                Section("Progress") {
+                //                    VStack(spacing: 12) {
+                //                        HStack {
+                //                            Spacer()
+                //                            Text("\(Int(computedProgress))%")
+                //                                .monospacedDigit()
+                //                            Spacer()
+                //                        }
+                //
+                //                        Slider(value: .constant(computedProgress), in: 0...100, step: 1) {
+                //                            Text("Progress")
+                //                        }
+                //                        .disabled(true)
+                //                    }
+                //                    .padding(.vertical, 4)
+                //                    .listRowSeparator(.hidden)
+                //                }
                 
                 // ----------------------------------------------------
                 // Notes
@@ -629,9 +651,9 @@ extension Notification.Name {
 struct EditActivityView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
-
+    
     @Bindable var activity: Activity
-
+    
     // Available categories (same as AddActivityView)
     private let categories = [
         "Bills",
@@ -649,11 +671,11 @@ struct EditActivityView: View {
         "Monthly",
         "Yearly"
     ]
-
+    
     // Sheet state
     @State private var isPresentingIconPicker = false
     @State private var showDeleteAlert = false
-
+    
     // Computed progress based on count and maxCount
     private var computedProgress: Double {
         guard activity.maxCount > 0 else { return 0 }
@@ -670,12 +692,12 @@ struct EditActivityView: View {
         default: return 100
         }
     }
-
+    
     var body: some View {
         Form {
             Section("Activity") {
                 TextField("Name", text: $activity.name)
-
+                
                 Button {
                     isPresentingIconPicker = true
                 } label: {
@@ -693,7 +715,7 @@ struct EditActivityView: View {
                             .truncationMode(.middle)
                     }
                 }
-
+                
                 Picker("Category", selection: $activity.category) {
                     ForEach(categories, id: \.self) { cat in
                         Text(cat).tag(cat)
@@ -722,31 +744,31 @@ struct EditActivityView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-
-//            Section("Progress") {
-//                VStack(spacing: 12) {
-//                    HStack {
-//                        Spacer()
-//                        Text("\(Int(computedProgress))%")
-//                            .monospacedDigit()
-//                        Spacer()
-//                    }
-//
-//                    Slider(value: .constant(computedProgress), in: 0...100, step: 1) {
-//                        Text("Progress")
-//                    }
-//                    .disabled(true)
-//                }
-//                .padding(.vertical, 4)
-//                .listRowSeparator(.hidden)
-//            }
-
+            
+            //            Section("Progress") {
+            //                VStack(spacing: 12) {
+            //                    HStack {
+            //                        Spacer()
+            //                        Text("\(Int(computedProgress))%")
+            //                            .monospacedDigit()
+            //                        Spacer()
+            //                    }
+            //
+            //                    Slider(value: .constant(computedProgress), in: 0...100, step: 1) {
+            //                        Text("Progress")
+            //                    }
+            //                    .disabled(true)
+            //                }
+            //                .padding(.vertical, 4)
+            //                .listRowSeparator(.hidden)
+            //            }
+            
             Section("Notes") {
                 TextField("Notes", text: $activity.notes, axis: .vertical)
                     .lineLimit(3, reservesSpace: true)
             }
             
-            Section { 
+            Section {
                 Button(role: .destructive) {
                     showDeleteAlert = true
                 } label: {
