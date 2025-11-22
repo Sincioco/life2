@@ -271,6 +271,7 @@ struct ActivityRow: View {
     @State private var animatedProgress: Double = 0
     @State private var hasAnimated = false
     @State private var showDeleteConfirm = false
+    @State private var isDeletingVisual = false
     
     var body: some View {
         
@@ -316,6 +317,8 @@ struct ActivityRow: View {
                 }
             }
         }
+        .opacity(isDeletingVisual ? 0.0 : 1.0)
+        .scaleEffect(isDeletingVisual ? 0.98 : 1.0)
         .onAppear {
             // Only animate once per row
             guard !hasAnimated else { return }
@@ -358,13 +361,21 @@ struct ActivityRow: View {
         }
         .alert("Delete Activity?", isPresented: $showDeleteConfirm) {
             Button("Delete", role: .destructive) {
-                withAnimation(.easeInOut(duration: 0.25)) {
-                    modelContext.delete(activity)
+                withAnimation(.easeInOut(duration: 0.12)) {
+                    isDeletingVisual = true
                 }
-                try? modelContext.save()
-                NotificationCenter.default.post(name: .activityDidChange, object: nil)
-                let error = UINotificationFeedbackGenerator()
-                error.notificationOccurred(.error)
+                // Delay actual deletion slightly to let the visual effect play
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        modelContext.delete(activity)
+                    }
+                    try? modelContext.save()
+                    NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                    let error = UINotificationFeedbackGenerator()
+                    error.notificationOccurred(.error)
+                    // Reset visual state in case the row is reused in lists
+                    isDeletingVisual = false
+                }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
