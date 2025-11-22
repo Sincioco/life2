@@ -14,6 +14,17 @@ struct CalendarView: View {
     let month: Int // 1...12
     var allowHorizontalScroll: Bool = false
     
+    @State private var selectedYear: Int
+    @State private var selectedMonth: Int
+    
+    init(year: Int, month: Int, allowHorizontalScroll: Bool = false) {
+        self.year = year
+        self.month = month
+        self.allowHorizontalScroll = allowHorizontalScroll
+        _selectedYear = State(initialValue: year)
+        _selectedMonth = State(initialValue: month)
+    }
+    
     // Deterministic Gregorian calendar (Sunday-first), stable across locales/time zones
     private var calendar: Calendar {
         var cal = Calendar(identifier: .gregorian)
@@ -25,24 +36,24 @@ struct CalendarView: View {
     
     private var monthStart: Date {
         var comps = DateComponents()
-        comps.year = year
-        comps.month = month
+        comps.year = selectedYear
+        comps.month = selectedMonth
         comps.day = 1
         return calendar.date(from: comps) ?? Date()
     }
     
     private var previousMonthStart: Date {
         var comps = DateComponents()
-        comps.year = year
-        comps.month = month - 1
+        comps.year = selectedYear
+        comps.month = selectedMonth - 1
         comps.day = 1
         return calendar.date(from: comps) ?? Date()
     }
     
     private var nextMonthStart: Date {
         var comps = DateComponents()
-        comps.year = year
-        comps.month = month + 1
+        comps.year = selectedYear
+        comps.month = selectedMonth + 1
         comps.day = 1
         return calendar.date(from: comps) ?? Date()
     }
@@ -166,6 +177,49 @@ struct CalendarView: View {
                 
             }
             .navigationTitle(monthName)
+
+            ///
+            .toolbar {
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        let now = Date()
+                        selectedYear = calendar.component(.year, from: now)
+                        selectedMonth = calendar.component(.month, from: now)
+                    } label: {
+                        Image(systemName: "house")
+                    }
+                    .accessibilityLabel("Home")
+                }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Picker(selection: $selectedMonth) {
+                        ForEach(1...12, id: \.self) { m in
+                            Text(DateFormatter().monthSymbols[m - 1]).tag(m)
+                        }
+                    } label: {
+                        Image(systemName: "calendar.badge.plus")
+                    }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .accessibilityLabel("Select Month")
+                }
+                ToolbarSpacer()
+                ToolbarItem(placement: .topBarTrailing) {
+                    Picker(selection: $selectedYear) {
+                        let current = Calendar.current.component(.year, from: Date())
+                        let range = 2023...(current + 1)
+                        ForEach(Array(range).reversed(), id: \.self) { y in
+                            Text("\(y, format: .number.grouping(.never))").tag(y)
+                        }
+                    } label: {
+                        Image(systemName: "calendar")
+                    }
+                    .pickerStyle(.menu)
+                    .labelsHidden()
+                    .accessibilityLabel("Select Year")
+                }
+            }
+            
+            ///
         }
     }
 }
