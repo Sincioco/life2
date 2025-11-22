@@ -345,9 +345,12 @@ struct ActivityRow: View {
                 HStack(alignment: .firstTextBaseline) {
                     Text("\(activity.recurrence): \(activity.count) of \(activity.maxCount)")
                     Spacer()
-                    HStack(spacing: 2) {
-                        Text(activity.dateModified, style: .relative)
-                        Text("ago")
+                    
+                    if (activity.count > 0) {
+                        HStack(spacing: 2) {
+                            Text(activity.dateModified, style: .relative)
+                            Text("ago")
+                        }
                     }
                 }
                 .font(.caption2)
