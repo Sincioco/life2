@@ -196,61 +196,80 @@ struct ActivitiesView: View {
     private func generateStarterActivities() {
         let now = Date()
         
+        func randomizedDate(for recurrence: String, now: Date) -> Date {
+            switch recurrence {
+            case "Daily":
+                // between now and 23 hours ago
+                let hours = Int.random(in: 0...23)
+                return Calendar.current.date(byAdding: .hour, value: -hours, to: now) ?? now
+            case "Weekly":
+                // between now and 7 days ago
+                let days = Int.random(in: 0...7)
+                return Calendar.current.date(byAdding: .day, value: -days, to: now) ?? now
+            case "Monthly":
+                // between now and 30 days ago
+                let days = Int.random(in: 0...30)
+                return Calendar.current.date(byAdding: .day, value: -days, to: now) ?? now
+            default:
+                return now
+            }
+        }
+        
         let starters: [Activity] = [
             Activity(
                 name: "Morning Run",
                 icon: "figure.run",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Daily",
+                count: 5,
+                maxCount: 7,
+                recurrence: "Weekly",
                 category: "Fitness",
                 notes: "Light 5km run to start the day.",
-                dateCreated: now,
-                dateModified: now
+                dateCreated: randomizedDate(for: "Weekly", now: now),
+                dateModified: randomizedDate(for: "Weekly", now: now)
             ),
             Activity(
                 name: "Gym",
                 icon: "dumbbell",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
+                count: 23,
+                maxCount: 30,
                 recurrence: "Monthly",
                 category: "Fitness",
                 notes: "30 mins in the gym",
-                dateCreated: now,
-                dateModified: now
+                dateCreated: randomizedDate(for: "Monthly", now: now),
+                dateModified: randomizedDate(for: "Monthly", now: now)
             ),
             Activity(
                 name: "Learn Something New",
                 icon: "book.fill",
                 count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Daily",
+                maxCount: 7,
+                recurrence: "Weekly",
                 category: "Learning",
-                notes: "Spend at least 30 minutes building UIs.",
-                dateCreated: now,
-                dateModified: now
+                notes: "Spend at least 30 minutes reading.",
+                dateCreated: randomizedDate(for: "Weekly", now: now),
+                dateModified: randomizedDate(for: "Weekly", now: now)
             ),
             Activity(
                 name: "Family Time",
                 icon: "person.3.fill",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
+                count: Int.random(in: 1...6),
+                maxCount: 7,
                 recurrence: "Weekly",
                 category: "Personal",
-                notes: "Device-free dinner with the family.",
-                dateCreated: now,
-                dateModified: now
+                notes: "Quality time with the family.",
+                dateCreated: randomizedDate(for: "Weekly", now: now),
+                dateModified: randomizedDate(for: "Weekly", now: now)
             ),
             Activity(
                 name: "Weekly Planning",
                 icon: "calendar.badge.clock",
                 count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
+                maxCount: 7,
                 recurrence: "Weekly",
                 category: "Work",
                 notes: "Plan tasks and priorities for the week.",
-                dateCreated: now,
-                dateModified: now
+                dateCreated: randomizedDate(for: "Weekly", now: now),
+                dateModified: randomizedDate(for: "Weekly", now: now)
             )
         ]
         
