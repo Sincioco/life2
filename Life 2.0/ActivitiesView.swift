@@ -270,6 +270,7 @@ struct ActivityRow: View {
     
     @State private var animatedProgress: Double = 0
     @State private var hasAnimated = false
+    @State private var showDeleteConfirm = false
     
     var body: some View {
         
@@ -327,19 +328,47 @@ struct ActivityRow: View {
             }
         }
         // --------------------------------
-        // Swipe left to increment count
+        // Swipe left to increment count + add delete button
         // --------------------------------
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            // Full-swipe performs this action
             Button {
-                // Increment the activity count by 1 and persist
-                activity.count += 1
-                activity.dateModified = Date()
-                try? modelContext.save()
-                NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                if activity.count < activity.maxCount {
+                    activity.count += 1
+                    activity.dateModified = Date()
+                    try? modelContext.save()
+                    NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                    let success = UINotificationFeedbackGenerator()
+                    success.notificationOccurred(.success)
+                } else {
+                    let warning = UINotificationFeedbackGenerator()
+                    warning.notificationOccurred(.warning)
+                }
             } label: {
                 Label("Done", systemImage: "checkmark")
             }
             .tint(.green)
+
+            Button {
+                showDeleteConfirm = true
+            } label: {
+                Label("Delete", systemImage: "trash")
+            }
+            .tint(.red)
+        }
+        .alert("Delete Activity?", isPresented: $showDeleteConfirm) {
+            Button("Delete", role: .destructive) {
+                withAnimation(.easeInOut(duration: 0.25)) {
+                    modelContext.delete(activity)
+                }
+                try? modelContext.save()
+                NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                let error = UINotificationFeedbackGenerator()
+                error.notificationOccurred(.error)
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This action cannot be undone.")
         }
     }
 }
@@ -728,4 +757,3 @@ struct EditActivityView: View {
     MainView()   // ← make sure this matches the struct name
         .modelContainer(previewContainer)
 }
-
