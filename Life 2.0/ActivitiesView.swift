@@ -390,6 +390,13 @@ struct AddActivityView: View {
     // Validation
     private var isCountValid: Bool { maxCount >= count }
     
+    // Computed progress based on count and maxCount
+    private var computedProgress: Double {
+        guard maxCount > 0 else { return 0 }
+        let ratio = min(Double(count) / Double(maxCount), 1.0)
+        return max(0, ratio) * 100
+    }
+    
     var body: some View {
         NavigationStack {
             Form {
@@ -449,14 +456,15 @@ struct AddActivityView: View {
                      VStack(spacing: 12) {
                          HStack {
                              Spacer()
-                             Text("\(Int(progress))%")
+                             Text("\(Int(computedProgress))%")
                                  .monospacedDigit()
                              Spacer()
                          }
                          
-                         Slider(value: $progress, in: 0...100, step: 1) {
+                         Slider(value: .constant(computedProgress), in: 0...100, step: 1) {
                              Text("Progress")
                          }
+                         .disabled(true)
                      }
                      .padding(.vertical, 4)
                      .listRowSeparator(.hidden)
@@ -507,7 +515,7 @@ struct AddActivityView: View {
          let newActivity = Activity(
              name: name,
              icon: icon,
-             progress: progress,
+             progress: computedProgress,
              count: count,
              maxCount: maxCount,
              recurrence: recurrence,
@@ -558,6 +566,13 @@ struct EditActivityView: View {
 
     // Validation
     private var isCountValid: Bool { activity.maxCount >= activity.count }
+    
+    // Computed progress based on count and maxCount
+    private var computedProgress: Double {
+        guard activity.maxCount > 0 else { return 0 }
+        let ratio = min(Double(activity.count) / Double(activity.maxCount), 1.0)
+        return max(0, ratio) * 100
+    }
 
     var body: some View {
         Form {
@@ -609,14 +624,15 @@ struct EditActivityView: View {
                 VStack(spacing: 12) {
                     HStack {
                         Spacer()
-                        Text("\(Int(activity.progress))%")
+                        Text("\(Int(computedProgress))%")
                             .monospacedDigit()
                         Spacer()
                     }
 
-                    Slider(value: $activity.progress, in: 0...100, step: 1) {
+                    Slider(value: .constant(computedProgress), in: 0...100, step: 1) {
                         Text("Progress")
                     }
+                    .disabled(true)
                 }
                 .padding(.vertical, 4)
                 .listRowSeparator(.hidden)
@@ -648,6 +664,7 @@ struct EditActivityView: View {
                 Button("Save") {
                     // Validate name and counts before saving
                     guard !activity.name.trimmingCharacters(in: .whitespaces).isEmpty, isCountValid else { return }
+                    activity.progress = computedProgress
                     // Update modification date and notify list to refresh
                     activity.dateModified = Date()
                     try? modelContext.save()
