@@ -273,6 +273,13 @@ struct ActivityRow: View {
     @State private var showDeleteConfirm = false
     @State private var isDeletingVisual = false
     
+    private var gaugeColor: Color {
+        let value = activity.progress
+        if value < 30 { return .red }
+        else if value < 70 { return .yellow }
+        else { return .green }
+    }
+    
     var body: some View {
         
         HStack {
@@ -306,7 +313,7 @@ struct ActivityRow: View {
                     EmptyView()                                 // we'll draw our own text
                 }
                 .gaugeStyle(.automatic)
-                .tint(.green)                                   // green fill
+                .tint(gaugeColor)                                   // green fill
                 .frame(maxWidth: .infinity)
                 .overlay {                                      // center the score text on top
                     Text("\(Int(animatedProgress))%")
@@ -768,3 +775,4 @@ struct EditActivityView: View {
     MainView()   // ← make sure this matches the struct name
         .modelContainer(previewContainer)
 }
+
