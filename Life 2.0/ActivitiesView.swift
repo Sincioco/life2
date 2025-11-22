@@ -476,6 +476,19 @@ struct AddActivityView: View {
         "Yearly"
     ]
     
+    // Sheet state
+    
+    // Segmented control selection
+    private enum AddEditTab: String, CaseIterable, Identifiable {
+        case activity = "Activity"
+        case history = "History"
+        case notes = "Notes"
+        var id: String { rawValue }
+    }
+    @State private var selectedTab: AddEditTab = .activity
+    
+    @State private var isPresentingIconPicker = false
+    
     // Form fields
     @State private var name: String = ""
     @State private var icon: String = "figure.walk"
@@ -487,8 +500,8 @@ struct AddActivityView: View {
     @State private var category: String = "Fitness"   // default
     @State private var notes: String = ""
     
-    // Sheet state
-    @State private var isPresentingIconPicker = false
+    // Focus management
+    @FocusState private var isNameFocused: Bool
     
     // Computed progress based on count and maxCount
     private var computedProgress: Double {
@@ -511,87 +524,82 @@ struct AddActivityView: View {
         NavigationStack {
             Form {
                 
-                // ----------------------------------------------------
-                // Activity Section
-                // ----------------------------------------------------
-                Section("Activity") {
-                    TextField("Name", text: $name)
-                    
-                    // Icon "field" that opens a picker sheet
-                    Button {
-                        isPresentingIconPicker = true
-                    } label: {
+                Picker("Section", selection: $selectedTab) {
+                    ForEach(AddEditTab.allCases) { tab in
+                        Text(tab.rawValue).tag(tab)
+                    }
+                }
+                .pickerStyle(.segmented)
+                
+                if selectedTab == .activity {
+                    Section("Activity") {
+                        TextField("Name", text: $name)
+                            .focused($isNameFocused)
+                        
+                        // Icon "field" that opens a picker sheet
+                        Button {
+                            isPresentingIconPicker = true
+                        } label: {
+                            HStack {
+                                Text("Icon")
+                                Spacer()
+                                Image(systemName: icon)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20, height: 20)
+                                Text(icon)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                                    .truncationMode(.middle)
+                            }
+                        }
+                        
+                        Picker("Category", selection: $category) {
+                            ForEach(categories, id: \.self) { cat in
+                                Text(cat).tag(cat)
+                            }
+                        }
+                        
+                        Picker("Recurrence", selection: $recurrence) {
+                            ForEach(recurrencies, id: \.self) { rec in
+                                Text(rec).tag(rec)
+                            }
+                        }
+                        
+                        TextField("Count", value: $count, format: .number)
+                            .keyboardType(.numberPad)
+                        
+                        TextField("Max Count", value: $maxCount, format: .number)
+                            .keyboardType(.numberPad)
+                        
                         HStack {
-                            Text("Icon")
-                            Spacer()
-                            Image(systemName: icon)
-                                .resizable()
-                                .scaledToFit()
-                                .frame(width: 20, height: 20)
-                            Text(icon)
+                            Gauge(value: computedProgress, in: 0...100) { EmptyView() } currentValueLabel: { EmptyView() }
+                                .gaugeStyle(.automatic)
+                                .tint(.green)
+                            Text("\(Int(computedProgress))%")
+                                .monospacedDigit()
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
                         }
-                    }
-                    
-                    Picker("Category", selection: $category) {
-                        ForEach(categories, id: \.self) { cat in
-                            Text(cat).tag(cat)
-                        }
-                    }
-                    
-                    Picker("Recurrence", selection: $recurrence) {
-                        ForEach(recurrencies, id: \.self) { rec in
-                            Text(rec).tag(rec)
-                        }
-                    }
-                    
-                    TextField("Count", value: $count, format: .number)
-                        .keyboardType(.numberPad)
-                    
-                    TextField("Max Count", value: $maxCount, format: .number)
-                        .keyboardType(.numberPad)
-                    
-                    HStack {
-                        Gauge(value: computedProgress, in: 0...100) { EmptyView() } currentValueLabel: { EmptyView() }
-                            .gaugeStyle(.automatic)
-                            .tint(.green)
-                        Text("\(Int(computedProgress))%")
-                            .monospacedDigit()
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
                     }
                 }
                 
                 // ----------------------------------------------------
-                // Progress Section
-                // ----------------------------------------------------
-                //                Section("Progress") {
-                //                    VStack(spacing: 12) {
-                //                        HStack {
-                //                            Spacer()
-                //                            Text("\(Int(computedProgress))%")
-                //                                .monospacedDigit()
-                //                            Spacer()
-                //                        }
-                //
-                //                        Slider(value: .constant(computedProgress), in: 0...100, step: 1) {
-                //                            Text("Progress")
-                //                        }
-                //                        .disabled(true)
-                //                    }
-                //                    .padding(.vertical, 4)
-                //                    .listRowSeparator(.hidden)
-                //                }
-                
-                // ----------------------------------------------------
                 // Notes
                 // ----------------------------------------------------
-                Section("Notes") {
-                    TextField("Notes", text: $notes, axis: .vertical)
-                        .lineLimit(3, reservesSpace: true)
+                if selectedTab == .notes {
+                    Section("Notes") {
+                        TextField("Notes", text: $notes, axis: .vertical)
+                            .lineLimit(3, reservesSpace: true)
+                    }
+                }
+                
+                if selectedTab == .history {
+                    Section("History") {
+                        Text("No history yet.")
+                            .foregroundStyle(.secondary)
+                    }
                 }
             }
             .navigationTitle("Add Activity")
@@ -608,6 +616,11 @@ struct AddActivityView: View {
                     Button("Save") {
                         saveActivity()
                     }
+                }
+            }
+            .onAppear {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
+                    isNameFocused = true
                 }
             }
             // Icon picker sheet
@@ -673,8 +686,28 @@ struct EditActivityView: View {
     ]
     
     // Sheet state
+    
+    // Segmented control selection
+    private enum AddEditTab: String, CaseIterable, Identifiable {
+        case activity = "Activity"
+        case history = "History"
+        case notes = "Notes"
+        var id: String { rawValue }
+    }
+    @State private var selectedTab: AddEditTab = .activity
+    
     @State private var isPresentingIconPicker = false
     @State private var showDeleteAlert = false
+    
+    // Track original values to allow cancel-on-back behavior
+    @State private var originalName: String = ""
+    @State private var originalIcon: String = ""
+    @State private var originalCategory: String = ""
+    @State private var originalRecurrence: String = ""
+    @State private var originalCount: Int = 0
+    @State private var originalMaxCount: Int = 0
+    @State private var originalNotes: String = ""
+    @State private var didSave: Bool = false
     
     // Computed progress based on count and maxCount
     private var computedProgress: Double {
@@ -695,77 +728,78 @@ struct EditActivityView: View {
     
     var body: some View {
         Form {
-            Section("Activity") {
-                TextField("Name", text: $activity.name)
-                
-                Button {
-                    isPresentingIconPicker = true
-                } label: {
+            
+            Picker("Section", selection: $selectedTab) {
+                ForEach(AddEditTab.allCases) { tab in
+                    Text(tab.rawValue).tag(tab)
+                }
+            }
+            .pickerStyle(.segmented)
+            
+            if selectedTab == .activity {
+                Section("Activity") {
+                    TextField("Name", text: $activity.name)
+                    
+                    Button {
+                        isPresentingIconPicker = true
+                    } label: {
+                        HStack {
+                            Text("Icon")
+                            Spacer()
+                            Image(systemName: activity.icon)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20, height: 20)
+                            Text(activity.icon)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
+                        }
+                    }
+                    
+                    Picker("Category", selection: $activity.category) {
+                        ForEach(categories, id: \.self) { cat in
+                            Text(cat).tag(cat)
+                        }
+                    }
+                    
+                    Picker("Recurrence", selection: $activity.recurrence) {
+                        ForEach(recurrencies, id: \.self) { rec in
+                            Text(rec).tag(rec)
+                        }
+                    }
+                    
+                    TextField("Count", value: $activity.count, format: .number)
+                        .keyboardType(.numberPad)
+                    
+                    TextField("Max Count", value: $activity.maxCount, format: .number)
+                        .keyboardType(.numberPad)
+                    
                     HStack {
-                        Text("Icon")
-                        Spacer()
-                        Image(systemName: activity.icon)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 20, height: 20)
-                        Text(activity.icon)
+                        Gauge(value: computedProgress, in: 0...100) { EmptyView() } currentValueLabel: { EmptyView() }
+                            .gaugeStyle(.automatic)
+                            .tint(.green)
+                        Text("\(Int(computedProgress))%")
+                            .monospacedDigit()
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                            .truncationMode(.middle)
                     }
-                }
-                
-                Picker("Category", selection: $activity.category) {
-                    ForEach(categories, id: \.self) { cat in
-                        Text(cat).tag(cat)
-                    }
-                }
-                
-                Picker("Recurrence", selection: $activity.recurrence) {
-                    ForEach(recurrencies, id: \.self) { rec in
-                        Text(rec).tag(rec)
-                    }
-                }
-                
-                TextField("Count", value: $activity.count, format: .number)
-                    .keyboardType(.numberPad)
-                
-                TextField("Max Count", value: $activity.maxCount, format: .number)
-                    .keyboardType(.numberPad)
-                
-                HStack {
-                    Gauge(value: computedProgress, in: 0...100) { EmptyView() } currentValueLabel: { EmptyView() }
-                        .gaugeStyle(.automatic)
-                        .tint(.green)
-                    Text("\(Int(computedProgress))%")
-                        .monospacedDigit()
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
                 }
             }
             
-            //            Section("Progress") {
-            //                VStack(spacing: 12) {
-            //                    HStack {
-            //                        Spacer()
-            //                        Text("\(Int(computedProgress))%")
-            //                            .monospacedDigit()
-            //                        Spacer()
-            //                    }
-            //
-            //                    Slider(value: .constant(computedProgress), in: 0...100, step: 1) {
-            //                        Text("Progress")
-            //                    }
-            //                    .disabled(true)
-            //                }
-            //                .padding(.vertical, 4)
-            //                .listRowSeparator(.hidden)
-            //            }
+            if selectedTab == .notes {
+                Section("Notes") {
+                    TextField("Notes", text: $activity.notes, axis: .vertical)
+                        .lineLimit(3, reservesSpace: true)
+                }
+            }
             
-            Section("Notes") {
-                TextField("Notes", text: $activity.notes, axis: .vertical)
-                    .lineLimit(3, reservesSpace: true)
+            if selectedTab == .history {
+                Section("History") {
+                    Text("No history yet.")
+                        .foregroundStyle(.secondary)
+                }
             }
             
             Section {
@@ -787,6 +821,7 @@ struct EditActivityView: View {
 //            }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
+                    didSave = true
                     // Removed validation guard
                     // Removed: activity.progress = computedProgress
                     // Update modification date and notify list to refresh
@@ -795,6 +830,27 @@ struct EditActivityView: View {
                     NotificationCenter.default.post(name: .activityDidChange, object: nil)
                     dismiss()
                 }
+            }
+        }
+        .onAppear {
+            originalName = activity.name
+            originalIcon = activity.icon
+            originalCategory = activity.category
+            originalRecurrence = activity.recurrence
+            originalCount = activity.count
+            originalMaxCount = activity.maxCount
+            originalNotes = activity.notes
+            didSave = false
+        }
+        .onDisappear {
+            if didSave == false {
+                activity.name = originalName
+                activity.icon = originalIcon
+                activity.category = originalCategory
+                activity.recurrence = originalRecurrence
+                activity.count = originalCount
+                activity.maxCount = originalMaxCount
+                activity.notes = originalNotes
             }
         }
         .sheet(isPresented: $isPresentingIconPicker) {
@@ -836,3 +892,4 @@ struct EditActivityView: View {
     MainView()   // ← make sure this matches the struct name
         .modelContainer(previewContainer)
 }
+
