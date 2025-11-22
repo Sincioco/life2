@@ -313,7 +313,7 @@ struct ActivityRow: View {
                     EmptyView()                                 // we'll draw our own text
                 }
                 .gaugeStyle(.automatic)
-                .tint(gaugeColor)                                   // green fill
+                .tint(gaugeColor)                               // dynamic fill color
                 .frame(maxWidth: .infinity)
                 .overlay {                                      // center the score text on top
                     Text("\(Int(animatedProgress))%")
@@ -322,6 +322,10 @@ struct ActivityRow: View {
                         .fontWeight(.semibold)
                         .foregroundStyle(.primary)
                 }
+                
+                Text("\(activity.recurrence): \(activity.count) of \(activity.maxCount)")
+                    .font(.caption2)
+                    .foregroundStyle(.secondary)
             }
         }
         .opacity(isDeletingVisual ? 0.0 : 1.0)
@@ -775,4 +779,3 @@ struct EditActivityView: View {
     MainView()   // ← make sure this matches the struct name
         .modelContainer(previewContainer)
 }
-
