@@ -377,6 +377,8 @@ struct AddActivityView: View {
     // Form fields
     @State private var name: String = ""
     @State private var icon: String = "figure.walk"
+    @State private var count: Int = 0
+    @State private var maxCount: Int = 7
     @State private var progress: Double = 0
     @State private var recurrence: String = "Daily"
     @State private var category: String = "Fitness"   // default
@@ -384,6 +386,9 @@ struct AddActivityView: View {
     
     // Sheet state
     @State private var isPresentingIconPicker = false
+    
+    // Validation
+    private var isCountValid: Bool { maxCount >= count }
     
     var body: some View {
         NavigationStack {
@@ -425,84 +430,96 @@ struct AddActivityView: View {
                             Text(rec).tag(rec)
                         }
                     }
-                }
-                
-                // ----------------------------------------------------
-                // Progress Section
-                // ----------------------------------------------------
-                Section("Progress") {
-                    VStack(spacing: 12) {
-                        HStack {
-                            Spacer()
-                            Text("\(Int(progress))%")
-                                .monospacedDigit()
-                            Spacer()
-                        }
-                        
-                        Slider(value: $progress, in: 0...100, step: 1) {
-                            Text("Progress")
-                        }
-                    }
-                    .padding(.vertical, 4)
-                    .listRowSeparator(.hidden)
-                }
-                
-                // ----------------------------------------------------
-                // Notes
-                // ----------------------------------------------------
-                Section("Notes") {
-                    TextField("Notes", text: $notes, axis: .vertical)
-                        .lineLimit(3, reservesSpace: true)
-                }
-            }
-            .navigationTitle("Add Activity")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") {
-                        dismiss()
-                    }
-                }
-                
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") {
-                        saveActivity()
-                    }
-                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
-                }
-            }
-            // Icon picker sheet
-            .sheet(isPresented: $isPresentingIconPicker) {
-                NavigationStack {
-                    IconPickerView(selectedIcon: $icon)
-                }
-            }
-        }
-    }
-    
-    // ------------------------------------------------------------
-    // Save a new Activity to SwiftData
-    // ------------------------------------------------------------
-    private func saveActivity() {
-        let now = Date()
-        
-        let newActivity = Activity(
-            name: name,
-            icon: icon,
-            progress: progress,
-            count: Int.random(in: 0...5),
-            maxCount: Int.random(in: 5...10),
-            recurrence: recurrence,
-            category: category,
-            notes: notes,
-            dateCreated: now,
-            dateModified: now
-        )
-        
-        modelContext.insert(newActivity)
-        dismiss()
-    }
+                    
+                    TextField("Count", value: $count, format: .number)
+                        .keyboardType(.numberPad)
+                    TextField("Max Count", value: $maxCount, format: .number)
+                        .keyboardType(.numberPad)
+                    if !isCountValid {
+                        Text("Max Count must be greater than or equal to Count")
+                         .font(.caption)
+                         .foregroundStyle(.red)
+                     }
+                 }
+                 
+                 // ----------------------------------------------------
+                 // Progress Section
+                 // ----------------------------------------------------
+                 Section("Progress") {
+                     VStack(spacing: 12) {
+                         HStack {
+                             Spacer()
+                             Text("\(Int(progress))%")
+                                 .monospacedDigit()
+                             Spacer()
+                         }
+                         
+                         Slider(value: $progress, in: 0...100, step: 1) {
+                             Text("Progress")
+                         }
+                     }
+                     .padding(.vertical, 4)
+                     .listRowSeparator(.hidden)
+                 }
+                 
+                 // ----------------------------------------------------
+                 // Notes
+                 // ----------------------------------------------------
+                 Section("Notes") {
+                     TextField("Notes", text: $notes, axis: .vertical)
+                         .lineLimit(3, reservesSpace: true)
+                 }
+             }
+             .navigationTitle("Add Activity")
+             .navigationBarTitleDisplayMode(.inline)
+             .toolbar {
+                 
+                 ToolbarItem(placement: .cancellationAction) {
+                     Button("Cancel") {
+                         dismiss()
+                     }
+                 }
+                 
+                 ToolbarItem(placement: .confirmationAction) {
+                     Button("Save") {
+                         saveActivity()
+                     }
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || !isCountValid)
+                 }
+             }
+             // Icon picker sheet
+             .sheet(isPresented: $isPresentingIconPicker) {
+                 NavigationStack {
+                     IconPickerView(selectedIcon: $icon)
+                 }
+             }
+         }
+     }
+     
+     // ------------------------------------------------------------
+     // Save a new Activity to SwiftData
+     // ------------------------------------------------------------
+     private func saveActivity() {
+         let now = Date()
+         // Safety check: ensure maxCount > count
+        guard isCountValid else { return }
+         
+         let newActivity = Activity(
+             name: name,
+             icon: icon,
+             progress: progress,
+             count: count,
+             maxCount: maxCount,
+             recurrence: recurrence,
+             category: category,
+             notes: notes,
+             dateCreated: now,
+             dateModified: now
+         )
+         
+         modelContext.insert(newActivity)
+         dismiss()
+     }
 }
 
 // MARK: - Notifications
@@ -539,6 +556,9 @@ struct EditActivityView: View {
     @State private var isPresentingIconPicker = false
     @State private var showDeleteAlert = false
 
+    // Validation
+    private var isCountValid: Bool { activity.maxCount >= activity.count }
+
     var body: some View {
         Form {
             Section("Activity") {
@@ -573,7 +593,16 @@ struct EditActivityView: View {
                         Text(rec).tag(rec)
                     }
                 }
-
+                
+                TextField("Count", value: $activity.count, format: .number)
+                    .keyboardType(.numberPad)
+                TextField("Max Count", value: $activity.maxCount, format: .number)
+                    .keyboardType(.numberPad)
+                if !isCountValid {
+                    Text("Max Count must be greater than or equal to Count")
+                        .font(.caption)
+                        .foregroundStyle(.red)
+                }
             }
 
             Section("Progress") {
@@ -617,12 +646,15 @@ struct EditActivityView: View {
             }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
+                    // Validate name and counts before saving
+                    guard !activity.name.trimmingCharacters(in: .whitespaces).isEmpty, isCountValid else { return }
                     // Update modification date and notify list to refresh
                     activity.dateModified = Date()
                     try? modelContext.save()
                     NotificationCenter.default.post(name: .activityDidChange, object: nil)
                     dismiss()
                 }
+                .disabled(activity.name.trimmingCharacters(in: .whitespaces).isEmpty || !isCountValid)
             }
         }
         .sheet(isPresented: $isPresentingIconPicker) {
