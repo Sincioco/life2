@@ -20,7 +20,7 @@ struct MainView: View {
                 ActivitiesView()
             }
             Tab("Calendar", systemImage: "calendar") {
-                CalendarView(year: 2025, month: 11)
+                CalendarView2()
             }
 //            Tab("Help", systemImage: "questionmark.circle") {
 //            }
