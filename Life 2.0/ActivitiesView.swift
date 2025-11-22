@@ -323,9 +323,16 @@ struct ActivityRow: View {
                         .foregroundStyle(.primary)
                 }
                 
-                Text("\(activity.recurrence): \(activity.count) of \(activity.maxCount)")
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                HStack(alignment: .firstTextBaseline) {
+                    Text("\(activity.recurrence): \(activity.count) of \(activity.maxCount)")
+                    Spacer()
+                    HStack(spacing: 2) {
+                        Text(activity.dateModified, style: .relative)
+                        Text("ago")
+                    }
+                }
+                .font(.caption2)
+                .foregroundStyle(.secondary)
             }
         }
         .opacity(isDeletingVisual ? 0.0 : 1.0)
