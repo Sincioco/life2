@@ -7,6 +7,7 @@
 // Purpose:  Calendar view of activities.
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 import SwiftUI
+import SwiftData
 
 struct CalendarView: View {
     let year: Int
@@ -14,6 +15,7 @@ struct CalendarView: View {
 
     @State private var selectedYear: Int
     @State private var selectedMonth: Int
+    @Query private var historyEntries: [ActivityHistory]
 
     init(year: Int? = nil, month: Int? = nil) {
         let now = Date()
@@ -80,6 +82,35 @@ struct CalendarView: View {
 
     private var weekdaySymbols: [String] { calendar.shortWeekdaySymbols } // Sun..Sat
 
+    private var monthDateRange: Range<Date> {
+        let start = calendar.startOfDay(for: monthStart)
+        let end = calendar.startOfDay(for: calendar.date(byAdding: .month, value: 1, to: monthStart) ?? monthStart)
+        return start..<end
+    }
+
+    private var historyThisMonth: [ActivityHistory] {
+        historyEntries.filter { entry in
+            entry.dateCompleted >= monthDateRange.lowerBound && entry.dateCompleted < monthDateRange.upperBound
+        }
+    }
+
+    private func iconsFor(date: Date) -> [String] {
+        let startOfDay = calendar.startOfDay(for: date)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return [] }
+        let todays = historyThisMonth.filter { entry in
+            entry.dateCompleted >= startOfDay && entry.dateCompleted < endOfDay
+        }
+        return todays.map { $0.icon }
+    }
+
+    private func dateForCurrentMonth(day: Int) -> Date {
+        var comps = DateComponents()
+        comps.year = selectedYear
+        comps.month = selectedMonth
+        comps.day = day
+        return calendar.date(from: comps) ?? monthStart
+    }
+
     // Build a flat array of 7 header cells + leading prev month days + current days + trailing next month days
     private var cells: [Cell] {
         var items: [Cell] = []
@@ -118,6 +149,18 @@ struct CalendarView: View {
         case header(String)
         case adjacent(Int, Bool) // (day, isPrevious)
         case day(Int)
+    }
+
+    private func iconsGrid(for icons: [String]) -> some View {
+        HStack(spacing: 4) {
+            ForEach(Array(icons.prefix(3).enumerated()), id: \.offset) { _, iconName in
+                Image(systemName: iconName)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(height: 16)
+                    .foregroundColor(.secondary)
+            }
+        }
     }
 
     var body: some View {
@@ -164,6 +207,14 @@ struct CalendarView: View {
                                         .font(.headline)
                                         .padding(8)
                                         .foregroundStyle(.primary)
+
+                                    let date = dateForCurrentMonth(day: d)
+                                    let icons = iconsFor(date: date)
+                                    if !icons.isEmpty {
+                                        iconsGrid(for: icons)
+                                            .padding(.horizontal, 6)
+                                            .padding(.bottom, 6)
+                                    }
                                 }
                                 .frame(height: 70)
                             }

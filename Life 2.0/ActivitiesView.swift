@@ -16,116 +16,86 @@ import SwiftData
 struct ActivitiesView: View {
     @Environment(\.modelContext) private var modelContext
     @Query var Activities: [Activity]
-    @State private var isPresentingAddActivity = false      // ← NEW
+    @State private var isPresentingAddActivity = false
     @State private var searchText: String = ""
     @State private var showEmptyPrompt: Bool = true
     @State private var reloadID = UUID()
-    
-    // --------------------------------
-    // Filter then group by Category
-    // --------------------------------
+
     private var filteredActivities: [Activity] {
         guard !searchText.isEmpty else { return Activities }
-        
         return Activities.filter { activity in
             activity.name.localizedCaseInsensitiveContains(searchText) ||
             activity.category.localizedCaseInsensitiveContains(searchText)
         }
     }
-    
+
     private var groupedByCategory: [String: [Activity]] {
         Dictionary(grouping: filteredActivities, by: { $0.category })
     }
-    
+
     var body: some View {
-        
-        NavigationStack{
-            
+        NavigationStack {
             Group {
-                
-                
-                
-                // --------------------------------
-                // Render the list
-                // --------------------------------
                 List {
-                    
-                    // --------------------------------
-                    // Group by Category
                     ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
-                        
-                        // --------------------------------
-                        // Add a Section Header for each Category
-                        //                        Section(header: Text(category)) {
-                        //
-                        //                            // --------------------------------
-                        //                            // Render the items under each Category
-                        //                            ForEach(groupedByCategory[category] ?? []) { activity in
-                        //
-                        //                                // --------------------------------
-                        //                                // Use a Custom Row that animates the graph
-                        //                                ActivityRow(activity: activity)
-                        //                            }
-                        //                            .padding(0)
-                        //
-                        //
-                        //                        }
                         Section(header: Text(category)) {
-                            
                             if let activitiesInSection = groupedByCategory[category] {
-                                
                                 ForEach(activitiesInSection) { activity in
                                     NavigationLink {
                                         EditActivityView(activity: activity)
                                     } label: {
                                         ActivityRow(activity: activity)
+                                            .contentShape(Rectangle())
+                                    }
+                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        let isDisabled = activity.count >= activity.maxCount
+                                        Button {
+                                            if activity.count < activity.maxCount {
+//                                                activity.count += 1
+//                                                activity.dateModified = Date()
+//                                                try? modelContext.save()
+                                                activity.incrementCount(in: modelContext)
+                                                NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                                                let success = UINotificationFeedbackGenerator()
+                                                success.notificationOccurred(.success)
+                                            } else {
+                                                let warning = UINotificationFeedbackGenerator()
+                                                warning.notificationOccurred(.warning)
+                                            }
+                                        } label: {
+                                            Label("Done", systemImage: "checkmark")
+                                        }
+                                        .tint(.green)
+                                        .disabled(isDisabled)
                                     }
                                 }
-                                .padding(0)
                             }
                         }
                         .contentShape(Rectangle())
                     }
-                    
                 }
                 .id(reloadID)
                 .listRowSeparator(.hidden)
-                
-                // --------------------------------
-                // Search
                 .searchable(text: $searchText,
                             placement: .navigationBarDrawer(displayMode: .automatic),
                             prompt: "Search activities")
-                
-                
                 .navigationTitle("Activities")
                 .overlay {
                     if Activities.isEmpty && showEmptyPrompt {
-                        // --------------------------------
-                        // Empty state prompt
-                        // --------------------------------
                         VStack(spacing: 16) {
                             Text("No Activies Found")
                                 .font(.title3)
                                 .fontWeight(.semibold)
-                            
                             Text("Create sample activities for you to start with?")
                                 .multilineTextAlignment(.center)
                                 .font(.body)
                                 .foregroundStyle(.secondary)
                                 .padding(.horizontal, 24)
-                            
                             HStack(spacing: 16) {
-                                
-                                // Later button
                                 Button("Later") {
-                                    withAnimation {
-                                        showEmptyPrompt = false
-                                    }
+                                    withAnimation { showEmptyPrompt = false }
                                 }
                                 .buttonStyle(.bordered)
-                                
-                                // Yes button (default action)
                                 Button("Yes") {
                                     withAnimation {
                                         generateStarterActivities()
@@ -133,7 +103,7 @@ struct ActivitiesView: View {
                                     }
                                 }
                                 .buttonStyle(.borderedProminent)
-                                .keyboardShortcut(.defaultAction)   // makes "Yes" the default action
+                                .keyboardShortcut(.defaultAction)
                             }
                             .padding(.top, 4)
                         }
@@ -141,39 +111,22 @@ struct ActivitiesView: View {
                     }
                 }
                 .onChange(of: Activities.count) { oldValue, newValue in
-                    if newValue == 0 {
-                        // List just became empty → allow the prompt again
-                        showEmptyPrompt = true
-                    }
+                    if newValue == 0 { showEmptyPrompt = true }
                 }
                 .onReceive(NotificationCenter.default.publisher(for: .activityDidChange)) { _ in
                     reloadID = UUID()
                 }
             }
-            
-            
-            // --------------------------------
-            // Toolbar Items
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        
-                    } label: {
-                        Image(systemName: "house")
-                    }
-                    .accessibilityLabel("Home")
+                    Button { } label: { Image(systemName: "house") }
+                        .accessibilityLabel("Home")
                 }
                 ToolbarItem(placement: .automatic) {
-                    Button {
-                        
-                    } label: {
-                        Image(systemName: "line.3.horizontal.decrease")
-                    }
-                    .accessibilityLabel("Filter")
+                    Button { } label: { Image(systemName: "line.3.horizontal.decrease") }
+                        .accessibilityLabel("Filter")
                 }
-                
                 ToolbarSpacer()
-                
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
                         isPresentingAddActivity = true
@@ -182,101 +135,51 @@ struct ActivitiesView: View {
                     }
                 }
             }
-            // --------------------------------
-            // Present sheet to add a new Activity
-            // --------------------------------
             .sheet(isPresented: $isPresentingAddActivity) {
-                AddActivityView()   // defined below
+                AddActivityView()
             }
         }
     }
-    
-    // MARK: - Starter Activities
-    
+
     private func generateStarterActivities() {
         let now = Date()
-        
         func randomizedDate(for recurrence: String, now: Date) -> Date {
             switch recurrence {
             case "Daily":
-                // between now and 23 hours ago
                 let hours = Int.random(in: 0...23)
                 return Calendar.current.date(byAdding: .hour, value: -hours, to: now) ?? now
             case "Weekly":
-                // between now and 7 days ago
                 let days = Int.random(in: 0...7)
                 return Calendar.current.date(byAdding: .day, value: -days, to: now) ?? now
             case "Monthly":
-                // between now and 30 days ago
                 let days = Int.random(in: 0...30)
                 return Calendar.current.date(byAdding: .day, value: -days, to: now) ?? now
             default:
                 return now
             }
         }
-        
         let starters: [Activity] = [
-            Activity(
-                name: "Morning Run",
-                icon: "figure.run",
-                count: 5,
-                maxCount: 7,
-                recurrence: "Weekly",
-                category: "Fitness",
-                notes: "Light 5km run to start the day.",
-                dateCreated: randomizedDate(for: "Weekly", now: now),
-                dateModified: randomizedDate(for: "Weekly", now: now)
-            ),
-            Activity(
-                name: "Gym",
-                icon: "dumbbell",
-                count: 23,
-                maxCount: 30,
-                recurrence: "Monthly",
-                category: "Fitness",
-                notes: "30 mins in the gym",
-                dateCreated: randomizedDate(for: "Monthly", now: now),
-                dateModified: randomizedDate(for: "Monthly", now: now)
-            ),
-            Activity(
-                name: "Learn Something New",
-                icon: "book.fill",
-                count: Int.random(in: 0...5),
-                maxCount: 7,
-                recurrence: "Weekly",
-                category: "Learning",
-                notes: "Spend at least 30 minutes reading.",
-                dateCreated: randomizedDate(for: "Weekly", now: now),
-                dateModified: randomizedDate(for: "Weekly", now: now)
-            ),
-            Activity(
-                name: "Family Time",
-                icon: "person.3.fill",
-                count: Int.random(in: 1...6),
-                maxCount: 7,
-                recurrence: "Weekly",
-                category: "Personal",
-                notes: "Quality time with the family.",
-                dateCreated: randomizedDate(for: "Weekly", now: now),
-                dateModified: randomizedDate(for: "Weekly", now: now)
-            ),
-            Activity(
-                name: "Weekly Planning",
-                icon: "calendar.badge.clock",
-                count: Int.random(in: 0...5),
-                maxCount: 7,
-                recurrence: "Weekly",
-                category: "Work",
-                notes: "Plan tasks and priorities for the week.",
-                dateCreated: randomizedDate(for: "Weekly", now: now),
-                dateModified: randomizedDate(for: "Weekly", now: now)
-            )
+            Activity(name: "Morning Run", icon: "figure.run", count: 5, maxCount: 7, recurrence: "Weekly", category: "Fitness", notes: "Light 5km run to start the day.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now)),
+            Activity(name: "Gym", icon: "dumbbell", count: 23, maxCount: 30, recurrence: "Monthly", category: "Fitness", notes: "30 mins in the gym", dateCreated: randomizedDate(for: "Monthly", now: now), dateModified: randomizedDate(for: "Monthly", now: now)),
+            Activity(name: "Learn Something New", icon: "book.fill", count: Int.random(in: 0...5), maxCount: 7, recurrence: "Weekly", category: "Learning", notes: "Spend at least 30 minutes reading.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now)),
+            Activity(name: "Family Time", icon: "person.3.fill", count: Int.random(in: 1...6), maxCount: 7, recurrence: "Weekly", category: "Personal", notes: "Quality time with the family.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now)),
+            Activity(name: "Weekly Planning", icon: "calendar.badge.clock", count: Int.random(in: 0...5), maxCount: 7, recurrence: "Weekly", category: "Work", notes: "Plan tasks and priorities for the week.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now))
         ]
-        
-        for activity in starters {
-            modelContext.insert(activity)
-        }
-        // SwiftData auto-saves with the context; no explicit save call required
+        for activity in starters { modelContext.insert(activity) }
+    }
+
+    private func complete(_ activity: Activity) {
+        activity.count += 1
+        activity.dateModified = Date()
+        try? modelContext.save()
+        NotificationCenter.default.post(name: .activityDidChange, object: nil)
+    }
+
+    private func increment(_ activity: Activity) {
+        activity.count += 1
+        activity.dateModified = Date()
+        try? modelContext.save()
+        NotificationCenter.default.post(name: .activityDidChange, object: nil)
     }
 }
 
@@ -392,41 +295,7 @@ struct ActivityRow: View {
                 animatedProgress = activity.progress
             }
         }
-        // --------------------------------
-        // Swipe left to increment count + add delete button
-        // --------------------------------
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            
-            // Full-swipe performs this action
-            let isDisabled = activity.count >= activity.maxCount
-            
-            if (isDisabled == false) {
-                Button {
-                    if activity.count < activity.maxCount {
-                        activity.count += 1
-                        activity.dateModified = Date()
-                        try? modelContext.save()
-                        NotificationCenter.default.post(name: .activityDidChange, object: nil)
-                        let success = UINotificationFeedbackGenerator()
-                        success.notificationOccurred(.success)
-                    } else {
-                        let warning = UINotificationFeedbackGenerator()
-                        warning.notificationOccurred(.warning)
-                    }
-                } label: {
-                    Label("Done", systemImage: "checkmark")
-                }
-                .tint(.green)
-                .disabled(isDisabled)                  // Disable the Done / Checkmark button if the count has reached max count
-            }
-            
-            Button {
-                showDeleteConfirm = true
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
-            .tint(.red)
-        }
+        // Removed swipeActions entirely as per instruction
         .alert("Delete Activity?", isPresented: $showDeleteConfirm) {
             Button("Delete", role: .destructive) {
                 withAnimation(.easeInOut(duration: 0.12)) {
@@ -803,13 +672,37 @@ struct EditActivityView: View {
             }
             
             Section {
+                Button {
+                    // Increment count and record completion in history
+//                    activity.count += 1
+//                    activity.dateModified = Date()
+//                    // If Activity provides a record API, call it to log history
+//                    activity.recordCompletion(on: Date(), in: modelContext)
+//                    try? modelContext.save()
+                    activity.incrementCount(in: modelContext)
+                    NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                } label: {
+                    Label("Increment", systemImage: "checkmark")
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                }
+                //.buttonStyle(.borderedProminent)
+                //.tint(.green)
+            }
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+
+            Section {
                 Button(role: .destructive) {
                     showDeleteAlert = true
                 } label: {
-                    Text("Delete Activity")
-                        .frame(maxWidth: .infinity, alignment: .center)
+                    Label("Delete", systemImage: "trash")
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
                 }
+                .buttonStyle(.bordered)
+                //.tint(.red)
             }
+            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
         }
         .navigationTitle("Edit Activity")
         .navigationBarTitleDisplayMode(.inline)

@@ -28,6 +28,9 @@ class Activity {
     var dateCreated: Date
     var dateModified: Date
     
+    @Relationship(deleteRule: .cascade, inverse: \ActivityHistory.activity)
+    var histories: [ActivityHistory] = []
+    
     init(name: String, icon: String, count: Int, maxCount: Int, recurrence: String, category: String, notes: String, dateCreated: Date, dateModified: Date) {
         self.name = name
         self.icon = icon
@@ -46,6 +49,28 @@ extension Activity {
     
     private static func randomScore() -> Double {
         Double(Int.random(in: 1...100))
+    }
+    
+    /// Increments the activity count and automatically records a history entry.
+    /// Call this instead of modifying `count` directly.
+    func incrementCount(in context: ModelContext) {
+        self.count += 1
+        recordCompletion(on: Date(), in: context)
+        self.dateModified = Date()
+    }
+    
+    /// Increments by an arbitrary amount.
+    func incrementCount(by amount: Int, in context: ModelContext) {
+        self.count += amount
+        recordCompletion(on: Date(), in: context)
+        self.dateModified = Date()
+    }
+    
+    /// Sets a specific count and records history.
+    func setCount(_ newValue: Int, in context: ModelContext) {
+        self.count = newValue
+        recordCompletion(on: Date(), in: context)
+        self.dateModified = Date()
     }
     
     static var sampleData: [Activity] {
@@ -189,7 +214,7 @@ extension Activity {
                 dateCreated: Date().addingTimeInterval(-86400 * 2),
                 dateModified: Date()
             ),
-
+            
             // MAINTENANCE
             Activity(
                 name: "Car Maintenance",
