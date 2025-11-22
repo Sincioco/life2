@@ -14,6 +14,8 @@ import SwiftData
 class Activity {
     var name: String
     var progress: Double
+    var count: Int
+    var maxCount: Int
     var icon: String
     var recurrence: String
     var category: String
@@ -21,10 +23,12 @@ class Activity {
     var dateCreated: Date
     var dateModified: Date
     
-    init(name: String, icon: String, progress: Double, recurrence: String, category: String, notes: String, dateCreated: Date, dateModified: Date) {
+    init(name: String, icon: String, progress: Double, count: Int, maxCount: Int, recurrence: String, category: String, notes: String, dateCreated: Date, dateModified: Date) {
         self.name = name
         self.icon = icon
         self.progress = progress
+        self.count = count
+        self.maxCount = maxCount
         self.recurrence = recurrence
         self.category = category
         self.notes = notes
@@ -47,6 +51,8 @@ extension Activity {
                 name: "Morning Run",
                 icon: "figure.run",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Daily",
                 category: "Fitness",
                 notes: "5km easy pace",
@@ -57,6 +63,8 @@ extension Activity {
                 name: "Leg Day",
                 icon: "dumbbell.fill",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
                 category: "Fitness",
                 notes: "Squats, Lunges, Leg Press",
@@ -67,6 +75,8 @@ extension Activity {
                 name: "Yoga & Stretching",
                 icon: "figure.cooldown",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Daily",
                 category: "Fitness",
                 notes: "15 minutes morning flexibility",
@@ -79,6 +89,8 @@ extension Activity {
                 name: "Date Night",
                 icon: "heart.fill",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
                 category: "Personal",
                 notes: "Dinner with Joy 🍽️",
@@ -89,6 +101,8 @@ extension Activity {
                 name: "Meditation",
                 icon: "brain.head.profile",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Daily",
                 category: "Personal",
                 notes: "10 minutes mindfulness",
@@ -99,6 +113,8 @@ extension Activity {
                 name: "Call Parents",
                 icon: "phone.fill",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
                 category: "Personal",
                 notes: "Check in with family",
@@ -111,6 +127,8 @@ extension Activity {
                 name: "Pay Electric Bill",
                 icon: "bolt.fill",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Monthly",
                 category: "Bills",
                 notes: "Due every 25th",
@@ -121,6 +139,8 @@ extension Activity {
                 name: "Water Bill",
                 icon: "drop.fill",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Monthly",
                 category: "Bills",
                 notes: "Auto-debit BPI",
@@ -131,6 +151,8 @@ extension Activity {
                 name: "Internet Bill",
                 icon: "wifi",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Monthly",
                 category: "Bills",
                 notes: "Converge ₱1500",
@@ -143,6 +165,8 @@ extension Activity {
                 name: "Weekly Planning",
                 icon: "calendar",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
                 category: "Work",
                 notes: "Review tasks + sprint board",
@@ -153,6 +177,8 @@ extension Activity {
                 name: "1-on-1 Team Meeting",
                 icon: "person.2.fill",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
                 category: "Work",
                 notes: "Coaching + updates",
@@ -163,6 +189,8 @@ extension Activity {
                 name: "Project Refactor",
                 icon: "hammer",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "None",
                 category: "Work",
                 notes: "Clean up old Swift code",
@@ -175,6 +203,8 @@ extension Activity {
                 name: "Car Maintenance",
                 icon: "car.fill",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Yearly",
                 category: "Maintenance",
                 notes: "Oil change + tune-up",
@@ -185,6 +215,8 @@ extension Activity {
                 name: "Aircon Cleaning",
                 icon: "wind",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Quarterly",
                 category: "Maintenance",
                 notes: "Split-type deep clean",
@@ -195,6 +227,8 @@ extension Activity {
                 name: "Grocery Restock",
                 icon: "cart.fill",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
                 category: "Maintenance",
                 notes: "Vegetables, fruit, chicken, oatmeal",
@@ -207,6 +241,8 @@ extension Activity {
                 name: "Learn SwiftUI",
                 icon: "book.fill",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Daily",
                 category: "Learning",
                 notes: "1 hour coding practice",
@@ -217,6 +253,8 @@ extension Activity {
                 name: "Read Tech Articles",
                 icon: "newspaper.fill",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Daily",
                 category: "Learning",
                 notes: "AI, Swift, and GPU news",
@@ -227,6 +265,8 @@ extension Activity {
                 name: "Watch WWDC Session",
                 icon: "desktopcomputer",
                 progress: randomScore(),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
                 category: "Learning",
                 notes: "Review SwiftData updates",
@@ -236,3 +276,4 @@ extension Activity {
         ]
     }
 }
+

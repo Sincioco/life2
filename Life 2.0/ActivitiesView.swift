@@ -206,6 +206,8 @@ struct ActivitiesView: View {
                 name: "Morning Run",
                 icon: "figure.run",
                 progress: Double(Int.random(in: 10...60)),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Daily",
                 category: "Fitness",
                 notes: "Light 5km run to start the day.",
@@ -216,6 +218,8 @@ struct ActivitiesView: View {
                 name: "Pay Electric Bill",
                 icon: "bolt.fill",
                 progress: Double(Int.random(in: 0...10)),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Monthly",
                 category: "Bills",
                 notes: "Due near the end of the month.",
@@ -226,6 +230,8 @@ struct ActivitiesView: View {
                 name: "Learn Something New",
                 icon: "book.fill",
                 progress: Double(Int.random(in: 20...70)),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Daily",
                 category: "Learning",
                 notes: "Spend at least 30 minutes building UIs.",
@@ -236,6 +242,8 @@ struct ActivitiesView: View {
                 name: "Family Dinner",
                 icon: "person.3.fill",
                 progress: Double(Int.random(in: 0...30)),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
                 category: "Personal",
                 notes: "Device-free dinner with the family.",
@@ -246,6 +254,8 @@ struct ActivitiesView: View {
                 name: "Weekly Planning",
                 icon: "calendar.badge.clock",
                 progress: Double(Int.random(in: 0...40)),
+                count: Int.random(in: 0...5),
+                maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
                 category: "Work",
                 notes: "Plan tasks and priorities for the week.",
@@ -357,6 +367,13 @@ struct AddActivityView: View {
         "Others"
     ]
     
+    private let recurrencies = [
+        "Daily",
+        "Weekly",
+        "Monthly",
+        "Yearly"
+    ]
+    
     // Form fields
     @State private var name: String = ""
     @State private var icon: String = "figure.walk"
@@ -403,7 +420,11 @@ struct AddActivityView: View {
                         }
                     }
                     
-                    TextField("Recurrence", text: $recurrence)
+                    Picker("Recurrence", selection: $recurrence) {
+                        ForEach(recurrencies, id: \.self) { rec in
+                            Text(rec).tag(rec)
+                        }
+                    }
                 }
                 
                 // ----------------------------------------------------
@@ -470,6 +491,8 @@ struct AddActivityView: View {
             name: name,
             icon: icon,
             progress: progress,
+            count: Int.random(in: 0...5),
+            maxCount: Int.random(in: 5...10),
             recurrence: recurrence,
             category: category,
             notes: notes,
@@ -504,6 +527,13 @@ struct EditActivityView: View {
         "Work",
         "Others"
     ]
+    
+    private let recurrencies = [
+        "Daily",
+        "Weekly",
+        "Monthly",
+        "Yearly"
+    ]
 
     // Sheet state
     @State private var isPresentingIconPicker = false
@@ -537,8 +567,13 @@ struct EditActivityView: View {
                         Text(cat).tag(cat)
                     }
                 }
+                
+                Picker("Recurrence", selection: $activity.recurrence) {
+                    ForEach(recurrencies, id: \.self) { rec in
+                        Text(rec).tag(rec)
+                    }
+                }
 
-                TextField("Recurrence", text: $activity.recurrence)
             }
 
             Section("Progress") {
