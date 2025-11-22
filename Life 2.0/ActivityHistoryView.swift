@@ -9,7 +9,7 @@ import SwiftData
 
 struct ActivityHistoryView: View {
     
-    // Access to the SwiftData model context (if needed later for deletes, etc.)
+    // Access to the SwiftData model context
     @Environment(\.modelContext) private var modelContext
     
     // Fetch all history records, newest at the top
@@ -37,12 +37,28 @@ struct ActivityHistoryView: View {
                         ForEach(histories) { history in
                             ActivityHistoryRow(history: history)
                         }
+                        .onDelete(perform: deleteHistory)
                     }
                     .listStyle(.insetGrouped)
                 }
             }
             .navigationTitle("Activity History")
+            .toolbar {
+                if !histories.isEmpty {
+                    EditButton()
+                }
+            }
         }
+    }
+    
+    // MARK: - Delete
+    
+    private func deleteHistory(at offsets: IndexSet) {
+        for index in offsets {
+            let history = histories[index]
+            modelContext.delete(history)
+        }
+        // No need to manually save; SwiftData will handle changes as appropriate.
     }
 }
 
