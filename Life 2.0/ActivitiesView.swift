@@ -507,6 +507,7 @@ struct EditActivityView: View {
 
     // Sheet state
     @State private var isPresentingIconPicker = false
+    @State private var showDeleteAlert = false
 
     var body: some View {
         Form {
@@ -561,6 +562,15 @@ struct EditActivityView: View {
                 TextField("Notes", text: $activity.notes, axis: .vertical)
                     .lineLimit(3, reservesSpace: true)
             }
+            
+            Section { 
+                Button(role: .destructive) {
+                    showDeleteAlert = true
+                } label: {
+                    Text("Delete Activity")
+                        .frame(maxWidth: .infinity, alignment: .center)
+                }
+            }
         }
         .navigationTitle("Edit Activity")
         .navigationBarTitleDisplayMode(.inline)
@@ -584,6 +594,18 @@ struct EditActivityView: View {
             NavigationStack {
                 IconPickerView(selectedIcon: $activity.icon)
             }
+        }
+        .alert("Delete Activity?", isPresented: $showDeleteAlert) {
+            Button("Delete", role: .destructive) {
+                // Perform delete, notify, and dismiss
+                modelContext.delete(activity)
+                try? modelContext.save()
+                NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                dismiss()
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This action cannot be undone.")
         }
     }
 }
