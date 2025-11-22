@@ -780,11 +780,11 @@ struct EditActivityView: View {
         .navigationTitle("Edit Activity")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") {
-                    dismiss()
-                }
-            }
+//            ToolbarItem(placement: .cancellationAction) {
+//                Button("Cancel") {
+//                    dismiss()
+//                }
+//            }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
                     // Removed validation guard
