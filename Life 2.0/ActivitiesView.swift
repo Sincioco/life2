@@ -104,11 +104,11 @@ struct ActivitiesView: View {
                         // Empty state prompt
                         // --------------------------------
                         VStack(spacing: 16) {
-                            Text("No activities found.")
+                            Text("No Activies Found")
                                 .font(.title3)
                                 .fontWeight(.semibold)
                             
-                            Text("Would you like me to add a few activities for you to start with?")
+                            Text("Create sample activities for you to start with?")
                                 .multilineTextAlignment(.center)
                                 .font(.body)
                                 .foregroundStyle(.secondary)
