@@ -1,28 +1,27 @@
+
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 //                               Life 2.0 - Activity History View
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
-// Purpose: Displays a list of ActivityHistory records (most recent first).
+// Purpose: Displays a list of ActivityHistory records (most recent first) and
+//          is updated to match the new Activity / ActivityHistory models.
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 
 import SwiftUI
 import SwiftData
 
 struct ActivityHistoryView: View {
-    
+
     // Access to the SwiftData model context
     @Environment(\.modelContext) private var modelContext
-    
+
     // Fetch all history records, newest at the top
     @Query(
         sort: [
-            // Primary sort: dateCompleted (newest first)
-            SortDescriptor(\ActivityHistory.dateCompleted, order: .reverse),
-            // Secondary sort: dateRecorded (newest first) as a tie-breaker
-            SortDescriptor(\ActivityHistory.dateRecorded, order: .reverse)
+            SortDescriptor(\ActivityHistory.dateCompleted, order: .reverse)
         ]
     )
     private var histories: [ActivityHistory]
-    
+
     var body: some View {
         NavigationStack {
             Group {
@@ -30,168 +29,173 @@ struct ActivityHistoryView: View {
                     ContentUnavailableView(
                         "No Activity History",
                         systemImage: "clock.arrow.circlepath",
-                        description: Text("History entries will appear here whenever an activity is completed.")
+                        description: Text("Completed activities will appear here.")
                     )
                 } else {
                     List {
                         ForEach(histories) { history in
-                            ActivityHistoryRow(history: history)
+                            HistoryRow(history: history)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        delete(history)
+                                    } label: {
+                                        Label("Delete", systemImage: "trash")
+                                    }
+                                }
                         }
-                        .onDelete(perform: deleteHistory)
                     }
                     .listStyle(.insetGrouped)
                 }
             }
             .navigationTitle("Activity History")
-            .toolbar {
-                if !histories.isEmpty {
-                    EditButton()
-                }
-            }
         }
     }
-    
+
     // MARK: - Delete
-    
-    private func deleteHistory(at offsets: IndexSet) {
-        for index in offsets {
-            let history = histories[index]
-            modelContext.delete(history)
+
+    private func delete(_ history: ActivityHistory) {
+        modelContext.delete(history)
+
+        do {
+            try modelContext.save()
+        } catch {
+            // In a real app you might show an alert; for now we just log
+            print("Failed to delete ActivityHistory: \\(error)")
         }
-        // No need to manually save; SwiftData will handle changes as appropriate.
     }
 }
 
-private struct ActivityHistoryRow: View {
-    
+// MARK: - Row View
+
+private struct HistoryRow: View {
+
     let history: ActivityHistory
-    
-    // Safely unwrap any associated Activity (might be nil if the parent was deleted)
+
     private var activityName: String {
-        if let activity = history.activity {
-            return activity.name
-        } else if !history.name.isEmpty {
-            return history.name
-        } else {
-            return "Unknown Activity"
-        }
+        history.activity?.name ?? "Unknown Activity"
     }
-    
+
     private var iconName: String {
-        if let activity = history.activity {
-            return activity.icon
-        } else if !history.icon.isEmpty {
-            return history.icon
+        history.activity?.icon ?? "questionmark.circle"
+    }
+
+    private var recurrenceText: String {
+        if let recurrence = history.activity?.recurrence {
+            return recurrence.rawValue
         } else {
-            return "checkmark.circle"
+            return "No Recurrence"
         }
     }
-    
-    private var formattedCompletedDate: String {
-        history.dateCompleted.formatted(date: .abbreviated, time: .shortened)
+
+    private var completedDateText: String {
+        formattedDate(history.dateCompleted, includeTime: true)
     }
-    
-    private var formattedRecordedDate: String {
-        history.dateRecorded.formatted(date: .abbreviated, time: .shortened)
+
+    private var recordedDateText: String {
+        formattedDate(history.dateRecorded, includeTime: true)
     }
-    
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            
-            // Icon
             Image(systemName: iconName)
-                .symbolRenderingMode(.hierarchical)
-                .font(.system(size: 26))
+                .resizable()
+                .scaledToFit()
+                .frame(width: 28, height: 28)
                 .foregroundStyle(.blue)
-                .frame(width: 36, height: 36)
-            
-            // Main content
+                .padding(.top, 4)
+
             VStack(alignment: .leading, spacing: 4) {
-                
-                // Activity name + category
+                // Activity name & recurrence
                 HStack {
                     Text(activityName)
                         .font(.headline)
-                    if !history.category.isEmpty {
-                        Text(history.category)
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
-                }
-                
-                // Counts, recurrence
-                HStack(spacing: 12) {
-                    if history.maxCount > 0 {
-                        Text("Count: \(history.count)/\(history.maxCount)")
-                    } else {
-                        Text("Count: \(history.count)")
-                    }
-                    
-                    if !history.recurrence.isEmpty {
-                        Text(history.recurrence)
-                    }
-                }
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-                
-                // Notes
-                if !history.notes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                    Text(history.notes)
-                        .font(.footnote)
+                        .lineLimit(1)
+
+                    Spacer()
+
+                    Text(recurrenceText)
+                        .font(.caption)
                         .foregroundStyle(.secondary)
-                        .lineLimit(3)
                 }
-                
-                // Dates
-                HStack(spacing: 12) {
-                    Label(formattedCompletedDate, systemImage: "checkmark.seal")
-                    Label(formattedRecordedDate, systemImage: "tray.and.arrow.down")
+
+                // Completed date
+                HStack(spacing: 4) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.green)
+                    Text("Completed:")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(completedDateText)
+                        .font(.caption)
                 }
-                .font(.footnote)
-                .foregroundStyle(.tertiary)
-                .padding(.top, 2)
+
+                // Recorded date
+                HStack(spacing: 4) {
+                    Image(systemName: "clock")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text("Recorded:")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                    Text(recordedDateText)
+                        .font(.caption)
+                }
             }
         }
         .padding(.vertical, 4)
     }
+
+    // MARK: - Helpers
+
+    private func formattedDate(_ date: Date, includeTime: Bool) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = includeTime ? .short : .none
+        return formatter.string(from: date)
+    }
 }
 
-// ————————————————————————————————————————————————————————————————————————————————————————————————————
-// Preview
-// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// MARK: - Preview
 
 #Preview {
     do {
-        let configuration = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(for: Activity.self, ActivityHistory.self, configurations: configuration)
-        
-        // Create a couple of sample activities and history entries for the preview
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try ModelContainer(
+            for: Activity.self,
+            ActivityHistory.self,
+            configurations: config
+        )
+
         let context = container.mainContext
-        
+
+        // Sample activity
         let sampleActivity = Activity(
             name: "Sample Run",
             icon: "figure.run",
-            count: 3,
-            maxCount: 5,
-            recurrence: "Daily",
+            recurrence: .daily,
             category: "Fitness",
-            notes: "Example preview activity.",
-            dateCreated: .now.addingTimeInterval(-86400 * 3),
-            dateModified: .now
+            notes: "Morning jog around the park"
         )
-        
+
         context.insert(sampleActivity)
-        
+
         // Sample history entries
-        let history1 = ActivityHistory(activity: sampleActivity, dateCompleted: .now.addingTimeInterval(-3600 * 5))
-        let history2 = ActivityHistory(activity: sampleActivity, dateCompleted: .now.addingTimeInterval(-3600 * 2))
-        
+        let history1 = ActivityHistory(
+            activity: sampleActivity,
+            dateCompleted: .now.addingTimeInterval(-3600 * 5)
+        )
+        let history2 = ActivityHistory(
+            activity: sampleActivity,
+            dateCompleted: .now.addingTimeInterval(-3600 * 2)
+        )
+
         context.insert(history1)
         context.insert(history2)
-        
+
         return ActivityHistoryView()
             .modelContainer(container)
     } catch {
-        return Text("Failed to create preview: \(error.localizedDescription)")
+        return Text("Failed to create preview: \\(error.localizedDescription)")
     }
 }

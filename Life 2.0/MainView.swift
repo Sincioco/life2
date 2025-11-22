@@ -44,9 +44,9 @@ struct MainView: View {
         let container = try! ModelContainer(for: schema, configurations: config)
         
         // Insert test data
-        for event in Activity.sampleData {
-            container.mainContext.insert(event)
-        }
+//        for event in Activity.sampleData {
+//            container.mainContext.insert(event)
+//        }
         
         return container
     }()

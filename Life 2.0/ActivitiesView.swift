@@ -54,7 +54,7 @@ struct ActivitiesView: View {
 //                                                activity.count += 1
 //                                                activity.dateModified = Date()
 //                                                try? modelContext.save()
-                                                activity.incrementCount(in: modelContext)
+                                                activity.increment(in: modelContext)
                                                 NotificationCenter.default.post(name: .activityDidChange, object: nil)
                                                 let success = UINotificationFeedbackGenerator()
                                                 success.notificationOccurred(.success)
@@ -98,7 +98,7 @@ struct ActivitiesView: View {
                                 .buttonStyle(.bordered)
                                 Button("Yes") {
                                     withAnimation {
-                                        generateStarterActivities()
+                                        //generateStarterActivities()
                                         showEmptyPrompt = false
                                     }
                                 }
@@ -141,44 +141,38 @@ struct ActivitiesView: View {
         }
     }
 
-    private func generateStarterActivities() {
-        let now = Date()
-        func randomizedDate(for recurrence: String, now: Date) -> Date {
-            switch recurrence {
-            case "Daily":
-                let hours = Int.random(in: 0...23)
-                return Calendar.current.date(byAdding: .hour, value: -hours, to: now) ?? now
-            case "Weekly":
-                let days = Int.random(in: 0...7)
-                return Calendar.current.date(byAdding: .day, value: -days, to: now) ?? now
-            case "Monthly":
-                let days = Int.random(in: 0...30)
-                return Calendar.current.date(byAdding: .day, value: -days, to: now) ?? now
-            default:
-                return now
-            }
-        }
-        let starters: [Activity] = [
-            Activity(name: "Morning Run", icon: "figure.run", count: 5, maxCount: 7, recurrence: "Weekly", category: "Fitness", notes: "Light 5km run to start the day.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now)),
-            Activity(name: "Gym", icon: "dumbbell", count: 23, maxCount: 30, recurrence: "Monthly", category: "Fitness", notes: "30 mins in the gym", dateCreated: randomizedDate(for: "Monthly", now: now), dateModified: randomizedDate(for: "Monthly", now: now)),
-            Activity(name: "Learn Something New", icon: "book.fill", count: Int.random(in: 0...5), maxCount: 7, recurrence: "Weekly", category: "Learning", notes: "Spend at least 30 minutes reading.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now)),
-            Activity(name: "Family Time", icon: "person.3.fill", count: Int.random(in: 1...6), maxCount: 7, recurrence: "Weekly", category: "Personal", notes: "Quality time with the family.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now)),
-            Activity(name: "Weekly Planning", icon: "calendar.badge.clock", count: Int.random(in: 0...5), maxCount: 7, recurrence: "Weekly", category: "Work", notes: "Plan tasks and priorities for the week.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now))
-        ]
-        for activity in starters { modelContext.insert(activity) }
-    }
-
-    private func complete(_ activity: Activity) {
-        activity.count += 1
-        activity.dateModified = Date()
-        try? modelContext.save()
-        NotificationCenter.default.post(name: .activityDidChange, object: nil)
-    }
+//    private func generateStarterActivities() {
+//        let now = Date()
+//        func randomizedDate(for recurrence: String, now: Date) -> Date {
+//            switch recurrence {
+//            case "Daily":
+//                let hours = Int.random(in: 0...23)
+//                return Calendar.current.date(byAdding: .hour, value: -hours, to: now) ?? now
+//            case "Weekly":
+//                let days = Int.random(in: 0...7)
+//                return Calendar.current.date(byAdding: .day, value: -days, to: now) ?? now
+//            case "Monthly":
+//                let days = Int.random(in: 0...30)
+//                return Calendar.current.date(byAdding: .day, value: -days, to: now) ?? now
+//            default:
+//                return now
+//            }
+//        }
+//        let starters: [Activity] = [
+//            Activity(name: "Morning Run", icon: "figure.run", count: 5, maxCount: 7, recurrence: "Weekly", category: "Fitness", notes: "Light 5km run to start the day.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now)),
+//            Activity(name: "Gym", icon: "dumbbell", count: 23, maxCount: 30, recurrence: "Monthly", category: "Fitness", notes: "30 mins in the gym", dateCreated: randomizedDate(for: "Monthly", now: now), dateModified: randomizedDate(for: "Monthly", now: now)),
+//            Activity(name: "Learn Something New", icon: "book.fill", count: Int.random(in: 0...5), maxCount: 7, recurrence: "Weekly", category: "Learning", notes: "Spend at least 30 minutes reading.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now)),
+//            Activity(name: "Family Time", icon: "person.3.fill", count: Int.random(in: 1...6), maxCount: 7, recurrence: "Weekly", category: "Personal", notes: "Quality time with the family.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now)),
+//            Activity(name: "Weekly Planning", icon: "calendar.badge.clock", count: Int.random(in: 0...5), maxCount: 7, recurrence: "Weekly", category: "Work", notes: "Plan tasks and priorities for the week.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now))
+//        ]
+//        for activity in starters { modelContext.insert(activity) }
+//    }
 
     private func increment(_ activity: Activity) {
-        activity.count += 1
-        activity.dateModified = Date()
-        try? modelContext.save()
+//        activity.count += 1
+//        activity.dateModified = Date()
+//        try? modelContext.save()
+        activity.increment(in: modelContext)
         NotificationCenter.default.post(name: .activityDidChange, object: nil)
     }
 }
@@ -267,7 +261,7 @@ struct ActivityRow: View {
                 }
                 
                 HStack(alignment: .firstTextBaseline) {
-                    Text("\(activity.recurrence): \(activity.count) of \(activity.maxCount)")
+                    Text("\(activity.recurrence.rawValue): \(activity.count) of \(activity.maxCount)")
                     Spacer()
                     
                     if (activity.count > 0) {
@@ -337,14 +331,9 @@ struct AddActivityView: View {
         "Work",
         "Others"
     ]
-    
-    private let recurrencies = [
-        "Daily",
-        "Weekly",
-        "Monthly",
-        "Yearly"
-    ]
-    
+
+    private let recurrencies = Recurrence.allCases
+
     // Sheet state
     
     // Segmented control selection
@@ -365,7 +354,7 @@ struct AddActivityView: View {
     @State private var maxCount: Int = 7
     //@State private var progress: Double = 0  // ← REMOVED as per instruction
     
-    @State private var recurrence: String = "Daily"
+    @State private var recurrence: Recurrence = .daily
     @State private var category: String = "Fitness"   // default
     @State private var notes: String = ""
     
@@ -377,16 +366,6 @@ struct AddActivityView: View {
         guard maxCount > 0 else { return 0 }
         let ratio = min(Double(count) / Double(maxCount), 1.0)
         return max(0, ratio) * 100
-    }
-    
-    private var maxCountUpperBound: Int {
-        switch recurrence {
-        case "Daily": return 1
-        case "Weekly": return 7
-        case "Monthly": return 31
-        case "Yearly": return 366
-        default: return 100
-        }
     }
     
     var body: some View {
@@ -432,7 +411,7 @@ struct AddActivityView: View {
                         
                         Picker("Recurrence", selection: $recurrence) {
                             ForEach(recurrencies, id: \.self) { rec in
-                                Text(rec).tag(rec)
+                                Text(rec.rawValue).tag(rec)
                             }
                         }
                         
@@ -510,8 +489,6 @@ struct AddActivityView: View {
         let newActivity = Activity(
             name: name,
             icon: icon,
-            count: count,
-            maxCount: maxCount,
             recurrence: recurrence,
             category: category,
             notes: notes,
@@ -547,13 +524,6 @@ struct EditActivityView: View {
         "Others"
     ]
     
-    private let recurrencies = [
-        "Daily",
-        "Weekly",
-        "Monthly",
-        "Yearly"
-    ]
-    
     // Sheet state
     
     // Segmented control selection
@@ -572,9 +542,6 @@ struct EditActivityView: View {
     @State private var originalName: String = ""
     @State private var originalIcon: String = ""
     @State private var originalCategory: String = ""
-    @State private var originalRecurrence: String = ""
-    @State private var originalCount: Int = 0
-    @State private var originalMaxCount: Int = 0
     @State private var originalNotes: String = ""
     @State private var didSave: Bool = false
     
@@ -583,16 +550,6 @@ struct EditActivityView: View {
         guard activity.maxCount > 0 else { return 0 }
         let ratio = min(Double(activity.count) / Double(activity.maxCount), 1.0)
         return max(0, ratio) * 100
-    }
-    
-    private var maxCountUpperBound: Int {
-        switch activity.recurrence {
-        case "Daily": return 1
-        case "Weekly": return 7
-        case "Monthly": return 31
-        case "Yearly": return 366
-        default: return 100
-        }
     }
     
     var body: some View {
@@ -634,16 +591,10 @@ struct EditActivityView: View {
                     }
                     
                     Picker("Recurrence", selection: $activity.recurrence) {
-                        ForEach(recurrencies, id: \.self) { rec in
-                            Text(rec).tag(rec)
+                        ForEach(Recurrence.allCases, id: \.self) { rec in
+                            Text(rec.rawValue).tag(rec)
                         }
                     }
-                    
-                    TextField("Count", value: $activity.count, format: .number)
-                        .keyboardType(.numberPad)
-                    
-                    TextField("Max Count", value: $activity.maxCount, format: .number)
-                        .keyboardType(.numberPad)
                     
                     HStack {
                         Gauge(value: computedProgress, in: 0...100) { EmptyView() } currentValueLabel: { EmptyView() }
@@ -679,7 +630,7 @@ struct EditActivityView: View {
 //                    // If Activity provides a record API, call it to log history
 //                    activity.recordCompletion(on: Date(), in: modelContext)
 //                    try? modelContext.save()
-                    activity.incrementCount(in: modelContext)
+                    activity.increment(in: modelContext)
                     NotificationCenter.default.post(name: .activityDidChange, object: nil)
                 } label: {
                     Label("Increment", systemImage: "checkmark")
@@ -729,9 +680,6 @@ struct EditActivityView: View {
             originalName = activity.name
             originalIcon = activity.icon
             originalCategory = activity.category
-            originalRecurrence = activity.recurrence
-            originalCount = activity.count
-            originalMaxCount = activity.maxCount
             originalNotes = activity.notes
             didSave = false
         }
@@ -740,9 +688,6 @@ struct EditActivityView: View {
                 activity.name = originalName
                 activity.icon = originalIcon
                 activity.category = originalCategory
-                activity.recurrence = originalRecurrence
-                activity.count = originalCount
-                activity.maxCount = originalMaxCount
                 activity.notes = originalNotes
             }
         }
@@ -769,20 +714,20 @@ struct EditActivityView: View {
 // MARK: - Preview code for Canvas
 #Preview {
     let previewContainer: ModelContainer = {
-        let schema = Schema([Activity.self])
+        let schema = Schema([Activity.self, ActivityHistory.self])
         let config = ModelConfiguration(isStoredInMemoryOnly: true)
         
         let container = try! ModelContainer(for: schema, configurations: config)
         
         // Insert test data
-        for event in Activity.sampleData {
-            container.mainContext.insert(event)
-        }
+//        for event in Activity.sampleData {
+//            container.mainContext.insert(event)
+//        }
         
         return container
     }()
     
-    MainView()   // ← make sure this matches the struct name
+    ActivitiesView()
         .modelContainer(previewContainer)
 }
 

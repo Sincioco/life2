@@ -1,290 +1,141 @@
-// ————————————————————————————————————————————————————————————————————————————————————————————————————
-//                                      Life 2.0 - Activity Data Model
-// ————————————————————————————————————————————————————————————————————————————————————————————————————
-// Programmed By:  Louiery R. Sincioco                                                     Version: 1.0
-// Programmed Date:  November 22, 2025                                                      For: iOS 26
-// ————————————————————————————————————————————————————————————————————————————————————————————————————
-// Purpose:  Defines the Data Model of an Activity.
-// ————————————————————————————————————————————————————————————————————————————————————————————————————
 
 import Foundation
 import SwiftData
 
+enum Recurrence: String, Codable, CaseIterable {
+    case daily = "Daily"
+    case weekly = "Weekly"
+    case monthly = "Monthly"
+    case yearly = "Yearly"
+    case none = "None"
+}
+
 @Model
 class Activity {
     var name: String
-    // Computed progress based on count and maxCount (0...100)
-    var progress: Double {
-        guard maxCount > 0 else { return 0 }
-        let ratio = min(Double(count) / Double(maxCount), 1.0)
-        return max(0, ratio) * 100
-    }
-    var count: Int
-    var maxCount: Int
     var icon: String
-    var recurrence: String
+    var recurrence: Recurrence
     var category: String
     var notes: String
     var dateCreated: Date
     var dateModified: Date
-    
+
     @Relationship(deleteRule: .cascade, inverse: \ActivityHistory.activity)
     var histories: [ActivityHistory] = []
-    
-    init(name: String, icon: String, count: Int, maxCount: Int, recurrence: String, category: String, notes: String, dateCreated: Date, dateModified: Date) {
+
+    /// Computed maxCount based on recurrence
+    var maxCount: Int {
+        switch recurrence {
+        case .daily:   return 1
+        case .weekly:  return 7
+        case .monthly: return 31
+        case .yearly:  return 366
+        case .none:    return 0
+        }
+    }
+
+    /// Count is now derived from history within the recurrence window
+    var count: Int {
+        historiesForCurrentRecurrence().count
+    }
+
+    /// Progress (0–100)
+    var progress: Double {
+        guard maxCount > 0 else { return 0 }
+        return min(Double(count) / Double(maxCount), 1.0) * 100.0
+    }
+
+    init(
+        name: String,
+        icon: String,
+        recurrence: Recurrence,
+        category: String,
+        notes: String,
+        dateCreated: Date = Date(),
+        dateModified: Date = Date()
+    ) {
         self.name = name
         self.icon = icon
-        self.count = count
-        self.maxCount = maxCount
         self.recurrence = recurrence
         self.category = category
         self.notes = notes
         self.dateCreated = dateCreated
         self.dateModified = dateModified
     }
-    
 }
 
 extension Activity {
-    
-    private static func randomScore() -> Double {
-        Double(Int.random(in: 1...100))
+
+    /// Filters history based on recurrence window
+    func historiesForCurrentRecurrence(
+        relativeTo now: Date = Date(),
+        calendar baseCalendar: Calendar = .current
+    ) -> [ActivityHistory] {
+
+        var calendar = baseCalendar
+        let all = histories
+
+        switch recurrence {
+        case .daily:
+            return all.filter { calendar.isDate($0.dateCompleted, inSameDayAs: now) }
+
+        case .weekly:
+            calendar.firstWeekday = 2
+            guard let interval = calendar.dateInterval(of: .weekOfYear, for: now)
+            else { return [] }
+            return all.filter { interval.contains($0.dateCompleted) }
+
+        case .monthly:
+            guard let interval = calendar.dateInterval(of: .month, for: now)
+            else { return [] }
+            return all.filter { interval.contains($0.dateCompleted) }
+
+        case .yearly:
+            guard let interval = calendar.dateInterval(of: .year, for: now)
+            else { return [] }
+            return all.filter { interval.contains($0.dateCompleted) }
+
+        case .none:
+            return all
+        }
     }
-    
-    /// Increments the activity count and automatically records a history entry.
-    /// Call this instead of modifying `count` directly.
-    func incrementCount(in context: ModelContext) {
-        self.count += 1
-        recordCompletion(on: Date(), in: context)
-        self.dateModified = Date()
+
+    /// Increment by one – directly inserts a history entry
+    func increment(in context: ModelContext) {
+        let now = Date()
+        let entry = ActivityHistory(activity: self, dateCompleted: now)
+        context.insert(entry)
+        self.dateModified = now
     }
-    
-    /// Increments by an arbitrary amount.
-    func incrementCount(by amount: Int, in context: ModelContext) {
-        self.count += amount
-        recordCompletion(on: Date(), in: context)
-        self.dateModified = Date()
+
+    /// Increment multiple times
+    func increment(by amount: Int, in context: ModelContext) {
+        guard amount > 0 else { return }
+        let now = Date()
+        for _ in 0..<amount {
+            let entry = ActivityHistory(activity: self, dateCompleted: now)
+            context.insert(entry)
+        }
+        self.dateModified = now
     }
-    
-    /// Sets a specific count and records history.
+
+    /// Adjust history to match a target count
     func setCount(_ newValue: Int, in context: ModelContext) {
-        self.count = newValue
-        recordCompletion(on: Date(), in: context)
+        let target = max(0, newValue)
+        let current = count
+
+        if target > current {
+            increment(by: target - current, in: context)
+        } else if target < current {
+            let diff = current - target
+            let window = historiesForCurrentRecurrence()
+                .sorted { $0.dateCompleted > $1.dateCompleted }
+
+            for entry in window.prefix(diff) {
+                context.delete(entry)
+            }
+        }
+
         self.dateModified = Date()
-    }
-    
-    static var sampleData: [Activity] {
-        [
-            // FITNESS
-            Activity(
-                name: "Morning Run",
-                icon: "figure.run",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Daily",
-                category: "Fitness",
-                notes: "5km easy pace",
-                dateCreated: Date().addingTimeInterval(-86400 * 3),
-                dateModified: Date()
-            ),
-            Activity(
-                name: "Leg Day",
-                icon: "dumbbell.fill",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Weekly",
-                category: "Fitness",
-                notes: "Squats, Lunges, Leg Press",
-                dateCreated: Date().addingTimeInterval(-86400 * 8),
-                dateModified: Date()
-            ),
-            Activity(
-                name: "Yoga & Stretching",
-                icon: "figure.cooldown",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Daily",
-                category: "Fitness",
-                notes: "15 minutes morning flexibility",
-                dateCreated: Date().addingTimeInterval(-86400 * 5),
-                dateModified: Date()
-            ),
-            
-            // PERSONAL
-            Activity(
-                name: "Date Night",
-                icon: "heart.fill",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Weekly",
-                category: "Personal",
-                notes: "Dinner with Joy 🍽️",
-                dateCreated: Date().addingTimeInterval(-86400 * 10),
-                dateModified: Date()
-            ),
-            Activity(
-                name: "Meditation",
-                icon: "brain.head.profile",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Daily",
-                category: "Personal",
-                notes: "10 minutes mindfulness",
-                dateCreated: Date().addingTimeInterval(-86400 * 1),
-                dateModified: Date()
-            ),
-            Activity(
-                name: "Call Parents",
-                icon: "phone.fill",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Weekly",
-                category: "Personal",
-                notes: "Check in with family",
-                dateCreated: Date().addingTimeInterval(-86400 * 12),
-                dateModified: Date()
-            ),
-            
-            // BILLS
-            Activity(
-                name: "Pay Electric Bill",
-                icon: "bolt.fill",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Monthly",
-                category: "Bills",
-                notes: "Due every 25th",
-                dateCreated: Date().addingTimeInterval(-86400 * 30),
-                dateModified: Date()
-            ),
-            Activity(
-                name: "Water Bill",
-                icon: "drop.fill",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Monthly",
-                category: "Bills",
-                notes: "Auto-debit BPI",
-                dateCreated: Date().addingTimeInterval(-86400 * 60),
-                dateModified: Date()
-            ),
-            Activity(
-                name: "Internet Bill",
-                icon: "wifi",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Monthly",
-                category: "Bills",
-                notes: "Converge ₱1500",
-                dateCreated: Date().addingTimeInterval(-86400 * 32),
-                dateModified: Date()
-            ),
-            
-            // WORK
-            Activity(
-                name: "Weekly Planning",
-                icon: "calendar",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Weekly",
-                category: "Work",
-                notes: "Review tasks + sprint board",
-                dateCreated: Date().addingTimeInterval(-86400 * 6),
-                dateModified: Date()
-            ),
-            Activity(
-                name: "1-on-1 Team Meeting",
-                icon: "person.2.fill",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Weekly",
-                category: "Work",
-                notes: "Coaching + updates",
-                dateCreated: Date().addingTimeInterval(-86400 * 14),
-                dateModified: Date()
-            ),
-            Activity(
-                name: "Project Refactor",
-                icon: "hammer",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "None",
-                category: "Work",
-                notes: "Clean up old Swift code",
-                dateCreated: Date().addingTimeInterval(-86400 * 2),
-                dateModified: Date()
-            ),
-            
-            // MAINTENANCE
-            Activity(
-                name: "Car Maintenance",
-                icon: "car.fill",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Yearly",
-                category: "Maintenance",
-                notes: "Oil change + tune-up",
-                dateCreated: Date().addingTimeInterval(-86400 * 200),
-                dateModified: Date()
-            ),
-            Activity(
-                name: "Aircon Cleaning",
-                icon: "wind",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Quarterly",
-                category: "Maintenance",
-                notes: "Split-type deep clean",
-                dateCreated: Date().addingTimeInterval(-86400 * 90),
-                dateModified: Date()
-            ),
-            Activity(
-                name: "Grocery Restock",
-                icon: "cart.fill",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Weekly",
-                category: "Maintenance",
-                notes: "Vegetables, fruit, chicken, oatmeal",
-                dateCreated: Date().addingTimeInterval(-86400 * 4),
-                dateModified: Date()
-            ),
-            
-            // LEARNING
-            Activity(
-                name: "Learn SwiftUI",
-                icon: "book.fill",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Daily",
-                category: "Learning",
-                notes: "1 hour coding practice",
-                dateCreated: Date().addingTimeInterval(-86400 * 7),
-                dateModified: Date()
-            ),
-            Activity(
-                name: "Read Tech Articles",
-                icon: "newspaper.fill",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Daily",
-                category: "Learning",
-                notes: "AI, Swift, and GPU news",
-                dateCreated: Date().addingTimeInterval(-86400 * 2),
-                dateModified: Date()
-            ),
-            Activity(
-                name: "Watch WWDC Session",
-                icon: "desktopcomputer",
-                count: Int.random(in: 0...5),
-                maxCount: Int.random(in: 5...10),
-                recurrence: "Weekly",
-                category: "Learning",
-                notes: "Review SwiftData updates",
-                dateCreated: Date().addingTimeInterval(-86400 * 11),
-                dateModified: Date()
-            )
-        ]
     }
 }
-
