@@ -54,20 +54,39 @@ struct ActivitiesView: View {
                         
                         // --------------------------------
                         // Add a Section Header for each Category
+//                        Section(header: Text(category)) {
+//                            
+//                            // --------------------------------
+//                            // Render the items under each Category
+//                            ForEach(groupedByCategory[category] ?? []) { activity in
+//                                
+//                                // --------------------------------
+//                                // Use a Custom Row that animates the graph
+//                                ActivityRow(activity: activity)
+//                            }
+//                            .padding(0)
+//                            
+//                            
+//                        }
                         Section(header: Text(category)) {
                             
-                            // --------------------------------
-                            // Render the items under each Category
-                            ForEach(groupedByCategory[category] ?? []) { activity in
+                            if let activitiesInSection = groupedByCategory[category] {
                                 
-                                // --------------------------------
-                                // Use a Custom Row that animates the graph
-                                ActivityRow(activity: activity)
+                                ForEach(activitiesInSection) { activity in
+                                    ActivityRow(activity: activity)
+                                }
+                                .onDelete { indexSet in
+                                    for index in indexSet {
+                                        let toDelete = activitiesInSection[index]
+                                        modelContext.delete(toDelete)   // ❌ no withAnimation
+                                    }
+                                }
+                                .padding(0)
                             }
-                            .padding(0)
                         }
                         .contentShape(Rectangle())
                     }
+                    
                 }
                 .listRowSeparator(.hidden)
                 
@@ -118,6 +137,12 @@ struct ActivitiesView: View {
                             .padding(.top, 4)
                         }
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                }
+                .onChange(of: Activities.count) { oldValue, newValue in
+                    if newValue == 0 {
+                        // List just became empty → allow the prompt again
+                        showEmptyPrompt = true
                     }
                 }
             }
@@ -292,18 +317,17 @@ struct ActivityRow: View {
                 animatedProgress = activity.progress
             }
         }
-        // --------------------------------
-        // Swipe left to delete
-        // --------------------------------
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-            Button(role: .destructive) {
-                withAnimation {
-                    modelContext.delete(activity)
-                }
-            } label: {
-                Label("Delete", systemImage: "trash")
-            }
-        }
+        //        // --------------------------------
+        //        // Swipe left to delete
+        //        // --------------------------------
+        //        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+        //            Button(role: .destructive) {
+        //                // ❌ no explicit withAnimation here
+        //                modelContext.delete(activity)
+        //            } label: {
+        //                Label("Delete", systemImage: "trash")
+        //            }
+        //        }
     }
 }
 
