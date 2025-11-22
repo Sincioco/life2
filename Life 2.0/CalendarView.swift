@@ -100,7 +100,7 @@ struct CalendarView: View {
         let todays = historyThisMonth.filter { entry in
             entry.dateCompleted >= startOfDay && entry.dateCompleted < endOfDay
         }
-        return todays.map { $0.icon }
+        return todays.compactMap { $0.activity?.icon }
     }
 
     private func dateForCurrentMonth(day: Int) -> Date {
