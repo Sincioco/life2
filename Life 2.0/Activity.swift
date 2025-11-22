@@ -13,7 +13,12 @@ import SwiftData
 @Model
 class Activity {
     var name: String
-    var progress: Double
+    // Computed progress based on count and maxCount (0...100)
+    var progress: Double {
+        guard maxCount > 0 else { return 0 }
+        let ratio = min(Double(count) / Double(maxCount), 1.0)
+        return max(0, ratio) * 100
+    }
     var count: Int
     var maxCount: Int
     var icon: String
@@ -23,10 +28,9 @@ class Activity {
     var dateCreated: Date
     var dateModified: Date
     
-    init(name: String, icon: String, progress: Double, count: Int, maxCount: Int, recurrence: String, category: String, notes: String, dateCreated: Date, dateModified: Date) {
+    init(name: String, icon: String, count: Int, maxCount: Int, recurrence: String, category: String, notes: String, dateCreated: Date, dateModified: Date) {
         self.name = name
         self.icon = icon
-        self.progress = progress
         self.count = count
         self.maxCount = maxCount
         self.recurrence = recurrence
@@ -50,7 +54,6 @@ extension Activity {
             Activity(
                 name: "Morning Run",
                 icon: "figure.run",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Daily",
@@ -62,7 +65,6 @@ extension Activity {
             Activity(
                 name: "Leg Day",
                 icon: "dumbbell.fill",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
@@ -74,7 +76,6 @@ extension Activity {
             Activity(
                 name: "Yoga & Stretching",
                 icon: "figure.cooldown",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Daily",
@@ -88,7 +89,6 @@ extension Activity {
             Activity(
                 name: "Date Night",
                 icon: "heart.fill",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
@@ -100,7 +100,6 @@ extension Activity {
             Activity(
                 name: "Meditation",
                 icon: "brain.head.profile",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Daily",
@@ -112,7 +111,6 @@ extension Activity {
             Activity(
                 name: "Call Parents",
                 icon: "phone.fill",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
@@ -126,7 +124,6 @@ extension Activity {
             Activity(
                 name: "Pay Electric Bill",
                 icon: "bolt.fill",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Monthly",
@@ -138,7 +135,6 @@ extension Activity {
             Activity(
                 name: "Water Bill",
                 icon: "drop.fill",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Monthly",
@@ -150,7 +146,6 @@ extension Activity {
             Activity(
                 name: "Internet Bill",
                 icon: "wifi",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Monthly",
@@ -164,7 +159,6 @@ extension Activity {
             Activity(
                 name: "Weekly Planning",
                 icon: "calendar",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
@@ -176,7 +170,6 @@ extension Activity {
             Activity(
                 name: "1-on-1 Team Meeting",
                 icon: "person.2.fill",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
@@ -188,7 +181,6 @@ extension Activity {
             Activity(
                 name: "Project Refactor",
                 icon: "hammer",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "None",
@@ -202,7 +194,6 @@ extension Activity {
             Activity(
                 name: "Car Maintenance",
                 icon: "car.fill",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Yearly",
@@ -214,7 +205,6 @@ extension Activity {
             Activity(
                 name: "Aircon Cleaning",
                 icon: "wind",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Quarterly",
@@ -226,7 +216,6 @@ extension Activity {
             Activity(
                 name: "Grocery Restock",
                 icon: "cart.fill",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
@@ -240,7 +229,6 @@ extension Activity {
             Activity(
                 name: "Learn SwiftUI",
                 icon: "book.fill",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Daily",
@@ -252,7 +240,6 @@ extension Activity {
             Activity(
                 name: "Read Tech Articles",
                 icon: "newspaper.fill",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Daily",
@@ -264,7 +251,6 @@ extension Activity {
             Activity(
                 name: "Watch WWDC Session",
                 icon: "desktopcomputer",
-                progress: randomScore(),
                 count: Int.random(in: 0...5),
                 maxCount: Int.random(in: 5...10),
                 recurrence: "Weekly",
