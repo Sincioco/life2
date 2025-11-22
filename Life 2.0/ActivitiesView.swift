@@ -374,24 +374,30 @@ struct ActivityRow: View {
         // Swipe left to increment count + add delete button
         // --------------------------------
         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+            
             // Full-swipe performs this action
-            Button {
-                if activity.count < activity.maxCount {
-                    activity.count += 1
-                    activity.dateModified = Date()
-                    try? modelContext.save()
-                    NotificationCenter.default.post(name: .activityDidChange, object: nil)
-                    let success = UINotificationFeedbackGenerator()
-                    success.notificationOccurred(.success)
-                } else {
-                    let warning = UINotificationFeedbackGenerator()
-                    warning.notificationOccurred(.warning)
+            let isDisabled = activity.count >= activity.maxCount
+            
+            if (isDisabled == false) {
+                Button {
+                    if activity.count < activity.maxCount {
+                        activity.count += 1
+                        activity.dateModified = Date()
+                        try? modelContext.save()
+                        NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                        let success = UINotificationFeedbackGenerator()
+                        success.notificationOccurred(.success)
+                    } else {
+                        let warning = UINotificationFeedbackGenerator()
+                        warning.notificationOccurred(.warning)
+                    }
+                } label: {
+                    Label("Done", systemImage: "checkmark")
                 }
-            } label: {
-                Label("Done", systemImage: "checkmark")
+                .tint(.green)
+                .disabled(isDisabled)                  // Disable the Done / Checkmark button if the count has reached max count
             }
-            .tint(.green)
-
+            
             Button {
                 showDeleteConfirm = true
             } label: {
