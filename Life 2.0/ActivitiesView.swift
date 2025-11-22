@@ -18,6 +18,7 @@ struct ActivitiesView: View {
     @State private var isPresentingAddActivity = false      // ← NEW
     @State private var searchText: String = ""
     @State private var showEmptyPrompt: Bool = true
+    @State private var reloadID = UUID()
     
     // --------------------------------
     // Filter then group by Category
@@ -73,7 +74,11 @@ struct ActivitiesView: View {
                             if let activitiesInSection = groupedByCategory[category] {
                                 
                                 ForEach(activitiesInSection) { activity in
-                                    ActivityRow(activity: activity)
+                                    NavigationLink {
+                                        EditActivityView(activity: activity)
+                                    } label: {
+                                        ActivityRow(activity: activity)
+                                    }
                                 }
                                 .onDelete { indexSet in
                                     for index in indexSet {
@@ -88,6 +93,7 @@ struct ActivitiesView: View {
                     }
                     
                 }
+                .id(reloadID)
                 .listRowSeparator(.hidden)
                 
                 // --------------------------------
@@ -144,6 +150,9 @@ struct ActivitiesView: View {
                         // List just became empty → allow the prompt again
                         showEmptyPrompt = true
                     }
+                }
+                .onReceive(NotificationCenter.default.publisher(for: .activityDidChange)) { _ in
+                    reloadID = UUID()
                 }
             }
             
@@ -473,6 +482,112 @@ struct AddActivityView: View {
     }
 }
 
+// MARK: - Notifications
+extension Notification.Name {
+    static let activityDidChange = Notification.Name("activityDidChange")
+}
+
+// MARK: - Edit Activity View
+struct EditActivityView: View {
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.dismiss) private var dismiss
+
+    @Bindable var activity: Activity
+
+    // Available categories (same as AddActivityView)
+    private let categories = [
+        "Bills",
+        "Fitness",
+        "Learning",
+        "Maintenance",
+        "Personal",
+        "Work",
+        "Others"
+    ]
+
+    // Sheet state
+    @State private var isPresentingIconPicker = false
+
+    var body: some View {
+        Form {
+            Section("Activity") {
+                TextField("Name", text: $activity.name)
+
+                Button {
+                    isPresentingIconPicker = true
+                } label: {
+                    HStack {
+                        Text("Icon")
+                        Spacer()
+                        Image(systemName: activity.icon)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 20, height: 20)
+                        Text(activity.icon)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                    }
+                }
+
+                Picker("Category", selection: $activity.category) {
+                    ForEach(categories, id: \.self) { cat in
+                        Text(cat).tag(cat)
+                    }
+                }
+
+                TextField("Recurrence", text: $activity.recurrence)
+            }
+
+            Section("Progress") {
+                VStack(spacing: 12) {
+                    HStack {
+                        Spacer()
+                        Text("\(Int(activity.progress))%")
+                            .monospacedDigit()
+                        Spacer()
+                    }
+
+                    Slider(value: $activity.progress, in: 0...100, step: 1) {
+                        Text("Progress")
+                    }
+                }
+                .padding(.vertical, 4)
+                .listRowSeparator(.hidden)
+            }
+
+            Section("Notes") {
+                TextField("Notes", text: $activity.notes, axis: .vertical)
+                    .lineLimit(3, reservesSpace: true)
+            }
+        }
+        .navigationTitle("Edit Activity")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") {
+                    dismiss()
+                }
+            }
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") {
+                    // Update modification date and notify list to refresh
+                    activity.dateModified = Date()
+                    try? modelContext.save()
+                    NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                    dismiss()
+                }
+            }
+        }
+        .sheet(isPresented: $isPresentingIconPicker) {
+            NavigationStack {
+                IconPickerView(selectedIcon: $activity.icon)
+            }
+        }
+    }
+}
+
 // MARK: - Preview code for Canvas
 #Preview {
     let previewContainer: ModelContainer = {
@@ -492,3 +607,4 @@ struct AddActivityView: View {
     MainView()   // ← make sure this matches the struct name
         .modelContainer(previewContainer)
 }
+
