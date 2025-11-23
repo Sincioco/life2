@@ -46,7 +46,8 @@ struct CalendarDayCell: View {
                                         .scaledToFit()
                                         .frame(width: side * 0.9, height: side * 0.9)
                                         //.border(Color.black)
-                                        .tint(.blue)
+                                        //.tint(.blue)
+                                        .foregroundColor(.blue)     // <— solid blue
                                 }
                                 .frame(width: side, height: side)
                             }
