@@ -338,9 +338,9 @@ private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
                                         
                                         
                                         if (isLandscape == false) {
-                                            CalendarDayCell(day: date, cellWidth: 63, cellHeight: 63, icons: icons)
+                                            CalendarDayCell(day: date, cellWidth: 63, cellHeight: 63, icons: icons, cellDebug: false)
                                         } else {
-                                            CalendarDayCell(day: date, cellWidth: 119, cellHeight: 119, icons: icons)
+                                            CalendarDayCell(day: date, cellWidth: 119, cellHeight: 119, icons: icons, cellDebug: false)
                                         }
                                     //}
                                 }
