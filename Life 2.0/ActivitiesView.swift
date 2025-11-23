@@ -663,6 +663,15 @@ struct EditActivityView: View {
                         }
                     }
                 }
+                // Random history generator below the History list
+                Section {
+                    Button {
+                        generateRandomHistories()
+                    } label: {
+                        Label("Random History", systemImage: "sparkles")
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    }
+                }
             }
             
             if selectedTab == .activity {
@@ -845,6 +854,42 @@ struct EditActivityView: View {
             Text("This will permanently remove ALL activities and their history. This action cannot be undone.")
         }
     }
+    
+    private func generateRandomHistories() {
+        let cal = Calendar.current
+        let now = Date()
+
+        // Start of current month local
+        let startOfCurrentMonth: Date = {
+            let comps = cal.dateComponents([.year, .month], from: now)
+            return cal.date(from: comps).map { cal.startOfDay(for: $0) } ?? cal.startOfDay(for: now)
+        }()
+        // Start of last month local
+        let startOfLastMonth = cal.date(byAdding: .month, value: -1, to: startOfCurrentMonth) ?? startOfCurrentMonth
+        // End boundary is start of next month (exclusive)
+        let startOfNextMonth = cal.date(byAdding: .month, value: 1, to: startOfCurrentMonth) ?? startOfCurrentMonth
+
+        func randomDateInRange() -> Date {
+            let start = startOfLastMonth.timeIntervalSince1970
+            let end = startOfNextMonth.timeIntervalSince1970
+            guard end > start else { return startOfCurrentMonth }
+            let random = Double.random(in: start..<end)
+            return Date(timeIntervalSince1970: random)
+        }
+
+        for _ in 0..<30 {
+            let randomDate = randomDateInRange()
+            let entry = ActivityHistory(activity: activity, dateCompleted: randomDate)
+            // Optionally also set recorded date to now
+            entry.dateRecorded = now
+            // Insert into model context
+            modelContext.insert(entry)
+        }
+        try? modelContext.save()
+        NotificationCenter.default.post(name: .activityDidChange, object: nil)
+        let success = UINotificationFeedbackGenerator()
+        success.notificationOccurred(.success)
+    }
 }
 
 // MARK: - Preview code for Canvas
@@ -866,3 +911,4 @@ struct EditActivityView: View {
     ActivitiesView()
         .modelContainer(previewContainer)
 }
+
