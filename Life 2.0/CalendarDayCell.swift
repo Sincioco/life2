@@ -45,7 +45,8 @@ struct CalendarDayCell: View {
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: side * 0.9, height: side * 0.9)
-                                        .border(Color.black)
+                                        //.border(Color.black)
+                                        .tint(.blue)
                                 }
                                 .frame(width: side, height: side)
                             }
@@ -64,7 +65,7 @@ struct CalendarDayCell: View {
                     .font(.headline)
                     .padding(8)
                     .foregroundStyle(.primary)
-                    //.foregroundStyle(.white)
+                    .shadow(color: invertedPrimaryColor().opacity(0.6), radius: 2)
                     
             }
             .frame(height: geometry.size.height)    // ScrollView visible height
@@ -74,6 +75,23 @@ struct CalendarDayCell: View {
         //.background(.green)
     }
     
+    func invertedPrimaryColor() -> Color {
+        let ui = UIColor.label     // dynamic primary color
+
+        var r: CGFloat = 0
+        var g: CGFloat = 0
+        var b: CGFloat = 0
+        var a: CGFloat = 0
+
+        ui.getRed(&r, green: &g, blue: &b, alpha: &a)
+
+        return Color(
+            red: 1 - r,
+            green: 1 - g,
+            blue: 1 - b,
+            opacity: Double(a)
+        )
+    }
 }
 
 #Preview {
