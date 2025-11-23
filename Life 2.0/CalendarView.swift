@@ -18,8 +18,6 @@ struct CalendarView: View {
     @State private var sheetDate: Date? = nil
     @Query private var historyEntries: [ActivityHistory]
 
-    @Environment(\.verticalSizeClass) private var verticalSizeClass
-    
     init(year: Int? = nil, month: Int? = nil) {
         let now = Date()
         let cal = Calendar(identifier: .gregorian)
@@ -178,61 +176,95 @@ struct CalendarView: View {
 
     
     
-    
     private func iconsGrid(for icons: [String],
                            cellWidth: CGFloat,
-                           isLandscape: Bool,
-                           dayCellHeight: CGFloat) -> some View {
-        let iconCount = icons.count
+                           isLandscape: Bool) -> some View {
+        // Render all icons in a grid, but constrain the height
+        // so they never make the day cell taller. Extra icons scroll vertically.
+        let allIcons = icons
+        let iconCount = allIcons.count
 
-        // Determine base icon size (portrait & general multi-icon layout)
-        let maxIconSizePortrait = min(cellWidth - 8, 32) // fit within scrollview height and cell width
+        // Determine icon size based on count (fewer icons = bigger) – portrait baseline.
+        let maxIconSizePortrait = min(cellWidth - 8, 32) // fit within strip height & width in portrait
         let baseSize: CGFloat
         switch iconCount {
         case 0:
             baseSize = 0
         case 1:
-            baseSize = maxIconSizePortrait   // single icon fills available space in portrait
+            baseSize = maxIconSizePortrait            // single icon in portrait
         case 2...4:
             baseSize = min(maxIconSizePortrait * 0.8, 22)
         default:
             baseSize = min(maxIconSizePortrait * 0.6, 16)
         }
 
-        // Single-icon landscape size: try to use as much of the day cell height as possible,
-        // but don't exceed the cell width minus some padding.
-        let singleLandscapeSize = min(max(dayCellHeight - 16, 0), cellWidth - 8)
+        // Height of the icon strip (scrollview) based on orientation.
+        // This preserves your hard-coded heights for portrait & landscape.
+        let height: CGFloat = isLandscape ? 88 : 32
 
-        // Break into rows of up to 3 icons
-        let rows: [[String]] = stride(from: 0, to: icons.count, by: 3).map { index in
-            Array(icons[index..<min(index + 3, icons.count)])
+        // Break into rows of up to 3 icons (used for 3+ icons)
+        let rows: [[String]] = stride(from: 0, to: allIcons.count, by: 3).map { index in
+            Array(allIcons[index..<min(index + 3, allIcons.count)])
         }
 
-        
-        var height: CGFloat = 0
-        if verticalSizeClass == .compact {
-            // Landscape
-            height = 88
-        } else {
-            // Portrait
-            height = 32
-        }
-        
+        // Precompute sizes OUTSIDE the ViewBuilder to avoid '() cannot conform to View' issues.
+        // 1-icon size (portrait uses baseSize; landscape grows toward strip height)
+        let singleIconSize: CGFloat = {
+            guard iconCount == 1 else { return baseSize }
+            if isLandscape {
+                return min(height - 8, cellWidth - 8)
+            } else {
+                return baseSize
+            }
+        }()
+
+        // 2-icon size (portrait uses baseSize; landscape grows toward strip height while fitting width)
+        let twoIconSize: CGFloat = {
+            guard iconCount == 2 else { return baseSize }
+            if isLandscape {
+                let maxWidthPerIcon = (cellWidth - 8 - 8 - 4) / 2 // L/R padding + spacing
+                return min(height - 8, maxWidthPerIcon)
+            } else {
+                return baseSize
+            }
+        }()
+
         return ScrollView(.vertical, showsIndicators: true) {
-            if iconCount == 1, let iconName = icons.first {
-                // Portrait keeps existing behavior; landscape scales to fill the scrollview area.
-                let iconSize = (isLandscape ? singleLandscapeSize : baseSize)
-
+            if iconCount == 1, let iconName = allIcons.first {
+                // 1 ICON — keep existing portrait behavior, scale in landscape.
                 HStack {
                     Spacer(minLength: 0)
                     Image(systemName: iconName)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: iconSize, height: iconSize)
+                        .frame(width: singleIconSize, height: singleIconSize)
                         .foregroundStyle(.green)
                     Spacer(minLength: 0)
                 }
+
+            } else if iconCount == 2 {
+                // 2 ICONS — center horizontally AND vertically for both orientations.
+                ZStack {
+                    // Fixed-height background so the HStack is vertically centered
+                    Rectangle()
+                        .fill(Color.clear)
+                        .frame(height: height)
+
+                    HStack(spacing: 4) {
+                        Spacer(minLength: 0)
+                        ForEach(allIcons, id: \.self) { iconName in
+                            Image(systemName: iconName)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: twoIconSize, height: twoIconSize)
+                                .foregroundStyle(.green)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                }
+
             } else {
+                // 3+ ICONS — original grid behavior.
                 VStack(alignment: .leading, spacing: 2) {
                     ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                         HStack(spacing: 2) {
@@ -249,13 +281,15 @@ struct CalendarView: View {
                 }
             }
         }
-        // Fixed height so this view never forces the day cell to grow taller in portrait.
-        // In landscape with a single icon, let the height grow to match the scaled icon.
+        // Fixed height so this view never forces the day cell to grow taller
         .frame(height: height)
-        //.background(Color.yellow.opacity(0.3))
     }
 
-var body: some View {
+
+
+
+
+    var body: some View {
         NavigationStack {
             Group {
                 GeometryReader { proxy in
@@ -309,7 +343,7 @@ var body: some View {
                                         let date = dateForCurrentMonth(day: d)
                                         let icons = iconsFor(date: date)
                                         if !icons.isEmpty {
-                                            iconsGrid(for: icons, cellWidth: dayCellWidth, isLandscape: isLandscape, dayCellHeight: dayCellHeight)
+                                            iconsGrid(for: icons, cellWidth: dayCellWidth, isLandscape: isLandscape)
                                                 .padding(.horizontal, 6)
                                                 .padding(.top, -8)
                                         }
