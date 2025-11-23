@@ -4,16 +4,17 @@ import SwiftUI
 struct CalendarDayCell: View {
     
     var day: Date = Date()
-    var cellWidth: CGFloat = 119
-    var cellHeight: CGFloat = 119
+    var cellWidth: CGFloat = 63
+    var cellHeight: CGFloat = 63
     
-//    var cellWidth: CGFloat = 119
-//    var cellHeight: CGFloat = 119
+    //    var cellWidth: CGFloat = 119
+    //    var cellHeight: CGFloat = 119
     
     var icons = [
-        "figure.run"
-        , "house"
-//        , "pencil"
+        "figure.run",
+        "house",
+        "pencil",
+        "star"
     ]
     
     var cellDebug: Bool = true
@@ -40,33 +41,77 @@ struct CalendarDayCell: View {
                 if (iconCount == 1) {
                     
                     //VStack {
-                        Image(systemName: icons[0])
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: side * 0.9, height: side * 0.9)
-                            .foregroundColor(.blue)
-                    //}
-                    .frame(width: side, height: side)
-                    .padding(.top, 26)
+                    Image(systemName: icons[0])
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: side * 0.9, height: side * 0.9)
+                        .foregroundColor(.blue)
+                        .border(cellDebug == true ? Color.red : Color.clear)
+                        .frame(width: side, height: side)
+                        .padding(.top, 26)
                     
                 } else if (iconCount == 2) {
-                        
+                    
                     HStack(spacing: 2) {
                         Image(systemName: icons[0])
                             .resizable()
                             .scaledToFit()
-                            .frame(width: side * 0.5, height: side * 0.9)
+                            .frame(width: side * 0.5, height: side * 0.5)
                             .foregroundColor(.blue)
-                            //.border(.blue)
+                            .border(cellDebug == true ? Color.blue : Color.clear)
                         Image(systemName: icons[1])
                             .resizable()
                             .scaledToFit()
-                            .frame(width: side * 0.6, height: side * 0.9)
+                            .frame(width: side * 0.6, height: side * 0.5)
                             .foregroundColor(.blue)
-                            //.border(.red)
+                            .border(cellDebug == true ? Color.red : Color.clear)
+                    
                     }
                     .frame(width: side, height: side)
                     .padding(.top, 26)
+                    
+                    
+                    
+                } else if (iconCount == 3 || iconCount == 4) {
+                    
+                    VStack (spacing: 0) {
+                        HStack(spacing: 6) {
+                            Image(systemName: icons[0])
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: side * 0.4, height: side * 0.4)
+                                .foregroundColor(.blue)
+                                .border(cellDebug == true ? Color.blue : Color.clear)
+                            Image(systemName: icons[1])
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: side * 0.4, height: side * 0.4)
+                                .foregroundColor(.blue)
+                                .border(cellDebug == true ? Color.red : Color.clear)
+                        }
+                        .padding(.top, 26)
+                        //.frame(height: 40)
+                        
+                        if (iconCount == 4) {
+                            HStack(spacing: 6) {
+                                Image(systemName: icons[2])
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: side * 0.4, height: side * 0.4)
+                                    .foregroundColor(.blue)
+                                    .border(cellDebug == true ? Color.blue : Color.clear)
+                                Image(systemName: icons[3])
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: side * 0.4, height: side * 0.4)
+                                    .foregroundColor(.blue)
+                                    .border(cellDebug == true ? Color.red : Color.clear)
+                            }
+                        }
+                        //.frame(height: 40)
+                        
+                    }
+                    //.frame(width: side, height: side)
                     
                 } else {
                     
@@ -102,8 +147,8 @@ struct CalendarDayCell: View {
                     .font(.headline)
                     .padding(8)
                     .foregroundStyle(.primary)
-                    //.shadow(color: invertedPrimaryColor().opacity(0.6), radius: 2)
-                    
+                //.shadow(color: invertedPrimaryColor().opacity(0.6), radius: 2)
+                
             }
             .frame(height: geometry.size.height)    // ScrollView visible height
         }
@@ -114,14 +159,14 @@ struct CalendarDayCell: View {
     
     func invertedPrimaryColor() -> Color {
         let ui = UIColor.label     // dynamic primary color
-
+        
         var r: CGFloat = 0
         var g: CGFloat = 0
         var b: CGFloat = 0
         var a: CGFloat = 0
-
+        
         ui.getRed(&r, green: &g, blue: &b, alpha: &a)
-
+        
         return Color(
             red: 1 - r,
             green: 1 - g,
