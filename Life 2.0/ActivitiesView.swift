@@ -406,7 +406,7 @@ struct AddActivityView: View {
                     TextField("Max Count", value: $maxCount, format: .number)
                         .keyboardType(.numberPad)
 
-                    HStack {
+                    HStack(spacing: 16) {
                         Gauge(value: computedProgress, in: 0...100) { EmptyView() } currentValueLabel: { EmptyView() }
                             .gaugeStyle(.automatic)
                             .tint(.green)
@@ -618,7 +618,9 @@ struct EditActivityView: View {
                 Section {
                     Button {
                         activity.increment(in: modelContext)
+                        try? modelContext.save()
                         NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                        dismiss()
                     } label: {
                         Label("Increment", systemImage: "checkmark")
                             .frame(maxWidth: .infinity)

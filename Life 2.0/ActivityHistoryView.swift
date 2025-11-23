@@ -55,6 +55,14 @@ struct ActivityHistoryView: View {
             }
             .navigationTitle("Activity History")
             .toolbar {
+                ToolbarItem(placement: .automatic) {
+                    Button("Generate Random") {
+                        Activity.generateRandomHistoricalActivities(in: modelContext)
+                        let success = UINotificationFeedbackGenerator()
+                        success.notificationOccurred(.success)
+                    }
+                }
+                ToolbarSpacer()
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("Clear All") {
                         showClearAllConfirm = true
