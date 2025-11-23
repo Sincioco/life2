@@ -11,12 +11,13 @@ struct CalendarDayCell: View {
     //    var cellHeight: CGFloat = 119
     
     var icons = [
-        "figure.run",
-        "house",
-        "pencil",
-        "star",
-        "eraser",
-        "globe.americas"
+        "basketball.fill"
+//        "figure.run",
+//        "house",
+//        "pencil",
+//        "star",
+//        "eraser",
+//        "globe.americas"
     ]
     var adjacentCell: Bool = false
     var cellDebug: Bool = true
@@ -38,11 +39,10 @@ struct CalendarDayCell: View {
                 
                 if (iconCount == 1) {
                     
-                    //VStack {
                     Image(systemName: icons[0])
                         .resizable()
                         .scaledToFit()
-                        .frame(width: side * 0.9, height: side * 0.9)
+                        .frame(width: side * 0.75, height: side * 0.75)
                         .foregroundColor(.blue)
                         .border(cellDebug == true ? Color.red : Color.clear)
                         .frame(width: side, height: side)
