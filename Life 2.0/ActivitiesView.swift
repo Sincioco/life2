@@ -22,13 +22,25 @@ struct ActivitiesView: View {
     @State private var reloadID = UUID()
     @State private var pendingDelete: Activity? = nil
     @State private var isShowingDeleteAlert: Bool = false
+    @State private var selectedCategory: String? = nil
     
     private var filteredActivities: [Activity] {
-        guard !searchText.isEmpty else { return Activities }
-        return Activities.filter { activity in
+        let base = Activities
+        let categoryFiltered: [Activity]
+        if let selected = selectedCategory, !selected.isEmpty {
+            categoryFiltered = base.filter { $0.category == selected }
+        } else {
+            categoryFiltered = base
+        }
+        guard !searchText.isEmpty else { return categoryFiltered }
+        return categoryFiltered.filter { activity in
             activity.name.localizedCaseInsensitiveContains(searchText) ||
             activity.category.localizedCaseInsensitiveContains(searchText)
         }
+    }
+    
+    private var uniqueCategories: [String] {
+        Array(Set(Activities.map { $0.category })).sorted()
     }
     
     private var groupedByCategory: [String: [Activity]] {
@@ -148,9 +160,34 @@ struct ActivitiesView: View {
                         .accessibilityLabel("Home")
                 }
                 ToolbarItem(placement: .automatic) {
-                    Button {                        
-                    } label: { Image(systemName: "line.3.horizontal.decrease") }
-                        .accessibilityLabel("Filter")
+                    Menu {
+                        // Clear filter
+                        Button {
+                            selectedCategory = nil
+                        } label: {
+                            Label("All Categories", systemImage: selectedCategory == nil ? "checkmark" : "tray"
+                            )
+                        }
+                        // List unique categories
+                        ForEach(uniqueCategories, id: \.self) { cat in
+                            Button {
+                                selectedCategory = cat
+                            } label: {
+                                if selectedCategory == cat {
+                                    Label(cat, systemImage: "checkmark")
+                                } else {
+                                    Text(cat)
+                                }
+                            }
+                        }
+                    } label: {
+                        if let selected = selectedCategory {
+                            Label(selected, systemImage: "line.3.horizontal.decrease")
+                        } else {
+                            Image(systemName: "line.3.horizontal.decrease")
+                        }
+                    }
+                    .accessibilityLabel("Filter")
                 }
                 ToolbarSpacer()
                 ToolbarItem(placement: .topBarTrailing) {
