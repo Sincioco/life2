@@ -530,6 +530,10 @@ struct EditActivityView: View {
         return max(0, ratio) * 100
     }
     
+    private var sortedHistories: [ActivityHistory] {
+        activity.histories.sorted { $0.dateCompleted > $1.dateCompleted }
+    }
+    
     var body: some View {
         
         Picker("Section", selection: $selectedTab) {
@@ -611,8 +615,41 @@ struct EditActivityView: View {
             
             if selectedTab == .history {
                 Section("History") {
-                    Text("No history yet.")
-                        .foregroundStyle(.secondary)
+                    if sortedHistories.isEmpty {
+                        Text("No history yet.")
+                            .foregroundStyle(.secondary)
+                    } else {
+                        ForEach(sortedHistories) { history in
+                            HStack(alignment: .top, spacing: 12) {
+                                Image(systemName: activity.icon)
+                                    .resizable()
+                                    .scaledToFit()
+                                    .frame(width: 20, height: 20)
+                                    .foregroundStyle(.blue)
+                                    .padding(.top, 2)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(history.dateCompleted, style: .date)
+                                        .font(.subheadline)
+                                    Text(history.dateCompleted, style: .time)
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                Spacer()
+                            }
+                            .padding(.vertical, 2)
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    modelContext.delete(history)
+                                    try? modelContext.save()
+                                    NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                                    let success = UINotificationFeedbackGenerator()
+                                    success.notificationOccurred(.success)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                            }
+                        }
+                    }
                 }
             }
             
