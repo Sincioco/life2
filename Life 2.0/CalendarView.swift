@@ -174,11 +174,9 @@ struct CalendarView: View {
         case day(Int)
     }
 
+    
     private func iconsGrid(for icons: [String]) -> some View {
-        // Render all icons in a 3-column grid, but constrain the height
-        // so they never make the day cell taller. Extra icons scroll vertically.
-        let allIcons = icons
-        let iconCount = allIcons.count
+        let iconCount = icons.count
 
         // Determine icon size based on count (fewer icons = bigger)
         let size: CGFloat
@@ -194,31 +192,45 @@ struct CalendarView: View {
         }
 
         // Break into rows of up to 3 icons
-        let rows: [[String]] = stride(from: 0, to: allIcons.count, by: 3).map { index in
-            Array(allIcons[index..<min(index + 3, allIcons.count)])
+        let rows: [[String]] = stride(from: 0, to: icons.count, by: 3).map { index in
+            Array(icons[index..<min(index + 3, icons.count)])
         }
 
         return ScrollView(.vertical, showsIndicators: true) {
-            VStack(alignment: .leading, spacing: 2) {
-                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                    HStack(spacing: 2) {
-                        ForEach(row, id: \.self) { iconName in
-                            Image(systemName: iconName)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: size, height: size)
-                                .foregroundStyle(.green)
+            if iconCount == 1, let iconName = icons.first {
+                // Center a single icon horizontally
+                HStack {
+                    Spacer(minLength: 0)
+                    Image(systemName: iconName)
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: size, height: size)
+                        .foregroundStyle(.green)
+                    Spacer(minLength: 0)
+                }
+            } else {
+                VStack(alignment: .leading, spacing: 2) {
+                    ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                        HStack(spacing: 2) {
+                            ForEach(row, id: \.self) { iconName in
+                                Image(systemName: iconName)
+                                    .resizable()
+                                    .aspectRatio(contentMode: .fit)
+                                    .frame(width: size, height: size)
+                                    .foregroundStyle(.green)
+                            }
+                            Spacer(minLength: 0)
                         }
-                        Spacer(minLength: 0)
                     }
                 }
             }
         }
         // Fixed height so this view never forces the day cell to grow taller
-        .frame(height: 32)
+//        .frame(height: 32)
+//        .background(Color.yellow.opacity(0.3))
     }
 
-    var body: some View {
+var body: some View {
         NavigationStack {
             Group {
                 GeometryReader { proxy in
