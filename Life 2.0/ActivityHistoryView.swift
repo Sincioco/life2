@@ -48,11 +48,34 @@ struct ActivityHistoryView: View {
                 }
             }
             .navigationTitle("Activity History")
+            .toolbar {
+                        ToolbarItem(placement: .topBarTrailing) {
+                            Button("Clear All") {
+                                clearAll()
+                            }
+                        }
+                    }
+        }
+    }
+    
+    // MARK: - Delete All
+
+    private func clearAll() {
+        do {
+            let descriptor = FetchDescriptor<ActivityHistory>()
+            let allHistories = try modelContext.fetch(descriptor)
+
+            for history in allHistories {
+                modelContext.delete(history)
+            }
+
+            try modelContext.save()
+        } catch {
+            print("Failed to clear ActivityHistory: \(error)")
         }
     }
 
     // MARK: - Delete
-
     private func delete(_ history: ActivityHistory) {
         modelContext.delete(history)
 
@@ -60,7 +83,7 @@ struct ActivityHistoryView: View {
             try modelContext.save()
         } catch {
             // In a real app you might show an alert; for now we just log
-            print("Failed to delete ActivityHistory: \\(error)")
+            print("Failed to delete ActivityHistory: \(error)")
         }
     }
 }
@@ -155,6 +178,8 @@ private struct HistoryRow: View {
         return formatter.string(from: date)
     }
 }
+
+
 
 // MARK: - Preview
 
