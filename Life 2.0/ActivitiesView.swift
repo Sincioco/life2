@@ -519,6 +519,10 @@ struct EditActivityView: View {
     @State private var isPresentingAddHistory = false
     @State private var newHistoryDate: Date = Date()
     
+    // Added states for editing existing history entry
+    @State private var editingHistory: ActivityHistory? = nil
+    @State private var editingHistoryDate: Date = Date()
+    
     // Track original values to allow cancel-on-back behavior
     @State private var originalName: String = ""
     @State private var originalIcon: String = ""
@@ -640,6 +644,11 @@ struct EditActivityView: View {
                                 Spacer()
                             }
                             .padding(.vertical, 2)
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                editingHistory = history
+                                editingHistoryDate = history.dateCompleted
+                            }
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
                                     modelContext.delete(history)
@@ -769,6 +778,31 @@ struct EditActivityView: View {
                 }
             }
         }
+        .sheet(item: $editingHistory) { history in
+            NavigationStack {
+                Form {
+                    Section("Edit History Entry") {
+                        DatePicker("Completed On", selection: $editingHistoryDate, displayedComponents: [.date, .hourAndMinute])
+                    }
+                }
+                .navigationTitle("Edit History")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { editingHistory = nil }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") {
+                            history.dateCompleted = editingHistoryDate
+                            history.dateRecorded = Date()
+                            try? modelContext.save()
+                            NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                            editingHistory = nil
+                        }
+                    }
+                }
+            }
+        }
         .alert("Delete Activity?", isPresented: $showDeleteAlert) {
             Button("Delete", role: .destructive) {
                 // Perform delete, notify, and dismiss
@@ -832,4 +866,3 @@ struct EditActivityView: View {
     ActivitiesView()
         .modelContainer(previewContainer)
 }
-
