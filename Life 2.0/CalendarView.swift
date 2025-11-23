@@ -157,10 +157,8 @@ struct CalendarView: View {
         return items
     }
 
-    private var columns: [GridItem] {
-        // On iPhone in portrait, this makes each day cell exactly 1/7 of the screen width.
-        let screenWidth = UIScreen.main.bounds.width
-        let cellWidth = screenWidth / 7.0
+    private func columns(for totalWidth: CGFloat) -> [GridItem] {
+        let cellWidth = totalWidth / 7.0
 
         return Array(
             repeating: GridItem(.fixed(cellWidth), spacing: 0),
@@ -223,9 +221,13 @@ struct CalendarView: View {
     var body: some View {
         NavigationStack {
             Group {
+                GeometryReader { proxy in
+                    let totalWidth = proxy.size.width
+                    let dayCellWidth = totalWidth / 7.0
+                    let dayCellHeight = dayCellWidth
 
-                ScrollView(.vertical) {
-                    LazyVGrid(columns: columns, spacing: 0) {
+                    ScrollView(.vertical) {
+                        LazyVGrid(columns: columns(for: totalWidth), spacing: 0) {
                         ForEach(cells, id: \.self) { cell in
                             switch cell {
                             case .header(let title):
@@ -250,7 +252,7 @@ struct CalendarView: View {
                                         .foregroundStyle(.secondary)
                                         .padding(8)
                                 }
-                                .frame(height: 70)
+                                .frame(height: dayCellHeight)
 
                             case .day(let d):
                                 ZStack(alignment: .topLeading) {
@@ -280,11 +282,11 @@ struct CalendarView: View {
                                     let date = dateForCurrentMonth(day: d)
                                     sheetDate = date
                                 }
-                                .frame(height: 70)
+                                .frame(height: dayCellHeight)
                             }
                         }
                     }
-                    .padding(8)
+                }
                 }
 
             }
