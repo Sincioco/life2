@@ -8,6 +8,7 @@
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 import SwiftUI
 import SwiftData
+import UIKit
 
 struct CalendarView: View {
     let year: Int
@@ -61,6 +62,26 @@ struct CalendarView: View {
         comps.month = selectedMonth + 1
         comps.day = 1
         return calendar.date(from: comps) ?? Date()
+    }
+    
+    private func goToPreviousMonth() {
+        if selectedMonth == 1 {
+            selectedMonth = 12
+            selectedYear -= 1
+        } else {
+            selectedMonth -= 1
+        }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
+    }
+
+    private func goToNextMonth() {
+        if selectedMonth == 12 {
+            selectedMonth = 1
+            selectedYear += 1
+        } else {
+            selectedMonth += 1
+        }
+        UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
     
     private var daysInPreviousMonthCount: Int {
@@ -451,6 +472,14 @@ struct CalendarView: View {
                     }
                     .accessibilityLabel("Home")
                 }
+                // Previous month button
+                ToolbarItem(placement: .automatic) {
+                    Button(action: goToPreviousMonth) {
+                        Image(systemName: "chevron.left")
+                    }
+                    .accessibilityLabel("Previous Month")
+                }
+                // Month picker
                 ToolbarItem(placement: .automatic) {
                     Picker(selection: $selectedMonth) {
                         ForEach(1...12, id: \.self) { m in
@@ -463,7 +492,7 @@ struct CalendarView: View {
                     .labelsHidden()
                     .accessibilityLabel("Select Month")
                 }
-                ToolbarSpacer()
+                // Year picker
                 ToolbarItem(placement: .topBarTrailing) {
                     Picker(selection: $selectedYear) {
                         let current = Calendar.current.component(.year, from: Date())
@@ -477,6 +506,13 @@ struct CalendarView: View {
                     .pickerStyle(.menu)
                     .labelsHidden()
                     .accessibilityLabel("Select Year")
+                }
+                // Next month button
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button(action: goToNextMonth) {
+                        Image(systemName: "chevron.right")
+                    }
+                    .accessibilityLabel("Next Month")
                 }
             }
             
@@ -555,4 +591,3 @@ private struct DayActivitySheet: View {
 #Preview {
     CalendarView()
 }
-
