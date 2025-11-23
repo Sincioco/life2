@@ -70,6 +70,10 @@ struct ActivityHistoryView: View {
             }
 
             try modelContext.save()
+            
+            NotificationCenter.default.post(name: .activityDidChange, object: nil)
+            let success = UINotificationFeedbackGenerator()
+            success.notificationOccurred(.success)
         } catch {
             print("Failed to clear ActivityHistory: \(error)")
         }
@@ -81,6 +85,9 @@ struct ActivityHistoryView: View {
 
         do {
             try modelContext.save()
+            NotificationCenter.default.post(name: .activityDidChange, object: nil)
+            let success = UINotificationFeedbackGenerator()
+            success.notificationOccurred(.success)
         } catch {
             // In a real app you might show an alert; for now we just log
             print("Failed to delete ActivityHistory: \(error)")
