@@ -231,15 +231,26 @@ struct CalendarView: View {
 
 
         // 3–4 icon size (2x2 grid within the strip)
-        // We use the full scrollview width & height (no extra padding)
-        // so the 2x2 grid fills the strip as much as possible.
-        let hSpacing: CGFloat = 2
+        // 3 icons: tighter spacing; 4 icons: orientation-based spacing.
+        let hSpacingThree: CGFloat = 2
+        let hSpacingThreeLandscape: CGFloat = 8
+        let hSpacingPortraitFour: CGFloat = 8
+        let hSpacingLandscapeFour: CGFloat = 8
         let vSpacing: CGFloat = 2
+
         let threeFourIconSize: CGFloat = {
             guard (3...4).contains(iconCount) else { return baseSize }
             let availableWidth = cellWidth
             let availableHeight = height
-            let perIconWidth = (availableWidth - hSpacing) / 2
+
+            let hSpacingForCount: CGFloat
+            if iconCount == 4 {
+                hSpacingForCount = isLandscape ? hSpacingLandscapeFour : hSpacingPortraitFour
+            } else {
+                hSpacingForCount = hSpacingThree
+            }
+
+            let perIconWidth = (availableWidth - hSpacingForCount) / 2
             let perIconHeight = (availableHeight - vSpacing) / 2
             return min(perIconWidth, perIconHeight)
         }()
@@ -254,10 +265,6 @@ struct CalendarView: View {
                         .aspectRatio(contentMode: .fit)
                         .frame(width: singleIconSize, height: singleIconSize)
                         .foregroundStyle(.green)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(Color.red, lineWidth: 1)
-                                )
                     Spacer(minLength: 0)
                 }
 
@@ -277,10 +284,6 @@ struct CalendarView: View {
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: twoIconSize, height: twoIconSize)
                                 .foregroundStyle(.green)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(Color.red, lineWidth: 1)
-                                )
                         }
                         Spacer(minLength: 0)
                     }
@@ -298,7 +301,7 @@ struct CalendarView: View {
 
                     VStack(spacing: vSpacing) {
                         // First row (up to 2 icons)
-                        HStack(spacing: hSpacing) {
+                        HStack(spacing: iconCount == 4 ? (isLandscape ? hSpacingLandscapeFour : hSpacingPortraitFour) : hSpacingThree) {
                             Spacer(minLength: 0)
                             if gridIcons.indices.contains(0) {
                                 Image(systemName: gridIcons[0])
@@ -306,10 +309,6 @@ struct CalendarView: View {
                                     .aspectRatio(contentMode: .fit)
                                     .frame(width: threeFourIconSize, height: threeFourIconSize)
                                     .foregroundStyle(.green)
-//                                .overlay(
-//                                    RoundedRectangle(cornerRadius: 4)
-//                                        .stroke(Color.red, lineWidth: 1)
-//                                )
                             }
                             if gridIcons.indices.contains(1) {
                                 Image(systemName: gridIcons[1])
@@ -317,16 +316,12 @@ struct CalendarView: View {
                                     .aspectRatio(contentMode: .fit)
                                     .frame(width: threeFourIconSize, height: threeFourIconSize)
                                     .foregroundStyle(.green)
-//                                .overlay(
-//                                    RoundedRectangle(cornerRadius: 4)
-//                                        .stroke(Color.red, lineWidth: 1)
-//                                )
                             }
                             Spacer(minLength: 0)
                         }
 
                         // Second row (up to 2 icons)
-                        HStack(spacing: hSpacing) {
+                        HStack(spacing: iconCount == 4 ? (isLandscape ? hSpacingLandscapeFour : hSpacingPortraitFour) : hSpacingThree) {
                             Spacer(minLength: 0)
                             if gridIcons.indices.contains(2) {
                                 Image(systemName: gridIcons[2])
@@ -334,10 +329,6 @@ struct CalendarView: View {
                                     .aspectRatio(contentMode: .fit)
                                     .frame(width: threeFourIconSize, height: threeFourIconSize)
                                     .foregroundStyle(.green)
-//                                .overlay(
-//                                    RoundedRectangle(cornerRadius: 4)
-//                                        .stroke(Color.red, lineWidth: 1)
-//                                )
                             }
                             if gridIcons.indices.contains(3) {
                                 Image(systemName: gridIcons[3])
@@ -345,10 +336,6 @@ struct CalendarView: View {
                                     .aspectRatio(contentMode: .fit)
                                     .frame(width: threeFourIconSize, height: threeFourIconSize)
                                     .foregroundStyle(.green)
-//                                .overlay(
-//                                    RoundedRectangle(cornerRadius: 4)
-//                                        .stroke(Color.red, lineWidth: 1)
-//                                )
                             }
                             Spacer(minLength: 0)
                         }
@@ -366,10 +353,6 @@ struct CalendarView: View {
                                     .aspectRatio(contentMode: .fit)
                                     .frame(width: baseSize, height: baseSize)
                                     .foregroundStyle(.green)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(Color.red, lineWidth: 1)
-                                )
                             }
                             Spacer(minLength: 0)
                         }
