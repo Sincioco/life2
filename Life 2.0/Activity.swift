@@ -199,42 +199,42 @@ extension Activity {
                 dateModified: randomizedDate(for: .weekly, now: now)
             ),
             Activity(
-                name: "Gym Session",
-                icon: "dumbbell",
+                name: "Gym",
+                icon: "dumbbell.fill",
                 recurrence: .weekly,
                 category: "Fitness",
                 notes: "Strength training at the gym.",
-                maxCount: Activity.defaultMaxCount(for: .weekly),
+                maxCount: 4,
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
             ),
             Activity(
-                name: "Read a Book",
-                icon: "book.fill",
+                name: "Walk the Dog",
+                icon: "dog.fill",
                 recurrence: .daily,
-                category: "Learning",
-                notes: "Read at least 10–20 minutes.",
-                maxCount: Activity.defaultMaxCount(for: .daily),
+                category: "Fitness",
+                notes: "Walk spot every day",
+                maxCount: 7,
                 dateCreated: randomizedDate(for: .daily, now: now),
                 dateModified: randomizedDate(for: .daily, now: now)
             ),
             Activity(
-                name: "Pay Credit Card",
-                icon: "creditcard.fill",
-                recurrence: .monthly,
-                category: "Bills",
-                notes: "Settle credit card balance.",
-                maxCount: Activity.defaultMaxCount(for: .monthly),
-                dateCreated: randomizedDate(for: .monthly, now: now),
-                dateModified: randomizedDate(for: .monthly, now: now)
+                name: "Meditate",
+                icon: "figure.mind.and.body",
+                recurrence: .weekly,
+                category: "Fitness",
+                notes: "Clear the mind.",
+                maxCount: 5,
+                dateCreated: randomizedDate(for: .weekly, now: now),
+                dateModified: randomizedDate(for: .weekly, now: now)
             ),
             Activity(
-                name: "Family Time",
+                name: "Team Meeting",
                 icon: "person.3.fill",
                 recurrence: .weekly,
-                category: "Personal",
-                notes: "Quality time with family.",
-                maxCount: Activity.defaultMaxCount(for: .weekly),
+                category: "Work",
+                notes: "Morning Scrum.",
+                maxCount: 5,
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
             ),
@@ -244,7 +244,7 @@ extension Activity {
                 recurrence: .weekly,
                 category: "Work",
                 notes: "Plan tasks and priorities for the week.",
-                maxCount: Activity.defaultMaxCount(for: .weekly),
+                maxCount: 1,
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
             )
