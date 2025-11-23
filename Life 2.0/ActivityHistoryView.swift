@@ -26,6 +26,7 @@ struct ActivityHistoryView: View {
     @State private var historyToDelete: ActivityHistory?
     @State private var showDeleteConfirm = false
     @State private var showClearAllConfirm = false
+    @State private var showGenerateConfirm = false
     
     var body: some View {
         NavigationStack {
@@ -57,9 +58,7 @@ struct ActivityHistoryView: View {
             .toolbar {
                 ToolbarItem(placement: .automatic) {
                     Button("Generate Random") {
-                        Activity.generateRandomHistoricalActivities(in: modelContext)
-                        let success = UINotificationFeedbackGenerator()
-                        success.notificationOccurred(.success)
+                        showGenerateConfirm = true
                     }
                 }
                 ToolbarSpacer()
@@ -93,6 +92,16 @@ struct ActivityHistoryView: View {
                 Button("Cancel", role: .cancel) { }
             } message: {
                 Text("This will permanently remove all activity history entries.")
+            }
+            .alert("Generate random history for this month?", isPresented: $showGenerateConfirm) {
+                Button("Generate", role: .destructive) {
+                    Activity.generateRandomHistoricalActivities(in: modelContext)
+                    let success = UINotificationFeedbackGenerator()
+                    success.notificationOccurred(.success)
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This will insert random history entries for all activities in the current month.")
             }
         }
     }
@@ -305,3 +314,4 @@ private struct HistoryRow: View {
         return Text("Failed to create preview: \\(error.localizedDescription)")
     }
 }
+
