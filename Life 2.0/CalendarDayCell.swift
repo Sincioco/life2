@@ -14,7 +14,8 @@ struct CalendarDayCell: View {
         "figure.run",
         "house",
         "pencil",
-        "star"
+        "star",
+        "eraser"
     ]
     
     var cellDebug: Bool = true
@@ -65,7 +66,7 @@ struct CalendarDayCell: View {
                             .frame(width: side * 0.6, height: side * 0.5)
                             .foregroundColor(.blue)
                             .border(cellDebug == true ? Color.red : Color.clear)
-                    
+                        
                     }
                     .frame(width: side, height: side)
                     .padding(.top, 26)
@@ -90,7 +91,6 @@ struct CalendarDayCell: View {
                                 .border(cellDebug == true ? Color.red : Color.clear)
                         }
                         .padding(.top, 26)
-                        //.frame(height: 40)
                         
                         if (iconCount == 4) {
                             HStack(spacing: 6) {
@@ -108,11 +108,56 @@ struct CalendarDayCell: View {
                                     .border(cellDebug == true ? Color.red : Color.clear)
                             }
                         }
-                        //.frame(height: 40)
                         
                     }
-                    //.frame(width: side, height: side)
                     
+                } else if (iconCount == 5) {
+                    
+                    VStack (spacing: 0) {
+                        HStack(spacing: 6) {
+                            Color.clear
+                                .frame(width: side * 0.4, height: side * 0.4)
+                                .border(cellDebug ? .blue : .clear)
+                            Image(systemName: icons[0])
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: side * 0.4, height: side * 0.4)
+                                .foregroundColor(.blue)
+                                .border(cellDebug == true ? Color.red : Color.clear)
+                        }
+                        .padding(.top, 6)
+                        
+                        
+                        HStack(spacing: 6) {
+                            Image(systemName: icons[1])
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: side * 0.4, height: side * 0.4)
+                                .foregroundColor(.blue)
+                                .border(cellDebug == true ? Color.blue : Color.clear)
+                            Image(systemName: icons[2])
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: side * 0.4, height: side * 0.4)
+                                .foregroundColor(.blue)
+                                .border(cellDebug == true ? Color.red : Color.clear)
+                        }
+                        
+                        HStack(spacing: 6) {
+                            Image(systemName: icons[3])
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: side * 0.4, height: side * 0.4)
+                                .foregroundColor(.blue)
+                                .border(cellDebug == true ? Color.blue : Color.clear)
+                            Image(systemName: icons[4])
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: side * 0.4, height: side * 0.4)
+                                .foregroundColor(.blue)
+                                .border(cellDebug == true ? Color.red : Color.clear)
+                        }
+                    }
                 } else {
                     
                     // Where the icons show up (scrollable incase there are more icons
