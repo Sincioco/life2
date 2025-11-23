@@ -165,7 +165,7 @@ struct ActivitiesView: View {
                         Button {
                             selectedCategory = nil
                         } label: {
-                            Label("All Categories", systemImage: selectedCategory == nil ? "checkmark" : "tray"
+                            Label("All Categories", systemImage: selectedCategory == nil ? "checkmark" : "line.3.horizontal.decrease.circle.fill"
                             )
                         }
                         // List unique categories
@@ -182,9 +182,9 @@ struct ActivitiesView: View {
                         }
                     } label: {
                         if let selected = selectedCategory {
-                            Label(selected, systemImage: "line.3.horizontal.decrease")
+                            Label(selected, systemImage: "line.3.horizontal.decrease.circle.fill")
                         } else {
-                            Image(systemName: "line.3.horizontal.decrease")
+                            Image(systemName: selectedCategory == nil ? "line.3.horizontal.decrease" : "line.3.horizontal.decrease.circle.fill")
                         }
                     }
                     .accessibilityLabel("Filter")
