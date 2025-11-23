@@ -264,7 +264,7 @@ extension Activity {
         // Let listeners (like ActivitiesView) know the data changed
         NotificationCenter.default.post(name: .activityDidChange, object: nil)
         
-        Activity.generateRandomHistoricalActivities(in: context)
+        //Activity.generateRandomHistoricalActivities(in: context)
     }
     
     static func generateRandomHistoricalActivities(in context: ModelContext) {
