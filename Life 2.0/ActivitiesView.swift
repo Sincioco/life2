@@ -20,7 +20,7 @@ struct ActivitiesView: View {
     @State private var searchText: String = ""
     @State private var showEmptyPrompt: Bool = true
     @State private var reloadID = UUID()
-
+    
     private var filteredActivities: [Activity] {
         guard !searchText.isEmpty else { return Activities }
         return Activities.filter { activity in
@@ -98,7 +98,7 @@ struct ActivitiesView: View {
                                 .buttonStyle(.bordered)
                                 Button("Yes") {
                                     withAnimation {
-                                        generateStarterActivities()
+                                        Activity.generateStarterActivities(in: modelContext)
                                         showEmptyPrompt = false
                                     }
                                 }
@@ -141,176 +141,7 @@ struct ActivitiesView: View {
         }
     }
 
-    private func generateStarterActivities() {
-        let now = Date()
-        
-        // Randomize dates similar to the old commented code,
-        // but now based on the Recurrence enum.
-        func randomizedDate(for recurrence: Recurrence, now: Date) -> Date {
-            let calendar = Calendar.current
-            
-            switch recurrence {
-            case .daily:
-                // Random hour within today
-                let hours = Int.random(in: 0...23)
-                return calendar.date(byAdding: .hour, value: -hours, to: now) ?? now
-                
-            case .weekly:
-                // Random day within the last week
-                let days = Int.random(in: 0...7)
-                return calendar.date(byAdding: .day, value: -days, to: now) ?? now
-                
-            case .monthly:
-                // Random day within roughly the last month
-                let days = Int.random(in: 0...30)
-                return calendar.date(byAdding: .day, value: -days, to: now) ?? now
-                
-            case .yearly:
-                // Random day within roughly the last year
-                let days = Int.random(in: 0...365)
-                return calendar.date(byAdding: .day, value: -days, to: now) ?? now
-                
-            case .none:
-                return now
-            }
-        }
-        
-        // Starter activities (categories taken from your categories array:
-        // "Bills", "Fitness", "Learning", "Maintenance", "Personal", "Work", "Others")
-        let starters: [Activity] = [
-            Activity(
-                name: "Morning Run",
-                icon: "figure.run",
-                recurrence: .weekly,
-                category: "Fitness",
-                notes: "Easy-paced 20–30 minute run.",
-                dateCreated: randomizedDate(for: .weekly, now: now),
-                dateModified: randomizedDate(for: .weekly, now: now)
-            ),
-            Activity(
-                name: "Gym Session",
-                icon: "dumbbell",
-                recurrence: .weekly,
-                category: "Fitness",
-                notes: "Strength training at the gym.",
-                dateCreated: randomizedDate(for: .weekly, now: now),
-                dateModified: randomizedDate(for: .weekly, now: now)
-            ),
-            Activity(
-                name: "Read a Book",
-                icon: "book.fill",
-                recurrence: .daily,
-                category: "Learning",
-                notes: "Read at least 10–20 minutes.",
-                dateCreated: randomizedDate(for: .daily, now: now),
-                dateModified: randomizedDate(for: .daily, now: now)
-            ),
-            Activity(
-                name: "Pay Credit Card",
-                icon: "creditcard.fill",
-                recurrence: .monthly,
-                category: "Bills",
-                notes: "Settle credit card balance.",
-                dateCreated: randomizedDate(for: .monthly, now: now),
-                dateModified: randomizedDate(for: .monthly, now: now)
-            ),
-            Activity(
-                name: "Family Time",
-                icon: "person.3.fill",
-                recurrence: .weekly,
-                category: "Personal",
-                notes: "Quality time with family.",
-                dateCreated: randomizedDate(for: .weekly, now: now),
-                dateModified: randomizedDate(for: .weekly, now: now)
-            ),
-            Activity(
-                name: "Weekly Planning",
-                icon: "calendar.badge.clock",
-                recurrence: .weekly,
-                category: "Work",
-                notes: "Plan tasks and priorities for the week.",
-                dateCreated: randomizedDate(for: .weekly, now: now),
-                dateModified: randomizedDate(for: .weekly, now: now)
-            )
-        ]
-        
-        // Insert into SwiftData
-        for activity in starters {
-            modelContext.insert(activity)
-        }
-        
-        do {
-            try modelContext.save()
-        } catch {
-            print("Error saving starter activities: \(error)")
-        }
-        
-        // Let listeners (like ActivitiesView) know the data changed
-        NotificationCenter.default.post(name: .activityDidChange, object: nil)
-        
-        generateRandomHistoricalActivities()
-    }
     
-    private func generateRandomHistoricalActivities() {
-        let calendar = Calendar.current
-        let now = Date()
-        
-        // Start of the current month (e.g. 2025-11-01 00:00)
-        guard let startOfMonth = calendar.date(
-            from: calendar.dateComponents([.year, .month], from: now)
-        ) else {
-            return
-        }
-        
-        // Number of days between start of month and today (inclusive)
-        let daysDiff = calendar.dateComponents([.day], from: startOfMonth, to: now).day ?? 0
-        if daysDiff < 0 { return }
-        
-        // For each existing activity, create random history entries within THIS month only
-        for activity in Activities {
-            
-            // Iterate each day from start of month up to today
-            for dayOffset in 0...daysDiff {
-                guard let baseDate = calendar.date(byAdding: .day, value: dayOffset, to: startOfMonth) else {
-                    continue
-                }
-                
-                // Random number of completions for this activity on this day.
-                // 0 means none; 1–3 ensures some days have multiple entries.
-                let entriesToday = Int.random(in: 0...3)
-                if entriesToday == 0 { continue }
-                
-                for _ in 0..<entriesToday {
-                    // Random time during that day (0–23h, 0–59m, 0–59s)
-                    let hour = Int.random(in: 0..<24)
-                    let minute = Int.random(in: 0..<60)
-                    let second = Int.random(in: 0..<60)
-                    
-                    let randomDate = calendar.date(
-                        bySettingHour: hour,
-                        minute: minute,
-                        second: second,
-                        of: baseDate
-                    ) ?? baseDate
-                    
-                    let history = ActivityHistory(
-                        activity: activity,
-                        dateCompleted: randomDate
-                    )
-                    modelContext.insert(history)
-                }
-            }
-        }
-        
-        do {
-            try modelContext.save()
-        } catch {
-            print("Error saving random historical activities: \(error)")
-        }
-        
-        // Notify other views (calendar, lists, etc.) that data changed
-        NotificationCenter.default.post(name: .activityDidChange, object: nil)
-    }
 
     private func increment(_ activity: Activity) {
 //        activity.count += 1

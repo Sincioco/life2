@@ -1,4 +1,3 @@
-
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 //                               Life 2.0 - Activity History View
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
@@ -10,10 +9,10 @@ import SwiftUI
 import SwiftData
 
 struct ActivityHistoryView: View {
-
+    
     // Access to the SwiftData model context
     @Environment(\.modelContext) private var modelContext
-
+    
     // Fetch all history records, newest at the top
     @Query(
         sort: [
@@ -21,7 +20,13 @@ struct ActivityHistoryView: View {
         ]
     )
     private var histories: [ActivityHistory]
-
+    
+    // MARK: - Deletion State
+    
+    @State private var historyToDelete: ActivityHistory?
+    @State private var showDeleteConfirm = false
+    @State private var showClearAllConfirm = false
+    
     var body: some View {
         NavigationStack {
             Group {
@@ -37,7 +42,8 @@ struct ActivityHistoryView: View {
                             HistoryRow(history: history)
                                 .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                     Button(role: .destructive) {
-                                        delete(history)
+                                        historyToDelete = history
+                                        showDeleteConfirm = true
                                     } label: {
                                         Label("Delete", systemImage: "trash")
                                     }
@@ -49,18 +55,43 @@ struct ActivityHistoryView: View {
             }
             .navigationTitle("Activity History")
             .toolbar {
-                        ToolbarItem(placement: .topBarTrailing) {
-                            Button("Clear All") {
-                                clearAll()
-                            }
-                        }
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button("Clear All") {
+                        showClearAllConfirm = true
                     }
+                }
+            }
+            // Confirm single delete
+            .alert(
+                "Delete this history entry?",
+                isPresented: $showDeleteConfirm,
+                presenting: historyToDelete
+            ) { history in
+                Button("Delete", role: .destructive) {
+                    performDelete(history)
+                }
+                Button("Cancel", role: .cancel) {
+                    historyToDelete = nil
+                }
+            } message: { _ in
+                Text("This action cannot be undone.")
+            }
+            // Confirm clear all
+            .alert("Clear all activity history?",
+                   isPresented: $showClearAllConfirm) {
+                Button("Clear All", role: .destructive) {
+                    performClearAll()
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This will permanently remove all activity history entries.")
+            }
         }
     }
     
-    // MARK: - Delete All
+    // MARK: - Actions called from alerts
 
-    private func clearAll() {
+    private func performClearAll() {
         do {
             let descriptor = FetchDescriptor<ActivityHistory>()
             let allHistories = try modelContext.fetch(descriptor)
@@ -70,6 +101,41 @@ struct ActivityHistoryView: View {
             }
 
             try modelContext.save()
+
+            // Notify ActivitiesView to refresh
+            NotificationCenter.default.post(name: .activityDidChange, object: nil)
+        } catch {
+            print("Failed to clear ActivityHistory: \(error)")
+        }
+    }
+
+    private func performDelete(_ history: ActivityHistory) {
+        modelContext.delete(history)
+
+        do {
+            try modelContext.save()
+
+            // Notify ActivitiesView to refresh
+            NotificationCenter.default.post(name: .activityDidChange, object: nil)
+        } catch {
+            print("Failed to delete ActivityHistory: \(error)")
+        }
+
+        historyToDelete = nil
+    }
+    
+    // MARK: - Delete All
+    
+    private func clearAll() {
+        do {
+            let descriptor = FetchDescriptor<ActivityHistory>()
+            let allHistories = try modelContext.fetch(descriptor)
+            
+            for history in allHistories {
+                modelContext.delete(history)
+            }
+            
+            try modelContext.save()
             
             NotificationCenter.default.post(name: .activityDidChange, object: nil)
             let success = UINotificationFeedbackGenerator()
@@ -78,11 +144,11 @@ struct ActivityHistoryView: View {
             print("Failed to clear ActivityHistory: \(error)")
         }
     }
-
+    
     // MARK: - Delete
     private func delete(_ history: ActivityHistory) {
         modelContext.delete(history)
-
+        
         do {
             try modelContext.save()
             NotificationCenter.default.post(name: .activityDidChange, object: nil)
@@ -98,17 +164,17 @@ struct ActivityHistoryView: View {
 // MARK: - Row View
 
 private struct HistoryRow: View {
-
+    
     let history: ActivityHistory
-
+    
     private var activityName: String {
         history.activity?.name ?? "Unknown Activity"
     }
-
+    
     private var iconName: String {
         history.activity?.icon ?? "questionmark.circle"
     }
-
+    
     private var recurrenceText: String {
         if let recurrence = history.activity?.recurrence {
             return recurrence.rawValue
@@ -116,15 +182,15 @@ private struct HistoryRow: View {
             return "No Recurrence"
         }
     }
-
+    
     private var completedDateText: String {
         formattedDate(history.dateCompleted, includeTime: true)
     }
-
+    
     private var recordedDateText: String {
         formattedDate(history.dateRecorded, includeTime: true)
     }
-
+    
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Image(systemName: iconName)
@@ -133,21 +199,21 @@ private struct HistoryRow: View {
                 .frame(width: 28, height: 28)
                 .foregroundStyle(.blue)
                 .padding(.top, 4)
-
+            
             VStack(alignment: .leading, spacing: 4) {
                 // Activity name & recurrence
                 HStack {
                     Text(activityName)
                         .font(.headline)
                         .lineLimit(1)
-
+                    
                     Spacer()
-
+                    
                     Text(recurrenceText)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-
+                
                 // Completed date
                 HStack(spacing: 4) {
                     Image(systemName: "checkmark.circle.fill")
@@ -159,7 +225,7 @@ private struct HistoryRow: View {
                     Text(completedDateText)
                         .font(.caption)
                 }
-
+                
                 // Recorded date
                 HStack(spacing: 4) {
                     Image(systemName: "clock")
@@ -175,9 +241,9 @@ private struct HistoryRow: View {
         }
         .padding(.vertical, 4)
     }
-
+    
     // MARK: - Helpers
-
+    
     private func formattedDate(_ date: Date, includeTime: Bool) -> String {
         let formatter = DateFormatter()
         formatter.dateStyle = .medium
@@ -198,9 +264,9 @@ private struct HistoryRow: View {
             ActivityHistory.self,
             configurations: config
         )
-
+        
         let context = container.mainContext
-
+        
         // Sample activity
         let sampleActivity = Activity(
             name: "Sample Run",
@@ -209,9 +275,9 @@ private struct HistoryRow: View {
             category: "Fitness",
             notes: "Morning jog around the park"
         )
-
+        
         context.insert(sampleActivity)
-
+        
         // Sample history entries
         let history1 = ActivityHistory(
             activity: sampleActivity,
@@ -221,10 +287,10 @@ private struct HistoryRow: View {
             activity: sampleActivity,
             dateCompleted: .now.addingTimeInterval(-3600 * 2)
         )
-
+        
         context.insert(history1)
         context.insert(history2)
-
+        
         return ActivityHistoryView()
             .modelContainer(container)
     } catch {
