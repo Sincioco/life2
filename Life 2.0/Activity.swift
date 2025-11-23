@@ -213,23 +213,23 @@ extension Activity {
                 icon: "dog.fill",
                 recurrence: .daily,
                 category: "Fitness",
-                notes: "Walk spot every day",
+                notes: "Walk Max every day",
                 maxCount: 7,
                 dateCreated: randomizedDate(for: .daily, now: now),
                 dateModified: randomizedDate(for: .daily, now: now)
             ),
             Activity(
-                name: "Play Expedition 33",
+                name: "Play Elden Ring",
                 icon: "gamecontroller.fill",
                 recurrence: .weekly,
                 category: "Fun",
-                notes: "Play Expedition 33",
+                notes: "I'm stuck at the final boss",
                 maxCount: 3,
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
             ),
             Activity(
-                name: "Play Basketball with Friends",
+                name: "Play Basketball",
                 icon: "basketball.fill",
                 recurrence: .weekly,
                 category: "Fun",
