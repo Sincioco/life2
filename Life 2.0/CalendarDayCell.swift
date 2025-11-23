@@ -33,10 +33,6 @@ struct CalendarDayCell: View {
             let side = min(totalWidth, scrollHeight - 20)     // Max square that fits
             let iconCount = icons.count
             
-            let columns = [
-                GridItem(.fixed(side), spacing: 0)
-            ]
-            
             // The Group is the Cell Container
             Group {
                 

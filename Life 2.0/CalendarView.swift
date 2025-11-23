@@ -15,7 +15,7 @@ struct CalendarView: View {
 
     @State private var selectedYear: Int
     @State private var selectedMonth: Int
-    @State private var sheetDate: Date? = nil
+    @State private var sheetDate: IdentifiableDate? = nil
     @Query private var historyEntries: [ActivityHistory]
 
     init(year: Int? = nil, month: Int? = nil) {
@@ -347,7 +347,7 @@ private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
                                 .contentShape(Rectangle())
                                 .onTapGesture {
                                     let date = dateForCurrentMonth(day: d)
-                                    sheetDate = date
+                                    sheetDate = IdentifiableDate(date: date)
                                 }
                                 .frame(height: dayCellHeight)
                             }
@@ -358,7 +358,8 @@ private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
 
             }
             .navigationTitle(monthName)
-            .sheet(item: $sheetDate) { date in
+            .sheet(item: $sheetDate) { identifiable in
+                let date = identifiable.date
                 DayActivitySheet(
                     date: date,
                     entries: historyEntries(on: date),
@@ -411,6 +412,12 @@ private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
             ///
         }
     }
+}
+
+/// Wrapper so we don't extend Foundation.Date to Identifiable
+private struct IdentifiableDate: Identifiable, Equatable {
+    let id = UUID()
+    let date: Date
 }
 
 
@@ -474,11 +481,7 @@ private struct DayActivitySheet: View {
     }
 }
 
-// Allow Date to be used with .sheet(item:)
-extension Date: Identifiable {
-    public var id: Date { self }
-}
-
 #Preview {
     CalendarView()
 }
+
