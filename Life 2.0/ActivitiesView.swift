@@ -20,6 +20,8 @@ struct ActivitiesView: View {
     @State private var searchText: String = ""
     @State private var showEmptyPrompt: Bool = true
     @State private var reloadID = UUID()
+    @State private var pendingDelete: Activity? = nil
+    @State private var isShowingDeleteAlert: Bool = false
     
     private var filteredActivities: [Activity] {
         guard !searchText.isEmpty else { return Activities }
@@ -48,12 +50,12 @@ struct ActivitiesView: View {
                                             .contentShape(Rectangle())
                                     }
                                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                        
+
+                                        // Existing Done button
                                         let isDisabled = activity.count >= activity.maxCount
                                         Button {
                                             if activity.count < activity.maxCount {
-//                                                activity.count += 1
-//                                                activity.dateModified = Date()
-//                                                try? modelContext.save()
                                                 activity.increment(in: modelContext)
                                                 NotificationCenter.default.post(name: .activityDidChange, object: nil)
                                                 let success = UINotificationFeedbackGenerator()
@@ -67,6 +69,14 @@ struct ActivitiesView: View {
                                         }
                                         .tint(.green)
                                         .disabled(isDisabled)
+                                        
+                                        // Delete button (appears to the left of the Done button)
+                                        Button(role: .destructive) {
+                                            pendingDelete = activity
+                                            isShowingDeleteAlert = true
+                                        } label: {
+                                            Label("Delete", systemImage: "trash")
+                                        }
                                     }
                                 }
                             }
@@ -80,6 +90,21 @@ struct ActivitiesView: View {
                             placement: .navigationBarDrawer(displayMode: .automatic),
                             prompt: "Search activities")
                 .navigationTitle("Activities")
+                .alert("Delete Activity?", isPresented: $isShowingDeleteAlert, presenting: pendingDelete) { activity in
+                    Button("Delete", role: .destructive) {
+                        modelContext.delete(activity)
+                        try? modelContext.save()
+                        NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                        let error = UINotificationFeedbackGenerator()
+                        error.notificationOccurred(.error)
+                        pendingDelete = nil
+                    }
+                    Button("Cancel", role: .cancel) {
+                        pendingDelete = nil
+                    }
+                } message: { _ in
+                    Text("This action cannot be undone.")
+                }
                 .overlay {
                     if Activities.isEmpty && showEmptyPrompt {
                         VStack(spacing: 16) {
