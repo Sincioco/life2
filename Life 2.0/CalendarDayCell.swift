@@ -3,7 +3,12 @@ import SwiftUI
 
 struct CalendarDayCell: View {
     
-    let icons = [
+    var day: Date = Date()
+    var cellWidth: CGFloat = 300
+    var cellHeight: CGFloat = 300
+    
+    
+    var icons = [
         "star.fill"
         , "house"
         , "pencil"
@@ -11,6 +16,7 @@ struct CalendarDayCell: View {
     
     var body: some View {
         
+        let dayString = String(Calendar.current.component(.day, from: day))
         
         GeometryReader { geometry in
             
@@ -51,10 +57,10 @@ struct CalendarDayCell: View {
                 }
             }
             .frame(width: totalWidth, height: scrollHeight)
-            .background(.yellow.opacity(0.8))
+            //.background(.yellow.opacity(0.8))
             .overlay(alignment: .topLeading) {
                 // This is the Day Text
-                Text("33")
+                Text("\(dayString)")
                     .font(.headline)
                     .padding(8)
                     .foregroundStyle(.primary)
@@ -64,9 +70,10 @@ struct CalendarDayCell: View {
             .frame(height: geometry.size.height)    // ScrollView visible height
         }
         
-        .frame(width: 300, height: 300)
-        .background(.green)
+        .frame(width: cellWidth, height: cellHeight)
+        //.background(.green)
     }
+    
 }
 
 #Preview {

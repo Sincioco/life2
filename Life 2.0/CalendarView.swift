@@ -311,20 +311,38 @@ private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
                                             RoundedRectangle(cornerRadius: 0)
                                                 .stroke(Color.gray.opacity(0.3))
                                         )
-                                    VStack(alignment: .leading, spacing: 2) {
-                                        Text("\(d)")
-                                            .font(.headline)
-                                            .padding(8)
-                                            .foregroundStyle(.primary)
-
-                                        let date = dateForCurrentMonth(day: d)
-                                        let icons = iconsFor(date: date)
-                                        if !icons.isEmpty {
-                                            iconsGrid(for: icons, isLandscape: proxy.size.width > proxy.size.height)
-                                                .padding(.horizontal, 6)
-                                                .padding(.top, -8)
+                                    
+                                    // On iPhone 16 Pro Max - Vertical - Cell size is 63x63
+                                    
+//                                    VStack(alignment: .leading, spacing: 2) {
+//                                        Text("\(d)")
+//                                            .font(.headline)
+//                                            .padding(8)
+//                                            .foregroundStyle(.primary)
+//
+//                                        let date = dateForCurrentMonth(day: d)
+//                                        let icons = iconsFor(date: date)
+//                                        if !icons.isEmpty {
+//                                            iconsGrid(for: icons, isLandscape: proxy.size.width > proxy.size.height)
+//                                                .padding(.horizontal, 6)
+//                                                .padding(.top, -8)
+//                                            
+//                                        }
+//                                    }
+                                    
+                                    let date = dateForCurrentMonth(day: d)
+                                    let icons = iconsFor(date: date)
+                                    
+                                    //if !icons.isEmpty {
+                                        let isLandscape = proxy.size.width > proxy.size.height
+                                        
+                                        
+                                        if (isLandscape == false) {
+                                            CalendarDayCell(day: date, cellWidth: 63, cellHeight: 63, icons: icons)
+                                        } else {
+                                            CalendarDayCell(day: date, cellWidth: 119, cellHeight: 119, icons: icons)
                                         }
-                                    }
+                                    //}
                                 }
                                 .contentShape(Rectangle())
                                 .onTapGesture {
