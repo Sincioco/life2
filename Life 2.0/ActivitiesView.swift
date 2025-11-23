@@ -30,11 +30,11 @@ struct ActivitiesView: View {
             activity.category.localizedCaseInsensitiveContains(searchText)
         }
     }
-
+    
     private var groupedByCategory: [String: [Activity]] {
         Dictionary(grouping: filteredActivities, by: { $0.category })
     }
-
+    
     var body: some View {
         NavigationStack {
             Group {
@@ -51,7 +51,7 @@ struct ActivitiesView: View {
                                     }
                                     .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                         
-
+                                        
                                         // Existing Done button
                                         let isDisabled = activity.count >= activity.maxCount
                                         Button {
@@ -165,13 +165,13 @@ struct ActivitiesView: View {
             }
         }
     }
-
     
-
+    
+    
     private func increment(_ activity: Activity) {
-//        activity.count += 1
-//        activity.dateModified = Date()
-//        try? modelContext.save()
+        //        activity.count += 1
+        //        activity.dateModified = Date()
+        //        try? modelContext.save()
         activity.increment(in: modelContext)
         NotificationCenter.default.post(name: .activityDidChange, object: nil)
     }
@@ -274,7 +274,7 @@ struct ActivityRow: View {
                 .font(.caption2)
                 .foregroundStyle(.secondary)
             }
-
+            
         }
         .opacity(isDeletingVisual ? 0.0 : 1.0)
         .scaleEffect(isDeletingVisual ? 0.98 : 1.0)
@@ -331,19 +331,11 @@ struct AddActivityView: View {
         "Work",
         "Others"
     ]
-
+    
     private let recurrencies = Recurrence.allCases
-
+    
     // Sheet state
     
-    // Segmented control selection
-    private enum AddEditTab: String, CaseIterable, Identifiable {
-        case activity = "Activity"
-        case history = "History"
-        case notes = "Notes"
-        var id: String { rawValue }
-    }
-    @State private var selectedTab: AddEditTab = .activity
     
     @State private var isPresentingIconPicker = false
     
@@ -370,85 +362,55 @@ struct AddActivityView: View {
     
     var body: some View {
         NavigationStack {
+            
             Form {
                 
-                Picker("Section", selection: $selectedTab) {
-                    ForEach(AddEditTab.allCases) { tab in
-                        Text(tab.rawValue).tag(tab)
-                    }
-                }
-                .pickerStyle(.segmented)
-                
-                if selectedTab == .activity {
-                    Section("Activity") {
-                        TextField("Name", text: $name)
-                            .focused($isNameFocused)
-                        
-                        // Icon "field" that opens a picker sheet
-                        Button {
-                            isPresentingIconPicker = true
-                        } label: {
-                            HStack {
-                                Text("Icon")
-                                Spacer()
-                                Image(systemName: icon)
-                                    .resizable()
-                                    .scaledToFit()
-                                    .frame(width: 20, height: 20)
-                                Text(icon)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .lineLimit(1)
-                                    .truncationMode(.middle)
-                            }
-                        }
-                        
-                        Picker("Category", selection: $category) {
-                            ForEach(categories, id: \.self) { cat in
-                                Text(cat).tag(cat)
-                            }
-                        }
-                        
-                        Picker("Recurrence", selection: $recurrence) {
-                            ForEach(recurrencies, id: \.self) { rec in
-                                Text(rec.rawValue).tag(rec)
-                            }
-                        }
-                        
-                        TextField("Count", value: $count, format: .number)
-                            .keyboardType(.numberPad)
-                        
-                        TextField("Max Count", value: $maxCount, format: .number)
-                            .keyboardType(.numberPad)
-                        
+                Section("Activity") {
+                    TextField("Name", text: $name)
+                        .focused($isNameFocused)
+                    
+                    // Icon "field" that opens a picker sheet
+                    Button {
+                        isPresentingIconPicker = true
+                    } label: {
                         HStack {
-                            Gauge(value: computedProgress, in: 0...100) { EmptyView() } currentValueLabel: { EmptyView() }
-                                .gaugeStyle(.automatic)
-                                .tint(.green)
-                            Text("\(Int(computedProgress))%")
-                                .monospacedDigit()
+                            Text("Icon")
+                            Spacer()
+                            Image(systemName: icon)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 20, height: 20)
+                            Text(icon)
                                 .font(.caption)
                                 .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
                         }
                     }
+                    
+                    Picker("Category", selection: $category) {
+                        ForEach(categories, id: \.self) { cat in
+                            Text(cat).tag(cat)
+                        }
+                    }
+                    
+                    Picker("Recurrence", selection: $recurrence) {
+                        ForEach(recurrencies, id: \.self) { rec in
+                            Text(rec.rawValue).tag(rec)
+                        }
+                    }
+                    
+                    TextField("Count", value: $count, format: .number)
+                        .keyboardType(.numberPad)
+                    
+                    TextField("Max Count", value: $maxCount, format: .number)
+                        .keyboardType(.numberPad)
+                    
+                    TextField("Notes", text: $notes, axis: .vertical)
+                        .lineLimit(3, reservesSpace: true)
+                    
                 }
                 
-                // ----------------------------------------------------
-                // Notes
-                // ----------------------------------------------------
-                if selectedTab == .notes {
-                    Section("Notes") {
-                        TextField("Notes", text: $notes, axis: .vertical)
-                            .lineLimit(3, reservesSpace: true)
-                    }
-                }
-                
-                if selectedTab == .history {
-                    Section("History") {
-                        Text("No history yet.")
-                            .foregroundStyle(.secondary)
-                    }
-                }
             }
             .navigationTitle("Add Activity")
             .navigationBarTitleDisplayMode(.inline)
@@ -530,7 +492,6 @@ struct EditActivityView: View {
     private enum AddEditTab: String, CaseIterable, Identifiable {
         case activity = "Activity"
         case history = "History"
-        case notes = "Notes"
         var id: String { rawValue }
     }
     @State private var selectedTab: AddEditTab = .activity
@@ -553,14 +514,18 @@ struct EditActivityView: View {
     }
     
     var body: some View {
+        
+        Picker("Section", selection: $selectedTab) {
+            ForEach(AddEditTab.allCases) { tab in
+                Text(tab.rawValue).tag(tab)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding()
+        
         Form {
             
-            Picker("Section", selection: $selectedTab) {
-                ForEach(AddEditTab.allCases) { tab in
-                    Text(tab.rawValue).tag(tab)
-                }
-            }
-            .pickerStyle(.segmented)
+            
             
             if selectedTab == .activity {
                 Section("Activity") {
@@ -596,24 +561,24 @@ struct EditActivityView: View {
                         }
                     }
                     
-                    HStack {
-                        Gauge(value: computedProgress, in: 0...100) { EmptyView() } currentValueLabel: { EmptyView() }
-                            .gaugeStyle(.automatic)
-                            .tint(.green)
-                        Text("\(Int(computedProgress))%")
-                            .monospacedDigit()
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
+                    
+                    Gauge(value: computedProgress, in: 0...100) { EmptyView() } currentValueLabel: { EmptyView() }
+                        .gaugeStyle(.automatic)
+                        .tint(.green)
+                        .overlay {
+                            Text("\(Int(computedProgress))%")
+                                .monospacedDigit()
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.primary)
+                        }
+                    
+                    TextField("Notes", text: $activity.notes, axis: .vertical)
+                        .lineLimit(3, reservesSpace: true)
+                    
                 }
             }
             
-            if selectedTab == .notes {
-                Section("Notes") {
-                    TextField("Notes", text: $activity.notes, axis: .vertical)
-                        .lineLimit(3, reservesSpace: true)
-                }
-            }
             
             if selectedTab == .history {
                 Section("History") {
@@ -622,47 +587,41 @@ struct EditActivityView: View {
                 }
             }
             
-            Section {
-                Button {
-                    // Increment count and record completion in history
-//                    activity.count += 1
-//                    activity.dateModified = Date()
-//                    // If Activity provides a record API, call it to log history
-//                    activity.recordCompletion(on: Date(), in: modelContext)
-//                    try? modelContext.save()
-                    activity.increment(in: modelContext)
-                    NotificationCenter.default.post(name: .activityDidChange, object: nil)
-                } label: {
-                    Label("Increment", systemImage: "checkmark")
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+            if selectedTab == .activity {
+                Section {
+                    Button {
+                        activity.increment(in: modelContext)
+                        NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                    } label: {
+                        Label("Increment", systemImage: "checkmark")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                    }
                 }
-                //.buttonStyle(.borderedProminent)
-                //.tint(.green)
-            }
-            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-
-            Section {
-                Button(role: .destructive) {
-                    showDeleteAlert = true
-                } label: {
-                    Label("Delete", systemImage: "trash")
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                
+                Section {
+                    Button(role: .destructive) {
+                        showDeleteAlert = true
+                    } label: {
+                        Label("Delete", systemImage: "trash")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.bordered)
+                    //.tint(.red)
                 }
-                .buttonStyle(.bordered)
-                //.tint(.red)
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
             }
-            .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
         }
         .navigationTitle("Edit Activity")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-//            ToolbarItem(placement: .cancellationAction) {
-//                Button("Cancel") {
-//                    dismiss()
-//                }
-//            }
+            //            ToolbarItem(placement: .cancellationAction) {
+            //                Button("Cancel") {
+            //                    dismiss()
+            //                }
+            //            }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Save") {
                     didSave = true
@@ -720,9 +679,9 @@ struct EditActivityView: View {
         let container = try! ModelContainer(for: schema, configurations: config)
         
         // Insert test data
-//        for event in Activity.sampleData {
-//            container.mainContext.insert(event)
-//        }
+        //        for event in Activity.sampleData {
+        //            container.mainContext.insert(event)
+        //        }
         
         return container
     }()
