@@ -148,7 +148,8 @@ struct ActivitiesView: View {
                         .accessibilityLabel("Home")
                 }
                 ToolbarItem(placement: .automatic) {
-                    Button { } label: { Image(systemName: "line.3.horizontal.decrease") }
+                    Button {                        
+                    } label: { Image(systemName: "line.3.horizontal.decrease") }
                         .accessibilityLabel("Filter")
                 }
                 ToolbarSpacer()
@@ -513,6 +514,7 @@ struct EditActivityView: View {
     
     @State private var isPresentingIconPicker = false
     @State private var showDeleteAlert = false
+    @State private var showDeleteAllAlert = false
     
     // Track original values to allow cancel-on-back behavior
     @State private var originalName: String = ""
@@ -638,9 +640,23 @@ struct EditActivityView: View {
                             .padding(.vertical, 8)
                     }
                     .buttonStyle(.bordered)
-                    //.tint(.red)
                 }
                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+                
+#if DEBUG
+                Section {
+                    Button(role: .destructive) {
+                        showDeleteAllAlert = true
+                    } label: {
+                        Label("Delete All", systemImage: "trash.fill")
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 8)
+                    }
+                    .buttonStyle(.bordered)
+                }
+                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+#endif
+                
             }
         }
         .navigationTitle("Edit Activity")
@@ -695,6 +711,35 @@ struct EditActivityView: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This action cannot be undone.")
+        }
+        .alert("Delete ALL activities and history?", isPresented: $showDeleteAllAlert) {
+            Button("Delete All", role: .destructive) {
+                do {
+                    let descriptor = FetchDescriptor<Activity>()
+                    let allActivities = try modelContext.fetch(descriptor)
+                    for activity in allActivities {
+                        modelContext.delete(activity) // histories cascade due to deleteRule: .cascade
+                    }
+                    //try modelContext.save()
+
+                    // Dismiss first to detach UI from deleted models
+                    dismiss()
+
+                    // Notify and haptic on next runloop to avoid touching deleted objects in this view update
+                    DispatchQueue.main.async {
+                        NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                        let success = UINotificationFeedbackGenerator()
+                        success.notificationOccurred(.success)
+                    }
+                } catch {
+                    print("Failed to delete all Activities: \(error)")
+                    let errorHaptic = UINotificationFeedbackGenerator()
+                    errorHaptic.notificationOccurred(.error)
+                }
+            }
+            Button("Cancel", role: .cancel) { }
+        } message: {
+            Text("This will permanently remove ALL activities and their history. This action cannot be undone.")
         }
     }
 }
