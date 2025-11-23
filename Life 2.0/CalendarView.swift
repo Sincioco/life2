@@ -31,9 +31,10 @@ struct CalendarView: View {
 
     // Deterministic Gregorian calendar (Sunday-first), stable across locales/time zones
     private var calendar: Calendar {
-        var cal = Calendar(identifier: .gregorian)
-        cal.timeZone = TimeZone(secondsFromGMT: 0)!
-        cal.locale = Locale(identifier: "en_US_POSIX")
+        var cal = Calendar.current
+        // Ensure we operate in the user's local time and locale
+        cal.timeZone = TimeZone.current
+        cal.locale = Locale.current
         cal.firstWeekday = 1 // Sunday
         return cal
     }
@@ -84,8 +85,11 @@ struct CalendarView: View {
     private var weekdaySymbols: [String] { calendar.shortWeekdaySymbols } // Sun..Sat
 
     private var monthDateRange: Range<Date> {
+        // Local start of day for the first day of the selected month
         let start = calendar.startOfDay(for: monthStart)
-        let end = calendar.startOfDay(for: calendar.date(byAdding: .month, value: 1, to: monthStart) ?? monthStart)
+        // Compute the first moment of the next month in local time
+        let nextMonth = calendar.date(byAdding: DateComponents(month: 1), to: monthStart) ?? monthStart
+        let end = calendar.startOfDay(for: nextMonth)
         return start..<end
     }
 
@@ -106,7 +110,7 @@ struct CalendarView: View {
 
     private func iconsFor(date: Date) -> [String] {
         let startOfDay = calendar.startOfDay(for: date)
-        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else { return [] }
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? startOfDay
         let todays = historyThisMonth.filter { entry in
             entry.dateCompleted >= startOfDay && entry.dateCompleted < endOfDay
         }
