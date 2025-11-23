@@ -18,7 +18,7 @@ struct CalendarDayCell: View {
         "eraser",
         "globe.americas"
     ]
-    
+    var adjacentCell: Bool = false
     var cellDebug: Bool = true
     
     var body: some View {
@@ -196,7 +196,7 @@ struct CalendarDayCell: View {
                 //Text("\(dayString) \(iconCount)")
                     .font(.headline)
                     .padding(8)
-                    .foregroundStyle(.primary)
+                    .foregroundStyle(adjacentCell ? .secondary : .primary)
                 //.shadow(color: invertedPrimaryColor().opacity(0.6), radius: 2)
                 
             }

@@ -12,12 +12,12 @@ import SwiftData
 struct CalendarView: View {
     let year: Int
     let month: Int // 1...12
-
+    
     @State private var selectedYear: Int
     @State private var selectedMonth: Int
     @State private var sheetDate: IdentifiableDate? = nil
     @Query private var historyEntries: [ActivityHistory]
-
+    
     init(year: Int? = nil, month: Int? = nil) {
         let now = Date()
         let cal = Calendar(identifier: .gregorian)
@@ -28,7 +28,7 @@ struct CalendarView: View {
         _selectedYear = State(initialValue: resolvedYear)
         _selectedMonth = State(initialValue: resolvedMonth)
     }
-
+    
     // Deterministic Gregorian calendar (Sunday-first), stable across locales/time zones
     private var calendar: Calendar {
         var cal = Calendar.current
@@ -38,7 +38,7 @@ struct CalendarView: View {
         cal.firstWeekday = 1 // Sunday
         return cal
     }
-
+    
     private var monthStart: Date {
         var comps = DateComponents()
         comps.year = selectedYear
@@ -46,7 +46,7 @@ struct CalendarView: View {
         comps.day = 1
         return calendar.date(from: comps) ?? Date()
     }
-
+    
     private var previousMonthStart: Date {
         var comps = DateComponents()
         comps.year = selectedYear
@@ -54,7 +54,7 @@ struct CalendarView: View {
         comps.day = 1
         return calendar.date(from: comps) ?? Date()
     }
-
+    
     private var nextMonthStart: Date {
         var comps = DateComponents()
         comps.year = selectedYear
@@ -62,17 +62,17 @@ struct CalendarView: View {
         comps.day = 1
         return calendar.date(from: comps) ?? Date()
     }
-
+    
     private var daysInPreviousMonthCount: Int {
         let range = calendar.range(of: .day, in: .month, for: previousMonthStart) ?? 1..<29
         return range.count
     }
-
+    
     private var daysInCurrentMonth: [Int] {
         let range = calendar.range(of: .day, in: .month, for: monthStart) ?? 1..<29
         return Array(range)
     }
-
+    
     private var monthName: String {
         let formatter = DateFormatter()
         formatter.calendar = calendar
@@ -81,9 +81,9 @@ struct CalendarView: View {
         formatter.dateFormat = "LLLL yyyy" // full month name
         return formatter.string(from: monthStart)
     }
-
+    
     private var weekdaySymbols: [String] { calendar.shortWeekdaySymbols } // Sun..Sat
-
+    
     private var monthDateRange: Range<Date> {
         // Local start of day for the first day of the selected month
         let start = calendar.startOfDay(for: monthStart)
@@ -92,7 +92,7 @@ struct CalendarView: View {
         let end = calendar.startOfDay(for: nextMonth)
         return start..<end
     }
-
+    
     private var historyThisMonth: [ActivityHistory] {
         historyEntries.filter { entry in
             entry.dateCompleted >= monthDateRange.lowerBound && entry.dateCompleted < monthDateRange.upperBound
@@ -105,9 +105,9 @@ struct CalendarView: View {
             }
             .sorted { $0.dateCompleted > $1.dateCompleted }
     }
-
-
-
+    
+    
+    
     private func iconsFor(date: Date) -> [String] {
         let startOfDay = calendar.startOfDay(for: date)
         let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? startOfDay
@@ -124,7 +124,26 @@ struct CalendarView: View {
         }
         return uniqueIcons
     }
-
+    
+    private func uniqueIcons(date: Date) -> [String] {
+        let startOfDay = calendar.startOfDay(for: date)
+        let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) ?? startOfDay
+        
+        // Filter directly from all history entries for this exact local day
+        let todays = historyEntries.filter { entry in
+            entry.dateCompleted >= startOfDay && entry.dateCompleted < endOfDay
+        }
+        
+        // Map to icons and de-duplicate while preserving first-seen order
+        var seen = Set<String>()
+        var unique: [String] = []
+        for icon in todays.compactMap({ $0.activity?.icon }) where !seen.contains(icon) {
+            seen.insert(icon)
+            unique.append(icon)
+        }
+        return unique
+    }
+    
     private func dateForCurrentMonth(day: Int) -> Date {
         var comps = DateComponents()
         comps.year = selectedYear
@@ -132,13 +151,13 @@ struct CalendarView: View {
         comps.day = day
         return calendar.date(from: comps) ?? monthStart
     }
-
+    
     // Build a flat array of 7 header cells + leading prev month days + current days + trailing next month days
     private var cells: [Cell] {
         var items: [Cell] = []
         // Headers (Sun..Sat)
         for i in 0..<7 { items.append(.header(weekdaySymbols[i])) }
-
+        
         // Leading relative to Sunday column 0
         let firstWeekday = calendar.component(.weekday, from: monthStart) // 1..7 (Sun=1)
         let leading = (firstWeekday - 1 + 7) % 7
@@ -148,10 +167,10 @@ struct CalendarView: View {
                 items.append(.adjacent(d, true)) // previous month days
             }
         }
-
+        
         // Current month days
         for d in daysInCurrentMonth { items.append(.day(d)) }
-
+        
         // Trailing to fill the last week
         let totalDayCells = leading + daysInCurrentMonth.count
         let trailing = (7 - (totalDayCells % 7)) % 7
@@ -160,34 +179,34 @@ struct CalendarView: View {
         }
         return items
     }
-
+    
     private func columns(for totalWidth: CGFloat) -> [GridItem] {
         let cellWidth = totalWidth / 7.0
-
+        
         return Array(
             repeating: GridItem(.fixed(cellWidth), spacing: 0),
             count: 7
         )
     }
-
+    
     private var gridHeight: CGFloat { 40 + 100 * 6 + 16 } // header + 6 rows + vertical padding
-
+    
     enum Cell: Hashable {
         case header(String)
         case adjacent(Int, Bool) // (day, isPrevious)
         case day(Int)
     }
-
     
     
-private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
+    
+    private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
         // Render all icons under the day label.
         // For up to 6 icons we center them vertically & horizontally without scrolling.
         // For more than 6 icons, we fall back to a scrollable grid.
-
+        
         let allIcons = icons
         let iconCount = allIcons.count
-
+        
         // Base icon size for the grid
         let baseSize: CGFloat
         switch iconCount {
@@ -203,25 +222,25 @@ private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
         default:
             baseSize = 16
         }
-
+        
         // Break into rows of up to 3 icons (3-per-row grid)
         let rows: [[String]] = stride(from: 0, to: allIcons.count, by: 3).map { index in
             Array(allIcons[index..<min(index + 3, allIcons.count)])
         }
-
+        
         let hSpacing: CGFloat = 2
         let vSpacing: CGFloat = 2
-
+        
         return Group {
             if iconCount <= 6 {
                 // No scrolling needed: center grid vertically & horizontally in the available space.
                 ZStack {
                     // Debug background to visualize the icon area bounds
                     Color.yellow.opacity(0.3)
-
+                    
                     VStack {
                         Spacer(minLength: 0)
-
+                        
                         VStack(alignment: .center, spacing: vSpacing) {
                             ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                                 HStack(spacing: hSpacing) {
@@ -237,13 +256,13 @@ private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
                                 }
                             }
                         }
-
+                        
                         Spacer(minLength: 0)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
                 .frame(maxHeight: .infinity)
-
+                
             } else {
                 // 7+ icons: scrollable grid, using the original layout.
                 ScrollView(.vertical, showsIndicators: true) {
@@ -268,9 +287,9 @@ private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
             }
         }
     }
-
-
-
+    
+    
+    
     var body: some View {
         NavigationStack {
             Group {
@@ -278,88 +297,136 @@ private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
                     let totalWidth = proxy.size.width
                     let dayCellWidth = totalWidth / 7.0
                     let dayCellHeight = dayCellWidth
-
+                    
                     ScrollView(.vertical) {
                         LazyVGrid(columns: columns(for: totalWidth), spacing: 0) {
-                        ForEach(cells, id: \.self) { cell in
-                            switch cell {
-                            case .header(let title):
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 0)
-                                        .fill(Color(.secondarySystemBackground))
-                                    Text(title)
-                                        .font(.headline)
-                                }
-                                .frame(height: 40)
-
-                            case .adjacent(let d, _):
-                                ZStack(alignment: .topLeading) {
-                                    RoundedRectangle(cornerRadius: 0)
-                                        .fill(Color(.systemBackground))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 0)
-                                                .stroke(Color.gray.opacity(0.25))
-                                        )
-                                    Text("\(d)")
-                                        .font(.headline)
-                                        .foregroundStyle(.secondary)
-                                        .padding(8)
-                                }
-                                .frame(height: dayCellHeight)
-
-                            case .day(let d):
-                                ZStack(alignment: .topLeading) {
-                                    RoundedRectangle(cornerRadius: 0)
-                                        .fill(Color(.systemBackground))
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 0)
-                                                .stroke(Color.gray.opacity(0.3))
-                                        )
+                            ForEach(cells, id: \.self) { cell in
+                                switch cell {
+                                case .header(let title):
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 0)
+                                            .fill(Color(.secondarySystemBackground))
+                                        Text(title)
+                                            .font(.headline)
+                                    }
+                                    .frame(height: 40)
                                     
-                                    // On iPhone 16 Pro Max - Vertical - Cell size is 63x63
+                                case .adjacent(let d, _):
+                                    ZStack(alignment: .topLeading) {
+                                        RoundedRectangle(cornerRadius: 0)
+                                            .fill(Color(.systemBackground))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 0)
+                                                    .stroke(Color.gray.opacity(0.25))
+                                            )
+                                        //                                    Text("\(d)")
+                                        //                                        .font(.headline)
+                                        //                                        .foregroundStyle(.secondary)
+                                        //                                        .padding(8)
+                                        
+                                        let year = selectedYear
+                                        let month = selectedMonth
+                                        let isLandscape = proxy.size.width > proxy.size.height
+                                        
+                                        if (d >= 26 && d <= 31) {
+                                            // Previous Month Logic
+                                            let date1 = Calendar.current.date(from: DateComponents(year: year, month: month, day: 1))!
+                                            let previousMonthDate = Calendar.current.date(byAdding: .month, value: -1, to: date1)!
+                                            let comps = Calendar.current.dateComponents([.year, .month], from: previousMonthDate)
+                                            
+                                            let prevYear = comps.year!
+                                            let prevMonth = comps.month!
+                                            let prevMonthFull = Calendar.current.date(from: DateComponents(year: prevYear, month: prevMonth, day: d))!
+                                            
+                                            let icons = uniqueIcons(date: prevMonthFull)
+                                            
+                                            if (isLandscape == false) {
+                                                CalendarDayCell(day: prevMonthFull, cellWidth: 63, cellHeight: 63, icons: icons, adjacentCell: true, cellDebug: false)
+                                            } else {
+                                                CalendarDayCell(day: prevMonthFull, cellWidth: 119, cellHeight: 119, icons: icons, adjacentCell: true, cellDebug: false)
+                                            }
+                                        } else
+                                        // Next Month logic
+                                        if (d >= 7 || d <= 7) {
+                                            let date2 = Calendar.current.date(from: DateComponents(year: year, month: month, day: 1))!
+                                            let nextMonthDate = Calendar.current.date(byAdding: .month, value: 1, to: date2)!
+                                            let comps1 = Calendar.current.dateComponents([.year, .month], from: nextMonthDate)
+                                            //
+                                            let nextYear = comps1.year!
+                                            let nextMonth = comps1.month!
+                                            let nextMonthFull = Calendar.current.date(from: DateComponents(year: nextYear, month: nextMonth, day: d))!
+                                            
+                                            let icons1 = uniqueIcons(date: nextMonthFull)
                                     
-//                                    VStack(alignment: .leading, spacing: 2) {
-//                                        Text("\(d)")
-//                                            .font(.headline)
-//                                            .padding(8)
-//                                            .foregroundStyle(.primary)
-//
-//                                        let date = dateForCurrentMonth(day: d)
-//                                        let icons = iconsFor(date: date)
-//                                        if !icons.isEmpty {
-//                                            iconsGrid(for: icons, isLandscape: proxy.size.width > proxy.size.height)
-//                                                .padding(.horizontal, 6)
-//                                                .padding(.top, -8)
-//                                            
-//                                        }
-//                                    }
+                                            
+                                            if (isLandscape == false) {
+                                                CalendarDayCell(day: nextMonthFull, cellWidth: 63, cellHeight: 63, icons: icons1, adjacentCell: true, cellDebug: false)
+                                            } else {
+                                                CalendarDayCell(day: nextMonthFull, cellWidth: 119, cellHeight: 119, icons: icons1, adjacentCell: true, cellDebug: false)
+                                            }
+                                        }
+                                        
+                                        
+                                        
+                                        
+                                        
+                                        
+                                    }
+                                    .frame(height: dayCellHeight)
                                     
-                                    let date = dateForCurrentMonth(day: d)
-                                    let icons = iconsFor(date: date)
-                                    
-                                    //if !icons.isEmpty {
+                                case .day(let d):
+                                    ZStack(alignment: .topLeading) {
+                                        RoundedRectangle(cornerRadius: 0)
+                                            .fill(Color(.systemBackground))
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 0)
+                                                    .stroke(Color.gray.opacity(0.3))
+                                            )
+                                        
+                                        // On iPhone 16 Pro Max - Vertical - Cell size is 63x63
+                                        
+                                        //                                    VStack(alignment: .leading, spacing: 2) {
+                                        //                                        Text("\(d)")
+                                        //                                            .font(.headline)
+                                        //                                            .padding(8)
+                                        //                                            .foregroundStyle(.primary)
+                                        //
+                                        //                                        let date = dateForCurrentMonth(day: d)
+                                        //                                        let icons = iconsFor(date: date)
+                                        //                                        if !icons.isEmpty {
+                                        //                                            iconsGrid(for: icons, isLandscape: proxy.size.width > proxy.size.height)
+                                        //                                                .padding(.horizontal, 6)
+                                        //                                                .padding(.top, -8)
+                                        //
+                                        //                                        }
+                                        //                                    }
+                                        
+                                        let date = dateForCurrentMonth(day: d)
+                                        let icons = iconsFor(date: date)
+                                        
+                                        //if !icons.isEmpty {
                                         let isLandscape = proxy.size.width > proxy.size.height
                                         
                                         
                                         if (isLandscape == false) {
-                                            CalendarDayCell(day: date, cellWidth: 63, cellHeight: 63, icons: icons, cellDebug: false)
+                                            CalendarDayCell(day: date, cellWidth: 63, cellHeight: 63, icons: icons, adjacentCell: false, cellDebug: false)
                                         } else {
-                                            CalendarDayCell(day: date, cellWidth: 119, cellHeight: 119, icons: icons, cellDebug: false)
+                                            CalendarDayCell(day: date, cellWidth: 119, cellHeight: 119, icons: icons, adjacentCell: false, cellDebug: false)
                                         }
-                                    //}
+                                        //}
+                                    }
+                                    .contentShape(Rectangle())
+                                    .onTapGesture {
+                                        let date = dateForCurrentMonth(day: d)
+                                        sheetDate = IdentifiableDate(date: date)
+                                    }
+                                    .frame(height: dayCellHeight)
                                 }
-                                .contentShape(Rectangle())
-                                .onTapGesture {
-                                    let date = dateForCurrentMonth(day: d)
-                                    sheetDate = IdentifiableDate(date: date)
-                                }
-                                .frame(height: dayCellHeight)
                             }
                         }
                     }
                 }
-                }
-
+                
             }
             .navigationTitle(monthName)
             .sheet(item: $sheetDate) { identifiable in
@@ -370,9 +437,9 @@ private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
                     calendar: calendar
                 )
             }
-
+            
             ///
-///
+            ///
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -412,7 +479,7 @@ private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
                     .accessibilityLabel("Select Year")
                 }
             }
-
+            
             ///
         }
     }
@@ -432,7 +499,7 @@ private struct DayActivitySheet: View {
     let date: Date
     let entries: [ActivityHistory]
     let calendar: Calendar
-
+    
     private var title: String {
         let formatter = DateFormatter()
         formatter.calendar = calendar
@@ -440,7 +507,7 @@ private struct DayActivitySheet: View {
         formatter.timeStyle = .none
         return formatter.string(from: date)
     }
-
+    
     var body: some View {
         NavigationStack {
             List {
@@ -458,15 +525,15 @@ private struct DayActivitySheet: View {
                                 .scaledToFit()
                                 .frame(width: 28, height: 28)
                                 .foregroundStyle(.green)
-
+                            
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(history.activity?.name ?? "Unknown Activity")
                                     .font(.headline)
-
+                                
                                 Text(history.dateCompleted, style: .time)
                                     .font(.caption)
                                     .foregroundStyle(.secondary)
-
+                                
                                 if let notes = history.activity?.notes, !notes.isEmpty {
                                     Text(notes)
                                         .font(.caption2)
