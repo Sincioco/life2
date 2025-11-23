@@ -15,6 +15,7 @@ struct CalendarView: View {
 
     @State private var selectedYear: Int
     @State private var selectedMonth: Int
+    @State private var sheetDate: Date? = nil
     @Query private var historyEntries: [ActivityHistory]
 
     init(year: Int? = nil, month: Int? = nil) {
@@ -93,6 +94,15 @@ struct CalendarView: View {
             entry.dateCompleted >= monthDateRange.lowerBound && entry.dateCompleted < monthDateRange.upperBound
         }
     }
+    private func historyEntries(on date: Date) -> [ActivityHistory] {
+        historyEntries
+            .filter { entry in
+                calendar.isDate(entry.dateCompleted, inSameDayAs: date)
+            }
+            .sorted { $0.dateCompleted > $1.dateCompleted }
+    }
+
+
 
     private func iconsFor(date: Date) -> [String] {
         let startOfDay = calendar.startOfDay(for: date)
@@ -100,7 +110,15 @@ struct CalendarView: View {
         let todays = historyThisMonth.filter { entry in
             entry.dateCompleted >= startOfDay && entry.dateCompleted < endOfDay
         }
-        return todays.compactMap { $0.activity?.icon }
+        // Map to activity icons and remove duplicates so each activity's icon appears only once per day
+        let icons = todays.compactMap { $0.activity?.icon }
+        var seen = Set<String>()
+        var uniqueIcons: [String] = []
+        for icon in icons where !seen.contains(icon) {
+            seen.insert(icon)
+            uniqueIcons.append(icon)
+        }
+        return uniqueIcons
     }
 
     private func dateForCurrentMonth(day: Int) -> Date {
@@ -140,7 +158,14 @@ struct CalendarView: View {
     }
 
     private var columns: [GridItem] {
-        Array(repeating: GridItem(.flexible(minimum: 63.0, maximum: 120), spacing: 0), count: 7)
+        // On iPhone in portrait, this makes each day cell exactly 1/7 of the screen width.
+        let screenWidth = UIScreen.main.bounds.width
+        let cellWidth = screenWidth / 7.0
+
+        return Array(
+            repeating: GridItem(.fixed(cellWidth), spacing: 0),
+            count: 7
+        )
     }
 
     private var gridHeight: CGFloat { 40 + 100 * 6 + 16 } // header + 6 rows + vertical padding
@@ -152,15 +177,47 @@ struct CalendarView: View {
     }
 
     private func iconsGrid(for icons: [String]) -> some View {
-        HStack(spacing: 4) {
-            ForEach(Array(icons.prefix(3).enumerated()), id: \.offset) { _, iconName in
-                Image(systemName: iconName)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(height: 16)
-                    .foregroundColor(.secondary)
+        // Render all icons in a 3-column grid, but constrain the height
+        // so they never make the day cell taller. Extra icons scroll vertically.
+        let allIcons = icons
+        let iconCount = allIcons.count
+
+        // Determine icon size based on count (fewer icons = bigger)
+        let size: CGFloat
+        switch iconCount {
+        case 0:
+            size = 0
+        case 1:
+            size = 26
+        case 2...4:
+            size = 22
+        default:
+            size = 16
+        }
+
+        // Break into rows of up to 3 icons
+        let rows: [[String]] = stride(from: 0, to: allIcons.count, by: 3).map { index in
+            Array(allIcons[index..<min(index + 3, allIcons.count)])
+        }
+
+        return ScrollView(.vertical, showsIndicators: true) {
+            VStack(alignment: .leading, spacing: 2) {
+                ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                    HStack(spacing: 2) {
+                        ForEach(row, id: \.self) { iconName in
+                            Image(systemName: iconName)
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: size, height: size)
+                                .foregroundStyle(.green)
+                        }
+                        Spacer(minLength: 0)
+                    }
+                }
             }
         }
+        // Fixed height so this view never forces the day cell to grow taller
+        .frame(height: 32)
     }
 
     var body: some View {
@@ -203,18 +260,25 @@ struct CalendarView: View {
                                             RoundedRectangle(cornerRadius: 0)
                                                 .stroke(Color.gray.opacity(0.3))
                                         )
-                                    Text("\(d)")
-                                        .font(.headline)
-                                        .padding(8)
-                                        .foregroundStyle(.primary)
+                                    VStack(alignment: .leading, spacing: 2) {
+                                        Text("\(d)")
+                                            .font(.headline)
+                                            .padding(8)
+                                            .foregroundStyle(.primary)
 
-                                    let date = dateForCurrentMonth(day: d)
-                                    let icons = iconsFor(date: date)
-                                    if !icons.isEmpty {
-                                        iconsGrid(for: icons)
-                                            .padding(.horizontal, 6)
-                                            .padding(.bottom, 6)
+                                        let date = dateForCurrentMonth(day: d)
+                                        let icons = iconsFor(date: date)
+                                        if !icons.isEmpty {
+                                            iconsGrid(for: icons)
+                                                .padding(.horizontal, 6)
+                                                .padding(.top, -8)
+                                        }
                                     }
+                                }
+                                .contentShape(Rectangle())
+                                .onTapGesture {
+                                    let date = dateForCurrentMonth(day: d)
+                                    sheetDate = date
                                 }
                                 .frame(height: 70)
                             }
@@ -225,8 +289,16 @@ struct CalendarView: View {
 
             }
             .navigationTitle(monthName)
+            .sheet(item: $sheetDate) { date in
+                DayActivitySheet(
+                    date: date,
+                    entries: historyEntries(on: date),
+                    calendar: calendar
+                )
+            }
 
             ///
+///
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -270,6 +342,72 @@ struct CalendarView: View {
             ///
         }
     }
+}
+
+
+
+// MARK: - Day Activity Sheet
+
+private struct DayActivitySheet: View {
+    let date: Date
+    let entries: [ActivityHistory]
+    let calendar: Calendar
+
+    private var title: String {
+        let formatter = DateFormatter()
+        formatter.calendar = calendar
+        formatter.dateStyle = .full
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+
+    var body: some View {
+        NavigationStack {
+            List {
+                if entries.isEmpty {
+                    ContentUnavailableView(
+                        "No Activity History",
+                        systemImage: "clock.arrow.circlepath",
+                        description: Text("No completed activities for this day.")
+                    )
+                } else {
+                    ForEach(entries) { history in
+                        HStack(alignment: .top, spacing: 12) {
+                            Image(systemName: history.activity?.icon ?? "questionmark.circle")
+                                .resizable()
+                                .scaledToFit()
+                                .frame(width: 28, height: 28)
+                                .foregroundStyle(.green)
+
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(history.activity?.name ?? "Unknown Activity")
+                                    .font(.headline)
+
+                                Text(history.dateCompleted, style: .time)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+
+                                if let notes = history.activity?.notes, !notes.isEmpty {
+                                    Text(notes)
+                                        .font(.caption2)
+                                        .foregroundStyle(.secondary)
+                                        .lineLimit(3)
+                                }
+                            }
+                        }
+                        .padding(.vertical, 4)
+                    }
+                }
+            }
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+        }
+    }
+}
+
+// Allow Date to be used with .sheet(item:)
+extension Date: Identifiable {
+    public var id: Date { self }
 }
 
 #Preview {
