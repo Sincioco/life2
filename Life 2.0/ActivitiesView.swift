@@ -98,7 +98,7 @@ struct ActivitiesView: View {
                                 .buttonStyle(.bordered)
                                 Button("Yes") {
                                     withAnimation {
-                                        //generateStarterActivities()
+                                        generateStarterActivities()
                                         showEmptyPrompt = false
                                     }
                                 }
@@ -141,32 +141,113 @@ struct ActivitiesView: View {
         }
     }
 
-//    private func generateStarterActivities() {
-//        let now = Date()
-//        func randomizedDate(for recurrence: String, now: Date) -> Date {
-//            switch recurrence {
-//            case "Daily":
-//                let hours = Int.random(in: 0...23)
-//                return Calendar.current.date(byAdding: .hour, value: -hours, to: now) ?? now
-//            case "Weekly":
-//                let days = Int.random(in: 0...7)
-//                return Calendar.current.date(byAdding: .day, value: -days, to: now) ?? now
-//            case "Monthly":
-//                let days = Int.random(in: 0...30)
-//                return Calendar.current.date(byAdding: .day, value: -days, to: now) ?? now
-//            default:
-//                return now
-//            }
-//        }
-//        let starters: [Activity] = [
-//            Activity(name: "Morning Run", icon: "figure.run", count: 5, maxCount: 7, recurrence: "Weekly", category: "Fitness", notes: "Light 5km run to start the day.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now)),
-//            Activity(name: "Gym", icon: "dumbbell", count: 23, maxCount: 30, recurrence: "Monthly", category: "Fitness", notes: "30 mins in the gym", dateCreated: randomizedDate(for: "Monthly", now: now), dateModified: randomizedDate(for: "Monthly", now: now)),
-//            Activity(name: "Learn Something New", icon: "book.fill", count: Int.random(in: 0...5), maxCount: 7, recurrence: "Weekly", category: "Learning", notes: "Spend at least 30 minutes reading.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now)),
-//            Activity(name: "Family Time", icon: "person.3.fill", count: Int.random(in: 1...6), maxCount: 7, recurrence: "Weekly", category: "Personal", notes: "Quality time with the family.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now)),
-//            Activity(name: "Weekly Planning", icon: "calendar.badge.clock", count: Int.random(in: 0...5), maxCount: 7, recurrence: "Weekly", category: "Work", notes: "Plan tasks and priorities for the week.", dateCreated: randomizedDate(for: "Weekly", now: now), dateModified: randomizedDate(for: "Weekly", now: now))
-//        ]
-//        for activity in starters { modelContext.insert(activity) }
-//    }
+    private func generateStarterActivities() {
+        let now = Date()
+        
+        // Randomize dates similar to the old commented code,
+        // but now based on the Recurrence enum.
+        func randomizedDate(for recurrence: Recurrence, now: Date) -> Date {
+            let calendar = Calendar.current
+            
+            switch recurrence {
+            case .daily:
+                // Random hour within today
+                let hours = Int.random(in: 0...23)
+                return calendar.date(byAdding: .hour, value: -hours, to: now) ?? now
+                
+            case .weekly:
+                // Random day within the last week
+                let days = Int.random(in: 0...7)
+                return calendar.date(byAdding: .day, value: -days, to: now) ?? now
+                
+            case .monthly:
+                // Random day within roughly the last month
+                let days = Int.random(in: 0...30)
+                return calendar.date(byAdding: .day, value: -days, to: now) ?? now
+                
+            case .yearly:
+                // Random day within roughly the last year
+                let days = Int.random(in: 0...365)
+                return calendar.date(byAdding: .day, value: -days, to: now) ?? now
+                
+            case .none:
+                return now
+            }
+        }
+        
+        // Starter activities (categories taken from your categories array:
+        // "Bills", "Fitness", "Learning", "Maintenance", "Personal", "Work", "Others")
+        let starters: [Activity] = [
+            Activity(
+                name: "Morning Run",
+                icon: "figure.run",
+                recurrence: .weekly,
+                category: "Fitness",
+                notes: "Easy-paced 20–30 minute run.",
+                dateCreated: randomizedDate(for: .weekly, now: now),
+                dateModified: randomizedDate(for: .weekly, now: now)
+            ),
+            Activity(
+                name: "Gym Session",
+                icon: "dumbbell",
+                recurrence: .weekly,
+                category: "Fitness",
+                notes: "Strength training at the gym.",
+                dateCreated: randomizedDate(for: .weekly, now: now),
+                dateModified: randomizedDate(for: .weekly, now: now)
+            ),
+            Activity(
+                name: "Read a Book",
+                icon: "book.fill",
+                recurrence: .daily,
+                category: "Learning",
+                notes: "Read at least 10–20 minutes.",
+                dateCreated: randomizedDate(for: .daily, now: now),
+                dateModified: randomizedDate(for: .daily, now: now)
+            ),
+            Activity(
+                name: "Pay Credit Card",
+                icon: "creditcard.fill",
+                recurrence: .monthly,
+                category: "Bills",
+                notes: "Settle credit card balance.",
+                dateCreated: randomizedDate(for: .monthly, now: now),
+                dateModified: randomizedDate(for: .monthly, now: now)
+            ),
+            Activity(
+                name: "Family Time",
+                icon: "person.3.fill",
+                recurrence: .weekly,
+                category: "Personal",
+                notes: "Quality time with family.",
+                dateCreated: randomizedDate(for: .weekly, now: now),
+                dateModified: randomizedDate(for: .weekly, now: now)
+            ),
+            Activity(
+                name: "Weekly Planning",
+                icon: "calendar.badge.clock",
+                recurrence: .weekly,
+                category: "Work",
+                notes: "Plan tasks and priorities for the week.",
+                dateCreated: randomizedDate(for: .weekly, now: now),
+                dateModified: randomizedDate(for: .weekly, now: now)
+            )
+        ]
+        
+        // Insert into SwiftData
+        for activity in starters {
+            modelContext.insert(activity)
+        }
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error saving starter activities: \(error)")
+        }
+        
+        // Let listeners (like ActivitiesView) know the data changed
+        NotificationCenter.default.post(name: .activityDidChange, object: nil)
+    }
 
     private func increment(_ activity: Activity) {
 //        activity.count += 1
