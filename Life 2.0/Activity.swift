@@ -219,12 +219,22 @@ extension Activity {
                 dateModified: randomizedDate(for: .daily, now: now)
             ),
             Activity(
-                name: "Meditate",
-                icon: "figure.mind.and.body",
+                name: "Play Expedition 33",
+                icon: "gamecontroller.fill",
                 recurrence: .weekly,
-                category: "Fitness",
-                notes: "Clear the mind.",
-                maxCount: 5,
+                category: "Fun",
+                notes: "Play Expedition 33",
+                maxCount: 3,
+                dateCreated: randomizedDate(for: .weekly, now: now),
+                dateModified: randomizedDate(for: .weekly, now: now)
+            ),
+            Activity(
+                name: "Play Basketball with Friends",
+                icon: "basketball.fill",
+                recurrence: .weekly,
+                category: "Fun",
+                notes: "Basketball just for fun",
+                maxCount: 2,
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
             ),
