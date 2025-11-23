@@ -23,6 +23,7 @@ class Activity {
     var name: String
     var icon: String
     var recurrence: Recurrence
+    var maxCount: Int
     var category: String
     var notes: String
     var dateCreated: Date
@@ -31,8 +32,8 @@ class Activity {
     @Relationship(deleteRule: .cascade, inverse: \ActivityHistory.activity)
     var histories: [ActivityHistory] = []
 
-    /// Computed maxCount based on recurrence
-    var maxCount: Int {
+    /// Default max count mapping for a recurrence
+    static func defaultMaxCount(for recurrence: Recurrence) -> Int {
         switch recurrence {
         case .daily:   return 1
         case .weekly:  return 7
@@ -59,6 +60,7 @@ class Activity {
         recurrence: Recurrence,
         category: String,
         notes: String,
+        maxCount: Int? = nil,
         dateCreated: Date = Date(),
         dateModified: Date = Date()
     ) {
@@ -67,6 +69,7 @@ class Activity {
         self.recurrence = recurrence
         self.category = category
         self.notes = notes
+        self.maxCount = maxCount ?? Activity.defaultMaxCount(for: recurrence)
         self.dateCreated = dateCreated
         self.dateModified = dateModified
     }
@@ -191,6 +194,7 @@ extension Activity {
                 recurrence: .weekly,
                 category: "Fitness",
                 notes: "Easy-paced 20–30 minute run.",
+                maxCount: Activity.defaultMaxCount(for: .weekly),
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
             ),
@@ -200,6 +204,7 @@ extension Activity {
                 recurrence: .weekly,
                 category: "Fitness",
                 notes: "Strength training at the gym.",
+                maxCount: Activity.defaultMaxCount(for: .weekly),
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
             ),
@@ -209,6 +214,7 @@ extension Activity {
                 recurrence: .daily,
                 category: "Learning",
                 notes: "Read at least 10–20 minutes.",
+                maxCount: Activity.defaultMaxCount(for: .daily),
                 dateCreated: randomizedDate(for: .daily, now: now),
                 dateModified: randomizedDate(for: .daily, now: now)
             ),
@@ -218,6 +224,7 @@ extension Activity {
                 recurrence: .monthly,
                 category: "Bills",
                 notes: "Settle credit card balance.",
+                maxCount: Activity.defaultMaxCount(for: .monthly),
                 dateCreated: randomizedDate(for: .monthly, now: now),
                 dateModified: randomizedDate(for: .monthly, now: now)
             ),
@@ -227,6 +234,7 @@ extension Activity {
                 recurrence: .weekly,
                 category: "Personal",
                 notes: "Quality time with family.",
+                maxCount: Activity.defaultMaxCount(for: .weekly),
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
             ),
@@ -236,6 +244,7 @@ extension Activity {
                 recurrence: .weekly,
                 category: "Work",
                 notes: "Plan tasks and priorities for the week.",
+                maxCount: Activity.defaultMaxCount(for: .weekly),
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
             )
@@ -329,3 +338,4 @@ extension Activity {
         NotificationCenter.default.post(name: .activityDidChange, object: nil)
     }
 }
+

@@ -346,7 +346,7 @@ struct AddActivityView: View {
     @State private var maxCount: Int = 7
     //@State private var progress: Double = 0  // ← REMOVED as per instruction
     
-    @State private var recurrence: Recurrence = .daily
+    @State private var recurrence: Recurrence = .weekly
     @State private var category: String = "Fitness"   // default
     @State private var notes: String = ""
     
@@ -402,15 +402,29 @@ struct AddActivityView: View {
                     
                     TextField("Count", value: $count, format: .number)
                         .keyboardType(.numberPad)
-                    
+
                     TextField("Max Count", value: $maxCount, format: .number)
                         .keyboardType(.numberPad)
-                    
-                    TextField("Notes", text: $notes, axis: .vertical)
-                        .lineLimit(3, reservesSpace: true)
-                    
+
+                    HStack {
+                        Gauge(value: computedProgress, in: 0...100) { EmptyView() } currentValueLabel: { EmptyView() }
+                            .gaugeStyle(.automatic)
+                            .tint(.green)
+                        Text("\(Int(computedProgress))%")
+                            .monospacedDigit()
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
-                
+                .onChange(of: recurrence) { _, newValue in
+                    switch newValue {
+                    case .daily:   maxCount = 1
+                    case .weekly:  maxCount = 7
+                    case .monthly: maxCount = 31
+                    case .yearly:  maxCount = 366
+                    case .none:    maxCount = 0
+                    }
+                }
             }
             .navigationTitle("Add Activity")
             .navigationBarTitleDisplayMode(.inline)
@@ -454,6 +468,7 @@ struct AddActivityView: View {
             recurrence: recurrence,
             category: category,
             notes: notes,
+            maxCount: maxCount,
             dateCreated: now,
             dateModified: now
         )
@@ -561,6 +576,9 @@ struct EditActivityView: View {
                         }
                     }
                     
+                    TextField("Max Count", value: $activity.maxCount, format: .number)
+                        .keyboardType(.numberPad)
+                    
                     
                     Gauge(value: computedProgress, in: 0...100) { EmptyView() } currentValueLabel: { EmptyView() }
                         .gaugeStyle(.automatic)
@@ -576,6 +594,15 @@ struct EditActivityView: View {
                     TextField("Notes", text: $activity.notes, axis: .vertical)
                         .lineLimit(3, reservesSpace: true)
                     
+                }
+                .onChange(of: activity.recurrence) { _, newValue in
+                    switch newValue {
+                    case .daily:   activity.maxCount = 1
+                    case .weekly:  activity.maxCount = 7
+                    case .monthly: activity.maxCount = 31
+                    case .yearly:  activity.maxCount = 366
+                    case .none:    activity.maxCount = 0
+                    }
                 }
             }
             
