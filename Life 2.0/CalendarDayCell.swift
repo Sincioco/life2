@@ -47,6 +47,7 @@ struct CalendarDayCell: View {
                         .border(cellDebug == true ? Color.red : Color.clear)
                         .frame(width: side, height: side)
                         .padding(.top, 26)
+                        .opacity(adjacentCell ? 0.5 : 1.0)
                     
                 } else if (iconCount == 2) {
                     
@@ -57,12 +58,15 @@ struct CalendarDayCell: View {
                             .frame(width: side * 0.5, height: side * 0.5)
                             .foregroundColor(.blue)
                             .border(cellDebug == true ? Color.blue : Color.clear)
+                            .opacity(adjacentCell ? 0.5 : 1.0)
+                        
                         Image(systemName: icons[1])
                             .resizable()
                             .scaledToFit()
                             .frame(width: side * 0.6, height: side * 0.5)
                             .foregroundColor(.blue)
                             .border(cellDebug == true ? Color.red : Color.clear)
+                            .opacity(adjacentCell ? 0.5 : 1.0)
                         
                     }
                     .frame(width: side, height: side)
@@ -80,12 +84,15 @@ struct CalendarDayCell: View {
                                 .frame(width: side * 0.4, height: side * 0.4)
                                 .foregroundColor(.blue)
                                 .border(cellDebug == true ? Color.blue : Color.clear)
+                                .opacity(adjacentCell ? 0.5 : 1.0)
+                            
                             Image(systemName: icons[1])
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: side * 0.4, height: side * 0.4)
                                 .foregroundColor(.blue)
                                 .border(cellDebug == true ? Color.red : Color.clear)
+                                .opacity(adjacentCell ? 0.5 : 1.0)
                         }
                         .padding(.top, 26)
                         
@@ -97,12 +104,15 @@ struct CalendarDayCell: View {
                                     .frame(width: side * 0.4, height: side * 0.4)
                                     .foregroundColor(.blue)
                                     .border(cellDebug == true ? Color.blue : Color.clear)
+                                    .opacity(adjacentCell ? 0.5 : 1.0)
+                                
                                 Image(systemName: icons[3])
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: side * 0.4, height: side * 0.4)
                                     .foregroundColor(.blue)
                                     .border(cellDebug == true ? Color.red : Color.clear)
+                                    .opacity(adjacentCell ? 0.5 : 1.0)
                             }
                         }
                         
@@ -121,6 +131,7 @@ struct CalendarDayCell: View {
                                 .frame(width: side * 0.4, height: side * 0.4)
                                 .foregroundColor(.blue)
                                 .border(cellDebug == true ? Color.red : Color.clear)
+                                .opacity(adjacentCell ? 0.5 : 1.0)
                         }
                         .padding(.top, 6)
                         
@@ -132,12 +143,15 @@ struct CalendarDayCell: View {
                                 .frame(width: side * 0.4, height: side * 0.4)
                                 .foregroundColor(.blue)
                                 .border(cellDebug == true ? Color.blue : Color.clear)
+                                .opacity(adjacentCell ? 0.5 : 1.0)
+                            
                             Image(systemName: icons[2])
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: side * 0.4, height: side * 0.4)
                                 .foregroundColor(.blue)
                                 .border(cellDebug == true ? Color.red : Color.clear)
+                                .opacity(adjacentCell ? 0.5 : 1.0)
                         }
                         
                         HStack(spacing: 6) {
@@ -147,12 +161,15 @@ struct CalendarDayCell: View {
                                 .frame(width: side * 0.4, height: side * 0.4)
                                 .foregroundColor(.blue)
                                 .border(cellDebug == true ? Color.blue : Color.clear)
+                                .opacity(adjacentCell ? 0.5 : 1.0)
+                            
                             Image(systemName: icons[4])
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: side * 0.4, height: side * 0.4)
                                 .foregroundColor(.blue)
                                 .border(cellDebug == true ? Color.red : Color.clear)
+                                .opacity(adjacentCell ? 0.5 : 1.0)
                         }
                     }
                 } else {
@@ -177,6 +194,7 @@ struct CalendarDayCell: View {
                                         .frame(width: side * 0.4, height: side * 0.4)
                                         .foregroundColor(.blue)     // solid blue
                                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                        .opacity(adjacentCell ? 0.5 : 1.0)
                                 }
                                 .frame(height: side * 0.45) // tweak as needed for row height
                             }
