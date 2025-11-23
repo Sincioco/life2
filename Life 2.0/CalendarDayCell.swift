@@ -15,7 +15,8 @@ struct CalendarDayCell: View {
         "house",
         "pencil",
         "star",
-        "eraser"
+        "eraser",
+        "globe.americas"
     ]
     
     var cellDebug: Bool = true
@@ -160,25 +161,33 @@ struct CalendarDayCell: View {
                     }
                 } else {
                     
+                    // We have 6 or more icons to show
+                    
                     // Where the icons show up (scrollable incase there are more icons
-                    ScrollView(.vertical) {
+                    ScrollView(.vertical, showsIndicators: true) {
                         
-                        // Center's the grid / icon container
+                        // 2 columns so you see 2 images per row
+                        let columns = [
+                            GridItem(.flexible(), spacing: 0),
+                            GridItem(.flexible(), spacing: 0)
+                        ]
+                        
                         LazyVGrid(columns: columns, spacing: 0) {
                             ForEach(icons, id: \.self) { symbol in
-                                VStack {
+                                HStack(spacing: 0) {
                                     Image(systemName: symbol)
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(width: side * 0.9, height: side * 0.7)
-                                        .foregroundColor(.blue)     // <— solid blue
+                                        .frame(width: side * 0.4, height: side * 0.4)
+                                        .foregroundColor(.blue)     // solid blue
+                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
                                 }
-                                .frame(width: side, height: side)
+                                .frame(height: side * 0.45) // tweak as needed for row height
                             }
                         }
                     }
                     .frame(height: cellHeight - 20)
-                    .padding(.top, 26)
+                    .padding(.top, 30)
                 }
             }
             
