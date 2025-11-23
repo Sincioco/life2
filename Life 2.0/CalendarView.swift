@@ -176,195 +176,94 @@ struct CalendarView: View {
 
     
     
-    private func iconsGrid(for icons: [String],
-                           cellWidth: CGFloat,
-                           isLandscape: Bool) -> some View {
-        // Render all icons in a grid, but constrain the height
-        // so they never make the day cell taller. Extra icons scroll vertically.
+private func iconsGrid(for icons: [String], isLandscape: Bool) -> some View {
+        // Render all icons under the day label.
+        // For up to 6 icons we center them vertically & horizontally without scrolling.
+        // For more than 6 icons, we fall back to a scrollable grid.
+
         let allIcons = icons
         let iconCount = allIcons.count
 
-        // Determine icon size based on count (fewer icons = bigger) – portrait baseline.
-        let maxIconSizePortrait = min(cellWidth - 8, 32) // fit within strip height & width in portrait
+        // Base icon size for the grid
         let baseSize: CGFloat
         switch iconCount {
         case 0:
             baseSize = 0
         case 1:
-            baseSize = maxIconSizePortrait            // single icon in portrait
+            baseSize = 26
         case 2...4:
-            baseSize = min(maxIconSizePortrait * 0.8, 22)
+            baseSize = 22
+        case 5 where isLandscape:
+            // Make 5 icons a bit larger in landscape
+            baseSize = 24
         default:
-            baseSize = min(maxIconSizePortrait * 0.6, 16)
+            baseSize = 16
         }
 
-        // Height of the icon strip (scrollview) based on orientation.
-        // This preserves your hard-coded heights for portrait & landscape.
-        let height: CGFloat = isLandscape ? 88 : 32
-
-        // Break into rows of up to 3 icons (used for 3+ icons)
+        // Break into rows of up to 3 icons (3-per-row grid)
         let rows: [[String]] = stride(from: 0, to: allIcons.count, by: 3).map { index in
             Array(allIcons[index..<min(index + 3, allIcons.count)])
         }
 
-        // Precompute sizes OUTSIDE the ViewBuilder to avoid '() cannot conform to View' issues.
-        // 1-icon size (portrait uses baseSize; landscape grows toward strip height)
-        let singleIconSize: CGFloat = {
-            guard iconCount == 1 else { return baseSize }
-            if isLandscape {
-                return min(height - 8, cellWidth - 8)
-            } else {
-                return baseSize
-            }
-        }()
-
-        // 2-icon size (portrait uses baseSize; landscape grows toward strip height while fitting width)
-        let twoIconSize: CGFloat = {
-            guard iconCount == 2 else { return baseSize }
-            if isLandscape {
-                let maxWidthPerIcon = (cellWidth - 8 - 8 - 4) / 2 // L/R padding + spacing
-                return min(height - 8, maxWidthPerIcon)
-            } else {
-                return baseSize
-            }
-        }()
-
-
-        // 3–4 icon size (2x2 grid within the strip)
-        // 3 icons: tighter spacing; 4 icons: orientation-based spacing.
-        let hSpacingThree: CGFloat = 2
-        let hSpacingThreeLandscape: CGFloat = 8
-        let hSpacingPortraitFour: CGFloat = 8
-        let hSpacingLandscapeFour: CGFloat = 8
+        let hSpacing: CGFloat = 2
         let vSpacing: CGFloat = 2
 
-        let threeFourIconSize: CGFloat = {
-            guard (3...4).contains(iconCount) else { return baseSize }
-            let availableWidth = cellWidth
-            let availableHeight = height
-
-            let hSpacingForCount: CGFloat
-            if iconCount == 4 {
-                hSpacingForCount = isLandscape ? hSpacingLandscapeFour : hSpacingPortraitFour
-            } else {
-                hSpacingForCount = hSpacingThree
-            }
-
-            let perIconWidth = (availableWidth - hSpacingForCount) / 2
-            let perIconHeight = (availableHeight - vSpacing) / 2
-            return min(perIconWidth, perIconHeight)
-        }()
-
-        return ScrollView(.vertical, showsIndicators: true) {
-            if iconCount == 1, let iconName = allIcons.first {
-                // 1 ICON — keep existing portrait behavior, scale in landscape.
-                HStack {
-                    Spacer(minLength: 0)
-                    Image(systemName: iconName)
-                        .resizable()
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: singleIconSize, height: singleIconSize)
-                        .foregroundStyle(.green)
-                    Spacer(minLength: 0)
-                }
-
-            } else if iconCount == 2 {
-                // 2 ICONS — center horizontally AND vertically for both orientations.
+        return Group {
+            if iconCount <= 6 {
+                // No scrolling needed: center grid vertically & horizontally in the available space.
                 ZStack {
-                    // Fixed-height background so the HStack is vertically centered
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(height: height)
+                    // Debug background to visualize the icon area bounds
+                    Color.yellow.opacity(0.3)
 
-                    HStack(spacing: 4) {
+                    VStack {
                         Spacer(minLength: 0)
-                        ForEach(allIcons, id: \.self) { iconName in
-                            Image(systemName: iconName)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: twoIconSize, height: twoIconSize)
-                                .foregroundStyle(.green)
+
+                        VStack(alignment: .center, spacing: vSpacing) {
+                            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                                HStack(spacing: hSpacing) {
+                                    Spacer(minLength: 0)
+                                    ForEach(row, id: \.self) { iconName in
+                                        Image(systemName: iconName)
+                                            .resizable()
+                                            .aspectRatio(contentMode: .fit)
+                                            .frame(width: baseSize, height: baseSize)
+                                            .foregroundStyle(.green)
+                                    }
+                                    Spacer(minLength: 0)
+                                }
+                            }
                         }
+
                         Spacer(minLength: 0)
                     }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                 }
-
-            } else if iconCount == 3 || iconCount == 4 {
-                // 3–4 ICONS — 2x2 grid, centered horizontally & vertically in the strip.
-                // We only show up to 4 icons; any extras will go into the default grid path.
-                let gridIcons = Array(allIcons.prefix(4))
-
-                ZStack {
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(height: height)
-
-                    VStack(spacing: vSpacing) {
-                        // First row (up to 2 icons)
-                        HStack(spacing: iconCount == 4 ? (isLandscape ? hSpacingLandscapeFour : hSpacingPortraitFour) : hSpacingThree) {
-                            Spacer(minLength: 0)
-                            if gridIcons.indices.contains(0) {
-                                Image(systemName: gridIcons[0])
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: threeFourIconSize, height: threeFourIconSize)
-                                    .foregroundStyle(.green)
-                            }
-                            if gridIcons.indices.contains(1) {
-                                Image(systemName: gridIcons[1])
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: threeFourIconSize, height: threeFourIconSize)
-                                    .foregroundStyle(.green)
-                            }
-                            Spacer(minLength: 0)
-                        }
-
-                        // Second row (up to 2 icons)
-                        HStack(spacing: iconCount == 4 ? (isLandscape ? hSpacingLandscapeFour : hSpacingPortraitFour) : hSpacingThree) {
-                            Spacer(minLength: 0)
-                            if gridIcons.indices.contains(2) {
-                                Image(systemName: gridIcons[2])
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: threeFourIconSize, height: threeFourIconSize)
-                                    .foregroundStyle(.green)
-                            }
-                            if gridIcons.indices.contains(3) {
-                                Image(systemName: gridIcons[3])
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: threeFourIconSize, height: threeFourIconSize)
-                                    .foregroundStyle(.green)
-                            }
-                            Spacer(minLength: 0)
-                        }
-                    }
-                }
+                .frame(maxHeight: .infinity)
 
             } else {
-                // 5+ ICONS — original grid behavior.
-                VStack(alignment: .leading, spacing: 2) {
-                    ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
-                        HStack(spacing: 2) {
-                            ForEach(row, id: \.self) { iconName in
-                                Image(systemName: iconName)
-                                    .resizable()
-                                    .aspectRatio(contentMode: .fit)
-                                    .frame(width: baseSize, height: baseSize)
-                                    .foregroundStyle(.green)
+                // 7+ icons: scrollable grid, using the original layout.
+                ScrollView(.vertical, showsIndicators: true) {
+                    VStack(alignment: .leading, spacing: 2) {
+                        ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
+                            HStack(spacing: 2) {
+                                ForEach(row, id: \.self) { iconName in
+                                    Image(systemName: iconName)
+                                        .resizable()
+                                        .aspectRatio(contentMode: .fit)
+                                        .frame(width: baseSize, height: baseSize)
+                                        .foregroundStyle(.green)
+                                }
+                                Spacer(minLength: 0)
                             }
-                            Spacer(minLength: 0)
                         }
                     }
+                    .frame(maxWidth: .infinity)
                 }
+                .frame(maxHeight: .infinity)
+                .background(Color.yellow.opacity(0.3))
             }
         }
-        // Fixed height so this view never forces the day cell to grow taller
-        .frame(height: height)
     }
-
-
 
 
 
@@ -375,7 +274,6 @@ struct CalendarView: View {
                     let totalWidth = proxy.size.width
                     let dayCellWidth = totalWidth / 7.0
                     let dayCellHeight = dayCellWidth
-                    let isLandscape = proxy.size.width > proxy.size.height
 
                     ScrollView(.vertical) {
                         LazyVGrid(columns: columns(for: totalWidth), spacing: 0) {
@@ -422,7 +320,7 @@ struct CalendarView: View {
                                         let date = dateForCurrentMonth(day: d)
                                         let icons = iconsFor(date: date)
                                         if !icons.isEmpty {
-                                            iconsGrid(for: icons, cellWidth: dayCellWidth, isLandscape: isLandscape)
+                                            iconsGrid(for: icons, isLandscape: proxy.size.width > proxy.size.height)
                                                 .padding(.horizontal, 6)
                                                 .padding(.top, -8)
                                         }
