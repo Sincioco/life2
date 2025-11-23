@@ -18,6 +18,8 @@ struct CalendarView: View {
     @State private var sheetDate: Date? = nil
     @Query private var historyEntries: [ActivityHistory]
 
+    @Environment(\.verticalSizeClass) private var verticalSizeClass
+    
     init(year: Int? = nil, month: Int? = nil) {
         let now = Date()
         let cal = Calendar(identifier: .gregorian)
@@ -175,36 +177,58 @@ struct CalendarView: View {
     }
 
     
-    private func iconsGrid(for icons: [String]) -> some View {
+    
+    
+    private func iconsGrid(for icons: [String],
+                           cellWidth: CGFloat,
+                           isLandscape: Bool,
+                           dayCellHeight: CGFloat) -> some View {
         let iconCount = icons.count
 
-        // Determine icon size based on count (fewer icons = bigger)
-        let size: CGFloat
+        // Determine base icon size (portrait & general multi-icon layout)
+        let maxIconSizePortrait = min(cellWidth - 8, 32) // fit within scrollview height and cell width
+        let baseSize: CGFloat
         switch iconCount {
         case 0:
-            size = 0
+            baseSize = 0
         case 1:
-            size = 26
+            baseSize = maxIconSizePortrait   // single icon fills available space in portrait
         case 2...4:
-            size = 22
+            baseSize = min(maxIconSizePortrait * 0.8, 22)
         default:
-            size = 16
+            baseSize = min(maxIconSizePortrait * 0.6, 16)
         }
+
+        // Single-icon landscape size: try to use as much of the day cell height as possible,
+        // but don't exceed the cell width minus some padding.
+        let singleLandscapeSize = min(max(dayCellHeight - 16, 0), cellWidth - 8)
 
         // Break into rows of up to 3 icons
         let rows: [[String]] = stride(from: 0, to: icons.count, by: 3).map { index in
             Array(icons[index..<min(index + 3, icons.count)])
         }
 
+        
+        var height: CGFloat = 0
+        if verticalSizeClass == .compact {
+            // Landscape
+            height = 88
+        } else {
+            // Portrait
+            height = 32
+        }
+        
         return ScrollView(.vertical, showsIndicators: true) {
             if iconCount == 1, let iconName = icons.first {
-                // Center a single icon horizontally
+                // Portrait keeps existing behavior; landscape scales to fill the scrollview area.
+                let iconSize = (isLandscape ? singleLandscapeSize : baseSize)
+
                 HStack {
                     Spacer(minLength: 0)
                     Image(systemName: iconName)
                         .resizable()
                         .aspectRatio(contentMode: .fit)
-                        .frame(width: size, height: size)
+                        .frame(width: iconSize, height: iconSize)
                         .foregroundStyle(.green)
                     Spacer(minLength: 0)
                 }
@@ -216,7 +240,7 @@ struct CalendarView: View {
                                 Image(systemName: iconName)
                                     .resizable()
                                     .aspectRatio(contentMode: .fit)
-                                    .frame(width: size, height: size)
+                                    .frame(width: baseSize, height: baseSize)
                                     .foregroundStyle(.green)
                             }
                             Spacer(minLength: 0)
@@ -225,9 +249,10 @@ struct CalendarView: View {
                 }
             }
         }
-        // Fixed height so this view never forces the day cell to grow taller
-//        .frame(height: 32)
-//        .background(Color.yellow.opacity(0.3))
+        // Fixed height so this view never forces the day cell to grow taller in portrait.
+        // In landscape with a single icon, let the height grow to match the scaled icon.
+        .frame(height: height)
+        //.background(Color.yellow.opacity(0.3))
     }
 
 var body: some View {
@@ -237,6 +262,7 @@ var body: some View {
                     let totalWidth = proxy.size.width
                     let dayCellWidth = totalWidth / 7.0
                     let dayCellHeight = dayCellWidth
+                    let isLandscape = proxy.size.width > proxy.size.height
 
                     ScrollView(.vertical) {
                         LazyVGrid(columns: columns(for: totalWidth), spacing: 0) {
@@ -283,7 +309,7 @@ var body: some View {
                                         let date = dateForCurrentMonth(day: d)
                                         let icons = iconsFor(date: date)
                                         if !icons.isEmpty {
-                                            iconsGrid(for: icons)
+                                            iconsGrid(for: icons, cellWidth: dayCellWidth, isLandscape: isLandscape, dayCellHeight: dayCellHeight)
                                                 .padding(.horizontal, 6)
                                                 .padding(.top, -8)
                                         }
