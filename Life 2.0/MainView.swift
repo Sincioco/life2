@@ -27,7 +27,7 @@ struct MainView: View {
             }
 //            Tab("Help", systemImage: "questionmark.circle") {
 //            }
-            Tab("Options", systemImage: "line.3.horizontal") {
+            Tab("History", systemImage: "line.3.horizontal") {
                 ActivityHistoryView()
             }
             Tab("Search", systemImage: "magnifyingglass", role: .search) {

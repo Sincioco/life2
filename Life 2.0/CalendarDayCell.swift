@@ -4,25 +4,26 @@ import SwiftUI
 struct CalendarDayCell: View {
     
     var day: Date = Date()
-    var cellWidth: CGFloat = 300
-    var cellHeight: CGFloat = 300
+    var cellWidth: CGFloat = 63
+    var cellHeight: CGFloat = 63
     
     
     var icons = [
-        "star.fill"
-        , "house"
-        , "pencil"
+        "figure.run"
+//        , "house"
+//        , "pencil"
     ]
     
     var body: some View {
         
         let dayString = String(Calendar.current.component(.day, from: day))
+        //let dayString = "16"
         
         GeometryReader { geometry in
             
             let totalWidth = geometry.size.width
             let scrollHeight = geometry.size.height      // ScrollView content height
-            let side = min(totalWidth, scrollHeight)     // Max square that fits
+            let side = min(totalWidth, scrollHeight - 20)     // Max square that fits
             
             let columns = [
                 GridItem(.fixed(side), spacing: 0)
@@ -31,11 +32,9 @@ struct CalendarDayCell: View {
             // The Group is the Cell Container
             Group {
                 
+  
                 // Where the icons show up (scrollable incase there are more icons
                 ScrollView(.vertical) {
-
-                    //VStack {
-                        //Spacer()   // push down
                         
                         // Center's the grid / icon container
                         LazyVGrid(columns: columns, spacing: 0) {
@@ -44,20 +43,18 @@ struct CalendarDayCell: View {
                                     Image(systemName: symbol)
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(width: side * 0.9, height: side * 0.9)
-                                        //.border(Color.black)
-                                        //.tint(.blue)
+                                        .frame(width: side * 0.9, height: side * 0.7)
                                         .foregroundColor(.blue)     // <— solid blue
                                 }
                                 .frame(width: side, height: side)
                             }
                         }
-
-                        //Spacer()   // push up
-                    //}
-                    //.frame(height: scrollHeight)    // <- critical: fill the ScrollView’s height
                 }
+                .frame(height: cellHeight - 20)
+                .padding(.top, 26)
             }
+            
+            
             .frame(width: totalWidth, height: scrollHeight)
             //.background(.yellow.opacity(0.8))
             .overlay(alignment: .topLeading) {
@@ -66,7 +63,7 @@ struct CalendarDayCell: View {
                     .font(.headline)
                     .padding(8)
                     .foregroundStyle(.primary)
-                    .shadow(color: invertedPrimaryColor().opacity(0.6), radius: 2)
+                    //.shadow(color: invertedPrimaryColor().opacity(0.6), radius: 2)
                     
             }
             .frame(height: geometry.size.height)    // ScrollView visible height
