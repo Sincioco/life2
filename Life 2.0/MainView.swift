@@ -20,7 +20,10 @@ struct MainView: View {
                 ActivitiesView()
             }
             Tab("Calendar", systemImage: "calendar") {
-                CalendarView()
+                VStack {
+                    CalendarView()
+                    //ActivityHistoryView()
+                }
             }
 //            Tab("Help", systemImage: "questionmark.circle") {
 //            }

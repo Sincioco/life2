@@ -247,6 +247,69 @@ struct ActivitiesView: View {
         
         // Let listeners (like ActivitiesView) know the data changed
         NotificationCenter.default.post(name: .activityDidChange, object: nil)
+        
+        generateRandomHistoricalActivities()
+    }
+    
+    private func generateRandomHistoricalActivities() {
+        let calendar = Calendar.current
+        let now = Date()
+        
+        // Start of the current month (e.g. 2025-11-01 00:00)
+        guard let startOfMonth = calendar.date(
+            from: calendar.dateComponents([.year, .month], from: now)
+        ) else {
+            return
+        }
+        
+        // Number of days between start of month and today (inclusive)
+        let daysDiff = calendar.dateComponents([.day], from: startOfMonth, to: now).day ?? 0
+        if daysDiff < 0 { return }
+        
+        // For each existing activity, create random history entries within THIS month only
+        for activity in Activities {
+            
+            // Iterate each day from start of month up to today
+            for dayOffset in 0...daysDiff {
+                guard let baseDate = calendar.date(byAdding: .day, value: dayOffset, to: startOfMonth) else {
+                    continue
+                }
+                
+                // Random number of completions for this activity on this day.
+                // 0 means none; 1–3 ensures some days have multiple entries.
+                let entriesToday = Int.random(in: 0...3)
+                if entriesToday == 0 { continue }
+                
+                for _ in 0..<entriesToday {
+                    // Random time during that day (0–23h, 0–59m, 0–59s)
+                    let hour = Int.random(in: 0..<24)
+                    let minute = Int.random(in: 0..<60)
+                    let second = Int.random(in: 0..<60)
+                    
+                    let randomDate = calendar.date(
+                        bySettingHour: hour,
+                        minute: minute,
+                        second: second,
+                        of: baseDate
+                    ) ?? baseDate
+                    
+                    let history = ActivityHistory(
+                        activity: activity,
+                        dateCompleted: randomDate
+                    )
+                    modelContext.insert(history)
+                }
+            }
+        }
+        
+        do {
+            try modelContext.save()
+        } catch {
+            print("Error saving random historical activities: \(error)")
+        }
+        
+        // Notify other views (calendar, lists, etc.) that data changed
+        NotificationCenter.default.post(name: .activityDidChange, object: nil)
     }
 
     private func increment(_ activity: Activity) {
