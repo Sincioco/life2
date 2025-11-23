@@ -516,6 +516,9 @@ struct EditActivityView: View {
     @State private var showDeleteAlert = false
     @State private var showDeleteAllAlert = false
     
+    @State private var isPresentingAddHistory = false
+    @State private var newHistoryDate: Date = Date()
+    
     // Track original values to allow cancel-on-back behavior
     @State private var originalName: String = ""
     @State private var originalIcon: String = ""
@@ -699,21 +702,25 @@ struct EditActivityView: View {
         .navigationTitle("Edit Activity")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            //            ToolbarItem(placement: .cancellationAction) {
-            //                Button("Cancel") {
-            //                    dismiss()
-            //                }
-            //            }
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    didSave = true
-                    // Removed validation guard
-                    // Removed: activity.progress = computedProgress
-                    // Update modification date and notify list to refresh
-                    activity.dateModified = Date()
-                    try? modelContext.save()
-                    NotificationCenter.default.post(name: .activityDidChange, object: nil)
-                    dismiss()
+            if selectedTab == .activity {
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        didSave = true
+                        activity.dateModified = Date()
+                        try? modelContext.save()
+                        NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                        dismiss()
+                    }
+                }
+            } else if selectedTab == .history {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        newHistoryDate = Date()
+                        isPresentingAddHistory = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add History")
                 }
             }
         }
@@ -737,6 +744,31 @@ struct EditActivityView: View {
                 IconPickerView(selectedIcon: $activity.icon)
             }
         }
+        .sheet(isPresented: $isPresentingAddHistory) {
+            NavigationStack {
+                Form {
+                    Section("New History Entry") {
+                        DatePicker("Completed On", selection: $newHistoryDate, displayedComponents: [.date, .hourAndMinute])
+                    }
+                }
+                .navigationTitle("Add History")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { isPresentingAddHistory = false }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") {
+                            let entry = ActivityHistory(activity: activity, dateCompleted: newHistoryDate)
+                            modelContext.insert(entry)
+                            try? modelContext.save()
+                            NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                            isPresentingAddHistory = false
+                        }
+                    }
+                }
+            }
+        }
         .alert("Delete Activity?", isPresented: $showDeleteAlert) {
             Button("Delete", role: .destructive) {
                 // Perform delete, notify, and dismiss
@@ -758,10 +790,10 @@ struct EditActivityView: View {
                         modelContext.delete(activity) // histories cascade due to deleteRule: .cascade
                     }
                     //try modelContext.save()
-
+                    
                     // Dismiss first to detach UI from deleted models
                     dismiss()
-
+                    
                     // Notify and haptic on next runloop to avoid touching deleted objects in this view update
                     DispatchQueue.main.async {
                         NotificationCenter.default.post(name: .activityDidChange, object: nil)
