@@ -340,10 +340,6 @@ struct CalendarView: View {
                                                 RoundedRectangle(cornerRadius: 0)
                                                     .stroke(Color.gray.opacity(0.25))
                                             )
-                                        //                                    Text("\(d)")
-                                        //                                        .font(.headline)
-                                        //                                        .foregroundStyle(.secondary)
-                                        //                                        .padding(8)
                                         
                                         let year = selectedYear
                                         let month = selectedMonth
@@ -387,11 +383,6 @@ struct CalendarView: View {
                                             }
                                         }
                                         
-                                        
-                                        
-                                        
-                                        
-                                        
                                     }
                                     .frame(height: dayCellHeight)
                                     
@@ -404,37 +395,16 @@ struct CalendarView: View {
                                                     .stroke(Color.gray.opacity(0.3))
                                             )
                                         
-                                        // On iPhone 16 Pro Max - Vertical - Cell size is 63x63
-                                        
-                                        //                                    VStack(alignment: .leading, spacing: 2) {
-                                        //                                        Text("\(d)")
-                                        //                                            .font(.headline)
-                                        //                                            .padding(8)
-                                        //                                            .foregroundStyle(.primary)
-                                        //
-                                        //                                        let date = dateForCurrentMonth(day: d)
-                                        //                                        let icons = iconsFor(date: date)
-                                        //                                        if !icons.isEmpty {
-                                        //                                            iconsGrid(for: icons, isLandscape: proxy.size.width > proxy.size.height)
-                                        //                                                .padding(.horizontal, 6)
-                                        //                                                .padding(.top, -8)
-                                        //
-                                        //                                        }
-                                        //                                    }
-                                        
                                         let date = dateForCurrentMonth(day: d)
                                         let icons = iconsFor(date: date)
                                         
-                                        //if !icons.isEmpty {
                                         let isLandscape = proxy.size.width > proxy.size.height
-                                        
                                         
                                         if (isLandscape == false) {
                                             CalendarDayCell(day: date, cellWidth: 63, cellHeight: 63, icons: icons, adjacentCell: false, cellDebug: false)
                                         } else {
                                             CalendarDayCell(day: date, cellWidth: 119, cellHeight: 119, icons: icons, adjacentCell: false, cellDebug: false)
                                         }
-                                        //}
                                     }
                                     .contentShape(Rectangle())
                                     .onTapGesture {
@@ -459,8 +429,6 @@ struct CalendarView: View {
                 )
             }
             
-            ///
-            ///
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {
                     Button {
@@ -515,8 +483,6 @@ struct CalendarView: View {
                     .accessibilityLabel("Next Month")
                 }
             }
-            
-            ///
         }
     }
 }

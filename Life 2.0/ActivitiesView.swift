@@ -89,8 +89,6 @@ struct ActivitiesView: View {
                 List {
                     ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
                         Section(header: Text(category)) {
-                            // Per-category monthly progress line (done or not done per day)
-                            // REMOVED as per instruction: Entire Chart block deleted here.
 
                             if let activitiesInSection = groupedByCategory[category] {
                                 ForEach(activitiesInSection) { activity in
@@ -247,9 +245,6 @@ struct ActivitiesView: View {
     
     
     private func increment(_ activity: Activity) {
-        //        activity.count += 1
-        //        activity.dateModified = Date()
-        //        try? modelContext.save()
         activity.increment(in: modelContext)
         NotificationCenter.default.post(name: .activityDidChange, object: nil)
     }
@@ -268,14 +263,10 @@ extension Notification.Name {
         
         let container = try! ModelContainer(for: schema, configurations: config)
         
-        // Insert test data
-        //        for event in Activity.sampleData {
-        //            container.mainContext.insert(event)
-        //        }
-        
         return container
     }()
     
     ActivitiesView()
         .modelContainer(previewContainer)
 }
+

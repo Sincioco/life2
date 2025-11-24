@@ -291,7 +291,6 @@ struct IconPickerView: View {
         VStack {
             Group {
                 if verticalSizeClass == .compact {
-                    // Likely landscape on iPhone
                     Picker("Category", selection: $selectedCategory) {
                         ForEach(IconCategory.allCases) { category in
                             Text(category.title).tag(category)

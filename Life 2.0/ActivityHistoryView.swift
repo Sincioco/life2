@@ -142,42 +142,6 @@ struct ActivityHistoryView: View {
 
         historyToDelete = nil
     }
-    
-    // MARK: - Delete All
-    
-    private func clearAll() {
-        do {
-            let descriptor = FetchDescriptor<ActivityHistory>()
-            let allHistories = try modelContext.fetch(descriptor)
-            
-            for history in allHistories {
-                modelContext.delete(history)
-            }
-            
-            try modelContext.save()
-            
-            NotificationCenter.default.post(name: .activityDidChange, object: nil)
-            let success = UINotificationFeedbackGenerator()
-            success.notificationOccurred(.success)
-        } catch {
-            print("Failed to clear ActivityHistory: \(error)")
-        }
-    }
-    
-    // MARK: - Delete
-    private func delete(_ history: ActivityHistory) {
-        modelContext.delete(history)
-        
-        do {
-            try modelContext.save()
-            NotificationCenter.default.post(name: .activityDidChange, object: nil)
-            let success = UINotificationFeedbackGenerator()
-            success.notificationOccurred(.success)
-        } catch {
-            // In a real app you might show an alert; for now we just log
-            print("Failed to delete ActivityHistory: \(error)")
-        }
-    }
 }
 
 // MARK: - Row View

@@ -22,20 +22,14 @@ struct MainView: View {
             Tab("Calendar", systemImage: "calendar") {
                 VStack {
                     CalendarView()
-                    //ActivityHistoryView()
                 }
             }
-//            Tab("Help", systemImage: "questionmark.circle") {
-//            }
             Tab("History", systemImage: "line.3.horizontal") {
                 ActivityHistoryView()
             }
             Tab("Options", systemImage: "gear") {
                 OptionsView()
             }
-//            Tab("Search", systemImage: "magnifyingglass", role: .search) {
-//                
-//            }
         }
     }
     
@@ -49,15 +43,9 @@ struct MainView: View {
         
         let container = try! ModelContainer(for: schema, configurations: config)
         
-        // Insert test data
-//        for event in Activity.sampleData {
-//            container.mainContext.insert(event)
-//        }
-        
         return container
     }()
     
     MainView()
         .modelContainer(previewContainer)
 }
-
