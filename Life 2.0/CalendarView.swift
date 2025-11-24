@@ -691,7 +691,7 @@ private struct MonthlySummaryChart: View {
                             x: .value("Activity", item.icon),
                             y: .value("Count", item.count)
                         )
-                        .foregroundStyle(.green)
+                        .foregroundStyle(.blue)
                         .annotation(position: .top, alignment: .center) {
                             if item.count > 0 {
                                 Text("\(item.count)")
