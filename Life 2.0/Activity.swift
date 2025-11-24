@@ -9,6 +9,7 @@
 
 import Foundation
 import SwiftData
+import SwiftUI
 
 enum Recurrence: String, Codable, CaseIterable {
     case daily = "Daily"
@@ -18,12 +19,39 @@ enum Recurrence: String, Codable, CaseIterable {
     case none = "None"
 }
 
+// Pure SwiftUI System Colors Only
+    enum ActivityColor: String, Codable, CaseIterable {
+        case red, orange, yellow, green, mint, teal, cyan, blue
+        case indigo, purple, pink, brown, gray, black, white
+
+        var colorValue: Color {
+            switch self {
+            case .red: return .red
+            case .orange: return .orange
+            case .yellow: return .yellow
+            case .green: return .green
+            case .mint: return .mint
+            case .teal: return .teal
+            case .cyan: return .cyan
+            case .blue: return .blue
+            case .indigo: return .indigo
+            case .purple: return .purple
+            case .pink: return .pink
+            case .brown: return .brown
+            case .gray: return .gray
+            case .black: return .black
+            case .white: return .white
+            }
+        }
+    }
+
 @Model
 class Activity {
     var name: String
     var icon: String
     var recurrence: Recurrence
     var maxCount: Int
+    var color: ActivityColor
     var category: String
     var notes: String
     var dateCreated: Date
@@ -60,6 +88,7 @@ class Activity {
         recurrence: Recurrence,
         category: String,
         notes: String,
+        color: ActivityColor = .blue,
         maxCount: Int? = nil,
         dateCreated: Date = Date(),
         dateModified: Date = Date()
@@ -70,6 +99,7 @@ class Activity {
         self.category = category
         self.notes = notes
         self.maxCount = maxCount ?? Activity.defaultMaxCount(for: recurrence)
+        self.color = color
         self.dateCreated = dateCreated
         self.dateModified = dateModified
     }

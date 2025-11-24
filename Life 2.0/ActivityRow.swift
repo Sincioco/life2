@@ -108,7 +108,7 @@ struct ActivityRow: View {
             Image(systemName: activity.icon)
                 .resizable()
                 .scaledToFit()
-                .foregroundStyle(.blue)
+                .foregroundStyle(activity.color.colorValue)
                 .frame(width: 40, height: 40)
                 .padding(0)
                 .overlay {

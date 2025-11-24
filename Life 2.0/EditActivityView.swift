@@ -26,7 +26,6 @@ struct EditActivityView: View {
     }
     @State private var selectedTab: AddEditTab = .activity
 
-    @State private var isPresentingIconPicker = false
     @State private var showDeleteAlert = false
     @State private var showDeleteAllAlert = false
 
@@ -42,6 +41,9 @@ struct EditActivityView: View {
     @State private var originalNotes: String = ""
     @State private var didSave: Bool = false
 
+    @State private var isPresentingIconPicker = false
+    @State private var isPresentingColorPicker = false
+    
     private var computedProgress: Double {
         guard activity.maxCount > 0 else { return 0 }
         let ratio = min(Double(activity.count) / Double(activity.maxCount), 1.0)
@@ -89,7 +91,31 @@ struct EditActivityView: View {
                             Text(cat).tag(cat)
                         }
                     }
-
+//                    Picker("Color", selection: $activity.color) {
+//                        ForEach(ActivityColor.allCases, id: \.self) { color in
+//                            HStack(spacing: 8) {
+//                                Circle()
+//                                    .frame(width: 16, height: 16)
+//                                    .foregroundStyle(color.colorValue)
+//                                Text(color.rawValue.capitalized)
+//                            }
+//                            .tag(color)
+//                        }
+//                    }
+                    Button {
+                            isPresentingColorPicker = true
+                        } label: {
+                            HStack {
+                                Text("Color")
+                                Spacer()
+                                Circle()
+                                    .fill(activity.color.colorValue)
+                                    .frame(width: 16, height: 16)
+                                Text(activity.color.rawValue.capitalized)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
                     Picker("Recurrence", selection: $activity.recurrence) {
                         ForEach(Recurrence.allCases, id: \.self) { rec in
                             Text(rec.rawValue).tag(rec)
@@ -290,6 +316,43 @@ struct EditActivityView: View {
                         }
                     }
                 }
+            }
+        }
+        .sheet(isPresented: $isPresentingIconPicker) {
+            NavigationStack {
+                IconPickerView(selectedIcon: $activity.icon)
+            }
+        }
+        .sheet(isPresented: $isPresentingColorPicker) {
+            NavigationStack {
+                VStack(alignment: .leading) {
+                    Text("Choose Color")
+                        .font(.headline)
+                        .padding(.bottom, 8)
+
+                    ScrollView {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 60), spacing: 16)], spacing: 16) {
+                            ForEach(ActivityColor.allCases, id: \.self) { color in
+                                Button {
+                                    activity.color = color
+                                    isPresentingColorPicker = false
+                                } label: {
+                                    VStack {
+                                        Circle()
+                                            .fill(color.colorValue)
+                                            .frame(width: 32, height: 32)
+                                        Text(color.rawValue.capitalized)
+                                            .font(.caption2)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                    .padding(4)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+                .padding()
             }
         }
         .alert("Delete Activity?", isPresented: $showDeleteAlert) {
