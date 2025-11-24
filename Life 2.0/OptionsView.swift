@@ -5,18 +5,30 @@ import UIKit
 struct OptionsView: View {
     @Environment(\.modelContext) private var modelContext
 
+    @Query private var activities: [Activity]
+
     @State private var showGenerateConfirm = false
     @State private var showDeleteAllActivitiesConfirm = false
     @State private var showDeleteAllHistoryConfirm = false
+
+    @State private var showGenerateForActivitySheet = false
+    @State private var selectedActivity: Activity? = nil
+    @State private var showGenerateForActivityConfirm = false
 
     var body: some View {
         NavigationStack {
             List {
                 Section("Debugging Tools") {
                     Button {
+                        selectedActivity = activities.first
+                        showGenerateForActivitySheet = true
+                    } label: {
+                        Label("Generate History for an Activity", systemImage: "wand.and.stars")
+                    }
+                    Button {
                         showGenerateConfirm = true
                     } label: {
-                        Label("Generate Random Histories", systemImage: "sparkles")
+                        Label("Generate Random Histories for all Activities", systemImage: "sparkles")
                     }
 
                     Button(role: .destructive) {
@@ -30,6 +42,9 @@ struct OptionsView: View {
                     } label: {
                         Label("Delete All History", systemImage: "calendar")
                     }
+                }
+                Section("Data Tools") {
+                    
                 }
             }
             .navigationTitle("Options")
@@ -60,6 +75,46 @@ struct OptionsView: View {
                 Button("Cancel", role: .cancel) { }
             } message: {
                 Text("This will permanently remove all history entries for all activities. This action cannot be undone.")
+            }
+            .sheet(isPresented: $showGenerateForActivitySheet) {
+                NavigationStack {
+                    Form {
+                        Section("Select Activity") {
+                            Picker("Activity", selection: $selectedActivity) {
+                                ForEach(activities) { act in
+                                    Text(act.name).tag(Optional(act))
+                                }
+                            }
+                        }
+                    }
+                    .navigationTitle("Choose Activity")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") { showGenerateForActivitySheet = false }
+                        }
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Next") {
+                                showGenerateForActivitySheet = false
+                                // Defer to avoid alert conflict with sheet dismissal
+                                DispatchQueue.main.async {
+                                    showGenerateForActivityConfirm = true
+                                }
+                            }
+                        }
+                    }
+                    .onAppear {
+                        if selectedActivity == nil { selectedActivity = activities.first }
+                    }
+                }
+            }
+            .alert("Generate random history for this activity?", isPresented: $showGenerateForActivityConfirm) {
+                Button("Generate", role: .destructive) {
+                    if let act = selectedActivity { generateRandomHistories(for: act) }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This will insert random history entries for the selected activity across the last and current month.")
             }
         }
     }
@@ -99,6 +154,43 @@ struct OptionsView: View {
             print("Failed to clear ActivityHistory: \(error)")
             let error = UINotificationFeedbackGenerator()
             error.notificationOccurred(.error)
+        }
+    }
+
+    private func generateRandomHistories(for activity: Activity) {
+        let cal = Calendar.current
+        let now = Date()
+
+        let startOfCurrentMonth: Date = {
+            let comps = cal.dateComponents([.year, .month], from: now)
+            return cal.date(from: comps).map { cal.startOfDay(for: $0) } ?? cal.startOfDay(for: now)
+        }()
+        let startOfLastMonth = cal.date(byAdding: .month, value: -1, to: startOfCurrentMonth) ?? startOfCurrentMonth
+        let startOfNextMonth = cal.date(byAdding: .month, value: 1, to: startOfCurrentMonth) ?? startOfCurrentMonth
+
+        func randomDateInRange() -> Date {
+            let start = startOfLastMonth.timeIntervalSince1970
+            let end = startOfNextMonth.timeIntervalSince1970
+            guard end > start else { return startOfCurrentMonth }
+            let random = Double.random(in: start..<end)
+            return Date(timeIntervalSince1970: random)
+        }
+
+        for _ in 0..<30 {
+            let randomDate = randomDateInRange()
+            let entry = ActivityHistory(activity: activity, dateCompleted: randomDate)
+            entry.dateRecorded = now
+            modelContext.insert(entry)
+        }
+        do {
+            try modelContext.save()
+            NotificationCenter.default.post(name: .activityDidChange, object: nil)
+            let success = UINotificationFeedbackGenerator()
+            success.notificationOccurred(.success)
+        } catch {
+            print("Failed to save generated histories: \(error)")
+            let errorH = UINotificationFeedbackGenerator()
+            errorH.notificationOccurred(.error)
         }
     }
 }

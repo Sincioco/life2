@@ -713,9 +713,7 @@ struct EditActivityView: View {
         .padding()
         
         Form {
-            
-            
-            
+
             if selectedTab == .activity {
                 Section("Activity") {
                     TextField("Name", text: $activity.name)
