@@ -17,7 +17,13 @@ struct CalendarDayCell: View {
     var cellHeight: CGFloat = 63    // values are 63 for Portrait or 119 for Landscape for iPhone 16 Pro Max
     
     var icons = [
-        "basketball.fill"
+        "basketball.fill",
+        "figure.run",
+        "house",
+        "pencil",
+        "star",
+        "eraser",
+        "globe.americas"
     ]
     var adjacentCell: Bool = false
     var cellDebug: Bool = true
@@ -191,13 +197,15 @@ struct CalendarDayCell: View {
                                         .frame(width: side * 0.4, height: side * 0.4)
                                         .foregroundColor(.blue)     // solid blue
                                         .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                        .padding(.horizontal, 0)
                                         .opacity(adjacentCell ? 0.5 : 1.0)
+//                                        .border(.red);
                                 }
                                 .frame(height: side * 0.45) // tweak as needed for row height
                             }
                         }
                     }
-                    .frame(height: cellHeight - 20)
+                    .frame(width: cellWidth - 10, height: cellHeight - 20)
                     .padding(.top, 30)
                 }
             }
