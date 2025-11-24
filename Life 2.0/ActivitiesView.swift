@@ -288,7 +288,7 @@ struct ActivityRow: View {
                 .gaugeStyle(.automatic)
                 .tint(gaugeColor)                               // dynamic fill color
                 .frame(maxWidth: .infinity)
-                .padding(.top, -8)   // ← pulls gauge closer to the text
+                .padding(.top, -8)                              // ← pulls gauge closer to the text
                 .overlay {                                      // center the score text on top
                     Text("\(Int(animatedProgress))%")
                         .monospacedDigit()

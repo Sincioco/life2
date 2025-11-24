@@ -1,8 +1,10 @@
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
-//                               Life 2.0 - Activity History View
+//                                   Life 2.0 - Activity History View
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
-// Purpose: Displays a list of ActivityHistory records (most recent first) and
-//          is updated to match the new Activity / ActivityHistory models.
+// Programmed By:  Louiery R. Sincioco                                                     Version: 1.0
+// Programmed Date:  November 23, 2025                                                      For: iOS 26
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// Purpose:  A model to keep track of completed activities.
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 
 import SwiftUI
