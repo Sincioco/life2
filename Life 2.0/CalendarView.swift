@@ -536,6 +536,13 @@ private struct DayActivitySheet: View {
     let entries: [ActivityHistory]
     let calendar: Calendar
     
+    @Environment(\.modelContext) private var modelContext
+    @Query private var activities: [Activity]
+
+    @State private var isPresentingAddHistory = false
+    @State private var selectedActivity: Activity? = nil
+    @State private var newHistoryDate: Date = Date()
+    
     private var title: String {
         let formatter = DateFormatter()
         formatter.calendar = calendar
@@ -548,11 +555,14 @@ private struct DayActivitySheet: View {
         NavigationStack {
             List {
                 if entries.isEmpty {
-                    ContentUnavailableView(
-                        "No Activity History",
-                        systemImage: "clock.arrow.circlepath",
-                        description: Text("No completed activities for this day.")
-                    )
+                    VStack(spacing: 16) {
+                        ContentUnavailableView(
+                            "No Activity History",
+                            systemImage: "clock.arrow.circlepath",
+                            description: Text("No completed activities for this day.")
+                        )
+                    }
+                    .listRowInsets(EdgeInsets())
                 } else {
                     ForEach(entries) { history in
                         HStack(alignment: .top, spacing: 12) {
@@ -584,6 +594,54 @@ private struct DayActivitySheet: View {
             }
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .topBarTrailing) {
+                    Button {
+                        selectedActivity = activities.first
+                        newHistoryDate = date
+                        isPresentingAddHistory = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    .accessibilityLabel("Add History")
+                }
+            }
+        }
+        .sheet(isPresented: $isPresentingAddHistory) {
+            NavigationStack {
+                Form {
+                    Section("New History Entry") {
+                        Picker("Activity", selection: $selectedActivity) {
+                            ForEach(activities) { act in
+                                Text(act.name).tag(Optional(act))
+                            }
+                        }
+                        DatePicker("Completed On", selection: $newHistoryDate, displayedComponents: [.date, .hourAndMinute])
+                    }
+                }
+                .navigationTitle("Add History")
+                .navigationBarTitleDisplayMode(.inline)
+                .toolbar {
+                    ToolbarItem(placement: .cancellationAction) {
+                        Button("Cancel") { isPresentingAddHistory = false }
+                    }
+                    ToolbarItem(placement: .confirmationAction) {
+                        Button("Save") {
+                            if let act = selectedActivity {
+                                let entry = ActivityHistory(activity: act, dateCompleted: newHistoryDate)
+                                modelContext.insert(entry)
+                                try? modelContext.save()
+                                NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                                isPresentingAddHistory = false
+                            }
+                        }
+                    }
+                }
+                .onAppear {
+                    if selectedActivity == nil { selectedActivity = activities.first }
+                    newHistoryDate = date
+                }
+            }
         }
     }
 }
@@ -591,3 +649,4 @@ private struct DayActivitySheet: View {
 #Preview {
     CalendarView()
 }
+
