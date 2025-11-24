@@ -57,54 +57,54 @@ struct ActivityHistoryView: View {
                 }
             }
             .navigationTitle("Activity History")
-            .toolbar {
-                ToolbarItem(placement: .automatic) {
-                    Button("Generate Random") {
-                        showGenerateConfirm = true
-                    }
-                }
-                ToolbarSpacer()
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button("Clear All") {
-                        showClearAllConfirm = true
-                    }
-                }
-            }
-            // Confirm single delete
-            .alert(
-                "Delete this history entry?",
-                isPresented: $showDeleteConfirm,
-                presenting: historyToDelete
-            ) { history in
-                Button("Delete", role: .destructive) {
-                    performDelete(history)
-                }
-                Button("Cancel", role: .cancel) {
-                    historyToDelete = nil
-                }
-            } message: { _ in
-                Text("This action cannot be undone.")
-            }
-            // Confirm clear all
-            .alert("Clear all activity history?",
-                   isPresented: $showClearAllConfirm) {
-                Button("Clear All", role: .destructive) {
-                    performClearAll()
-                }
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text("This will permanently remove all activity history entries.")
-            }
-            .alert("Generate random history for this month?", isPresented: $showGenerateConfirm) {
-                Button("Generate", role: .destructive) {
-                    Activity.generateRandomHistoricalActivities(in: modelContext)
-                    let success = UINotificationFeedbackGenerator()
-                    success.notificationOccurred(.success)
-                }
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text("This will insert random history entries for all activities in the current month.")
-            }
+//            .toolbar {
+//                ToolbarItem(placement: .automatic) {
+//                    Button("Generate Random") {
+//                        showGenerateConfirm = true
+//                    }
+//                }
+//                ToolbarSpacer()
+//                ToolbarItem(placement: .topBarTrailing) {
+//                    Button("Clear All") {
+//                        showClearAllConfirm = true
+//                    }
+//                }
+//            }
+//            // Confirm single delete
+//            .alert(
+//                "Delete this history entry?",
+//                isPresented: $showDeleteConfirm,
+//                presenting: historyToDelete
+//            ) { history in
+//                Button("Delete", role: .destructive) {
+//                    performDelete(history)
+//                }
+//                Button("Cancel", role: .cancel) {
+//                    historyToDelete = nil
+//                }
+//            } message: { _ in
+//                Text("This action cannot be undone.")
+//            }
+//            // Confirm clear all
+//            .alert("Clear all activity history?",
+//                   isPresented: $showClearAllConfirm) {
+//                Button("Clear All", role: .destructive) {
+//                    performClearAll()
+//                }
+//                Button("Cancel", role: .cancel) { }
+//            } message: {
+//                Text("This will permanently remove all activity history entries.")
+//            }
+//            .alert("Generate random history for this month?", isPresented: $showGenerateConfirm) {
+//                Button("Generate", role: .destructive) {
+//                    Activity.generateRandomHistoricalActivities(in: modelContext)
+//                    let success = UINotificationFeedbackGenerator()
+//                    success.notificationOccurred(.success)
+//                }
+//                Button("Cancel", role: .cancel) { }
+//            } message: {
+//                Text("This will insert random history entries for all activities in the current month.")
+//            }
         }
     }
     

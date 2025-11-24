@@ -31,6 +31,7 @@ struct MainView: View {
                 ActivityHistoryView()
             }
             Tab("Options", systemImage: "gear") {
+                OptionsView()
             }
 //            Tab("Search", systemImage: "magnifyingglass", role: .search) {
 //                
@@ -59,3 +60,4 @@ struct MainView: View {
     MainView()
         .modelContainer(previewContainer)
 }
+

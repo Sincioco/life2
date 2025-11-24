@@ -862,19 +862,19 @@ struct EditActivityView: View {
                 }
                 .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
                 
-#if DEBUG
-                Section {
-                    Button(role: .destructive) {
-                        showDeleteAllAlert = true
-                    } label: {
-                        Label("Delete All", systemImage: "trash.fill")
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 8)
-                    }
-                    .buttonStyle(.bordered)
-                }
-                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-#endif
+//#if DEBUG
+//                Section {
+//                    Button(role: .destructive) {
+//                        showDeleteAllAlert = true
+//                    } label: {
+//                        Label("Delete All", systemImage: "trash.fill")
+//                            .frame(maxWidth: .infinity)
+//                            .padding(.vertical, 8)
+//                    }
+//                    .buttonStyle(.bordered)
+//                }
+//                .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
+//#endif
                 
             }
         }
