@@ -11,6 +11,7 @@ import Foundation
 import SwiftUI
 import UIKit
 import SwiftData
+import Charts
 
 // MARK: - ListView
 struct ActivitiesView: View {
@@ -47,12 +48,50 @@ struct ActivitiesView: View {
         Dictionary(grouping: filteredActivities, by: { $0.category })
     }
     
+    // Build a daily series for the current month: 1 if any activity in the category has a history on that day, else 0
+    private func dailyDoneSeries(for category: String) -> [(date: Date, value: Int)] {
+        let cal = Calendar.current
+        let now = Date()
+        // Start of current month
+        let startOfMonth = cal.date(from: cal.dateComponents([.year, .month], from: now)) ?? now
+        let start = cal.startOfDay(for: startOfMonth)
+        // Start of next month
+        let nextMonth = cal.date(byAdding: .month, value: 1, to: start) ?? start
+        let end = cal.startOfDay(for: nextMonth)
+
+        // Collect all activities in this category from the currently filtered set (ignoring text filter to reflect raw category)
+        let activitiesInCategory = Activities.filter { $0.category == category }
+        // Build a set of days (as startOfDay) where at least one history exists for the category
+        var daysWithAny: Set<Date> = []
+        for activity in activitiesInCategory {
+            for history in activity.histories {
+                if history.dateCompleted >= start && history.dateCompleted < end {
+                    let sod = cal.startOfDay(for: history.dateCompleted)
+                    daysWithAny.insert(sod)
+                }
+            }
+        }
+
+        // Create daily points from start to end-1 day
+        var points: [(Date, Int)] = []
+        var cursor = start
+        while cursor < end {
+            let value = daysWithAny.contains(cursor) ? 1 : 0
+            points.append((cursor, value))
+            cursor = cal.date(byAdding: .day, value: 1, to: cursor) ?? end
+        }
+        return points
+    }
+    
     var body: some View {
         NavigationStack {
             Group {
                 List {
                     ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
                         Section(header: Text(category)) {
+                            // Per-category monthly progress line (done or not done per day)
+                            // REMOVED as per instruction: Entire Chart block deleted here.
+
                             if let activitiesInSection = groupedByCategory[category] {
                                 ForEach(activitiesInSection) { activity in
                                     NavigationLink {
@@ -238,6 +277,83 @@ struct ActivityRow: View {
         Calendar.current.isDateInToday(activity.dateModified)
     }
     
+    // Build a daily series for this activity for the current month (1 if any history that day)
+    private func dailySeriesForCurrentMonth() -> [Int] {
+        let cal = Calendar.current
+        let now = Date()
+        let startOfMonth = cal.date(from: cal.dateComponents([.year, .month], from: now)) ?? now
+        let start = cal.startOfDay(for: startOfMonth)
+        let nextMonth = cal.date(byAdding: .month, value: 1, to: start) ?? start
+        let end = cal.startOfDay(for: nextMonth)
+
+        var daysWithAny: Set<Date> = []
+        for h in activity.histories where h.dateCompleted >= start && h.dateCompleted < end {
+            daysWithAny.insert(cal.startOfDay(for: h.dateCompleted))
+        }
+        var values: [Int] = []
+        var cursor = start
+        while cursor < end {
+            values.append(daysWithAny.contains(cursor) ? 1 : 0)
+            cursor = cal.date(byAdding: .day, value: 1, to: cursor) ?? end
+        }
+        return values
+    }
+
+    // Tiny line chart for the current month (done/not-done per day) with a thin baseline
+    private var monthHistogram: some View {
+        let values = dailySeriesForCurrentMonth() // [0/1] per day of current month
+        return GeometryReader { geo in
+            let count = max(values.count, 1)
+            let denom = max(count - 1, 1)
+            let stepX = geo.size.width / CGFloat(denom)
+            let maxY: CGFloat = 1.0
+            let height = geo.size.height
+
+            ZStack(alignment: .bottomLeading) {
+                // Thin baseline along the x-axis
+                Rectangle()
+                    .fill(Color.secondary.opacity(0.35))
+                    .frame(height: 1)
+
+                // Smooth line path across the month
+                Path { path in
+                    guard !values.isEmpty else { return }
+
+                    func point(at index: Int) -> CGPoint {
+                        let x = CGFloat(index) * stepX
+                        let v = min(max(CGFloat(values[index]), 0), maxY)
+                        // y=0 at bottom, y=1 at top -> invert for drawing
+                        let y = height - (v / maxY) * height
+                        return CGPoint(x: x, y: y)
+                    }
+
+                    // Move to first point
+                    path.move(to: point(at: 0))
+
+                    if count <= 2 {
+                        if count == 2 { path.addLine(to: point(at: 1)) }
+                    } else {
+                        // Use quadratic curves between points for a soft curve
+                        for i in 1..<count {
+                            let p0 = point(at: i - 1)
+                            let p1 = point(at: i)
+                            let mid = CGPoint(x: (p0.x + p1.x) / 2.0, y: (p0.y + p1.y) / 2.0)
+                            if i == 1 {
+                                path.addQuadCurve(to: mid, control: p0)
+                            } else {
+                                path.addQuadCurve(to: mid, control: p0)
+                            }
+                            if i == count - 1 {
+                                path.addQuadCurve(to: p1, control: mid)
+                            }
+                        }
+                    }
+                }
+                .stroke(Color.green, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
+            }
+        }
+    }
+    
     var body: some View {
         
         HStack {
@@ -311,6 +427,12 @@ struct ActivityRow: View {
                 }
                 .font(.caption2)
                 .foregroundStyle(.secondary)
+                
+                // Mini histogram for the current month (done/not-done per day)
+                monthHistogram
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .frame(height: 10)
+                    .padding(.top, 4)
             }
             
         }
