@@ -823,14 +823,14 @@ struct EditActivityView: View {
                     }
                 }
                 // Random history generator below the History list
-                Section {
-                    Button {
-                        generateRandomHistories()
-                    } label: {
-                        Label("Random History", systemImage: "sparkles")
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    }
-                }
+//                Section {
+//                    Button {
+//                        generateRandomHistories()
+//                    } label: {
+//                        Label("Random History", systemImage: "sparkles")
+//                            .frame(maxWidth: .infinity, alignment: .center)
+//                    }
+//                }
             }
             
             if selectedTab == .activity {

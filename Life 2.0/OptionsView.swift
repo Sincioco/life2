@@ -15,10 +15,14 @@ struct OptionsView: View {
     @State private var selectedActivity: Activity? = nil
     @State private var showGenerateForActivityConfirm = false
 
+    @State private var showDeleteForActivitySheet = false
+    @State private var selectedActivityToDelete: Activity? = nil
+    @State private var showDeleteForActivityConfirm = false
+
     var body: some View {
         NavigationStack {
             List {
-                Section("Debugging Tools") {
+                Section("Debugging - Data Tools") {
                     Button {
                         selectedActivity = activities.first
                         showGenerateForActivitySheet = true
@@ -38,12 +42,18 @@ struct OptionsView: View {
                     }
 
                     Button(role: .destructive) {
+                        selectedActivityToDelete = activities.first
+                        showDeleteForActivitySheet = true
+                    } label: {
+                        Label("Delete History for an Activity", systemImage: "trash.slash")
+                    }
+                    
+                    Button(role: .destructive) {
                         showDeleteAllHistoryConfirm = true
                     } label: {
                         Label("Delete All History", systemImage: "calendar")
                     }
-                }
-                Section("Data Tools") {
+                    
                     
                 }
             }
@@ -108,6 +118,37 @@ struct OptionsView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showDeleteForActivitySheet) {
+                NavigationStack {
+                    Form {
+                        Section("Select Activity") {
+                            Picker("Activity", selection: $selectedActivityToDelete) {
+                                ForEach(activities) { act in
+                                    Text(act.name).tag(Optional(act))
+                                }
+                            }
+                        }
+                    }
+                    .navigationTitle("Choose Activity")
+                    .navigationBarTitleDisplayMode(.inline)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") { showDeleteForActivitySheet = false }
+                        }
+                        ToolbarItem(placement: .confirmationAction) {
+                            Button("Next") {
+                                showDeleteForActivitySheet = false
+                                DispatchQueue.main.async {
+                                    showDeleteForActivityConfirm = true
+                                }
+                            }
+                        }
+                    }
+                    .onAppear {
+                        if selectedActivityToDelete == nil { selectedActivityToDelete = activities.first }
+                    }
+                }
+            }
             .alert("Generate random history for this activity?", isPresented: $showGenerateForActivityConfirm) {
                 Button("Generate", role: .destructive) {
                     if let act = selectedActivity { generateRandomHistories(for: act) }
@@ -115,6 +156,14 @@ struct OptionsView: View {
                 Button("Cancel", role: .cancel) { }
             } message: {
                 Text("This will insert random history entries for the selected activity across the last and current month.")
+            }
+            .alert("Delete ALL history for this activity?", isPresented: $showDeleteForActivityConfirm) {
+                Button("Delete", role: .destructive) {
+                    if let act = selectedActivityToDelete { deleteHistory(for: act) }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("This will permanently remove all history entries for the selected activity. This action cannot be undone.")
             }
         }
     }
@@ -152,6 +201,25 @@ struct OptionsView: View {
             success.notificationOccurred(.success)
         } catch {
             print("Failed to clear ActivityHistory: \(error)")
+            let error = UINotificationFeedbackGenerator()
+            error.notificationOccurred(.error)
+        }
+    }
+
+    private func deleteHistory(for activity: Activity) {
+        // Filter and delete only histories belonging to the selected activity
+        do {
+            let descriptor = FetchDescriptor<ActivityHistory>()
+            let allHistories = try modelContext.fetch(descriptor)
+            for history in allHistories where history.activity == activity {
+                modelContext.delete(history)
+            }
+            try modelContext.save()
+            NotificationCenter.default.post(name: .activityDidChange, object: nil)
+            let success = UINotificationFeedbackGenerator()
+            success.notificationOccurred(.success)
+        } catch {
+            print("Failed to delete history for activity: \(error)")
             let error = UINotificationFeedbackGenerator()
             error.notificationOccurred(.error)
         }
