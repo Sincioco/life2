@@ -19,6 +19,8 @@ struct CalendarView: View {
     @State private var selectedMonth: Int
     @State private var sheetDate: IdentifiableDate? = nil
     @Query private var historyEntries: [ActivityHistory]
+//    @State private var calendarGridHeight: CGFloat = 0
+//    @State private var isShowingHeightAlert = false
     
     private enum CalendarTab: String, CaseIterable, Identifiable {
         case calendar = "Calendar"
@@ -82,7 +84,7 @@ struct CalendarView: View {
         }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
-
+    
     private func goToNextMonth() {
         if selectedMonth == 12 {
             selectedMonth = 1
@@ -335,8 +337,11 @@ struct CalendarView: View {
         }
     }
     
-    
+    // MARK:  Calendar View
     var body: some View {
+        
+        
+        
         NavigationStack {
             Group {
                 GeometryReader { proxy in
@@ -344,48 +349,109 @@ struct CalendarView: View {
                     let isLandscape = proxy.size.width > proxy.size.height
                     let dayCellWidth = totalWidth / 7.0
                     let dayCellHeight = dayCellWidth
-
+                    
+//                    ScrollView(.vertical) {
+//                        VStack(spacing: 12) {
+//                            Picker("View Mode", selection: $selectedTab) {
+//                                ForEach(CalendarTab.allCases) { tab in
+//                                    Text(tab.rawValue).tag(tab)
+//                                }
+//                            }
+//                            .pickerStyle(.segmented)
+//                            .padding(.horizontal)
+//                            .accessibilityLabel("View Mode")
+//                            .padding()
+//                            
+//                            switch selectedTab {
+//                            case .calendar:
+//                                VStack(spacing: 0) {
+//                                    CalendarMonthGrid(
+//                                        cells: cells,
+//                                        dayCellHeight: dayCellHeight,
+//                                        isLandscape: isLandscape,
+//                                        calendar: calendar,
+//                                        selectedYear: selectedYear,
+//                                        selectedMonth: selectedMonth,
+//                                        dateForCurrentMonth: dateForCurrentMonth,
+//                                        iconsFor: iconsFor,
+//                                        uniqueIcons: uniqueIcons,
+//                                        onSelectDay: { date in
+//                                            sheetDate = IdentifiableDate(date: date)
+//                                        }
+//                                    )
+//                                    //.frame(height: 450)
+//                                    .padding()
+//                                    .background(
+//                                        GeometryReader { gridProxy in
+//                                            Color.clear
+//                                                .onAppear {
+//                                                    calendarGridHeight = gridProxy.size.height
+//                                                }
+//                                                .onChange(of: gridProxy.size.height) { newHeight in
+//                                                    calendarGridHeight = newHeight
+//                                                }
+//                                        }
+//                                    )
+//                                    
+//                                    MonthlySummaryChart(monthActivities: monthlyActivityCounts())
+//                                    
+//                                    Button("Test") {
+//                                        isShowingHeightAlert = true
+//                                    }
+//                                    
+//                                }
+//                                .frame(maxWidth: .infinity)
+//                                
+//                            case .chart:
+//                                //                                VStack(spacing: 16) {
+//                                MonthlySummaryChart(monthActivities: monthlyActivityCounts())
+//                                    .padding(.horizontal)
+//                                //                                }
+//                                //                                .frame(maxWidth: .infinity)
+//                            }
+//                        }
+//                    }
+                    
                     ScrollView(.vertical) {
-                        VStack(spacing: 12) {
-                            Picker("View Mode", selection: $selectedTab) {
-                                ForEach(CalendarTab.allCases) { tab in
-                                    Text(tab.rawValue).tag(tab)
+                        VStack(spacing: 0) {
+                            CalendarMonthGrid(
+                                cells: cells,
+                                dayCellHeight: dayCellHeight,
+                                isLandscape: isLandscape,
+                                calendar: calendar,
+                                selectedYear: selectedYear,
+                                selectedMonth: selectedMonth,
+                                dateForCurrentMonth: dateForCurrentMonth,
+                                iconsFor: iconsFor,
+                                uniqueIcons: uniqueIcons,
+                                onSelectDay: { date in
+                                    sheetDate = IdentifiableDate(date: date)
                                 }
-                            }
-                            .pickerStyle(.segmented)
-                            .padding(.horizontal)
-                            .accessibilityLabel("View Mode")
+                            )
+                            //.frame(height: 450)
                             .padding()
-
-                            switch selectedTab {
-                            case .calendar:
-                                //VStack(spacing: 16) {
-                                    CalendarMonthGrid(
-                                        cells: cells,
-                                        dayCellHeight: dayCellHeight,
-                                        isLandscape: isLandscape,
-                                        calendar: calendar,
-                                        selectedYear: selectedYear,
-                                        selectedMonth: selectedMonth,
-                                        dateForCurrentMonth: dateForCurrentMonth,
-                                        iconsFor: iconsFor,
-                                        uniqueIcons: uniqueIcons,
-                                        onSelectDay: { date in
-                                            sheetDate = IdentifiableDate(date: date)
-                                        }
-                                    )
-                                    .padding()
+//                            .background(
+//                                GeometryReader { gridProxy in
+//                                    Color.clear
+//                                        .onAppear {
+//                                            calendarGridHeight = gridProxy.size.height
+//                                        }
+//                                        .onChange(of: gridProxy.size.height) { newHeight in
+//                                            calendarGridHeight = newHeight
+//                                        }
 //                                }
-//                                .frame(maxWidth: .infinity)
-
-                            case .chart:
-//                                VStack(spacing: 16) {
-                                    MonthlySummaryChart(monthActivities: monthlyActivityCounts())
-                                        .padding(.horizontal)
-//                                }
-//                                .frame(maxWidth: .infinity)
-                            }
+//                            )
+                            
+                            MonthlySummaryChart(monthActivities: monthlyActivityCounts())
+                                //.padding(.horizontal)
+                                .padding()
+                            
+//                            Button("Test") {
+//                                isShowingHeightAlert = true
+//                            }
+                            
                         }
+                        .frame(maxWidth: .infinity)
                     }
                 }
             }
@@ -400,6 +466,19 @@ struct CalendarView: View {
             }
             .toolbar { calendarToolbar }
         }
+        .sheet(item: $sheetDate) { identifiable in
+            let date = identifiable.date
+            DayActivitySheet(
+                date: date,
+                entries: historyEntries(on: date),
+                calendar: calendar
+            )
+        }
+//        .alert("Calendar Grid Height", isPresented: $isShowingHeightAlert) {
+//            Button("OK", role: .cancel) { }
+//        } message: {
+//            Text("Height: \(Int(calendarGridHeight))")
+//        }
     }
     
     private var calendarToolbar: some ToolbarContent {
@@ -467,7 +546,7 @@ private struct CalendarMonthGrid: View {
     let iconsFor: (Date) -> [String]
     let uniqueIcons: (Date) -> [String]
     let onSelectDay: (Date) -> Void
-
+    
     var body: some View {
         LazyVGrid(columns: columns, spacing: 0) {
             ForEach(cells, id: \.self) { cell in
@@ -496,7 +575,7 @@ private struct CalendarMonthGrid: View {
             }
         }
     }
-
+    
     private var columns: [GridItem] {
         Array(repeating: GridItem(.flexible(minimum: 0), spacing: 0), count: 7)
     }
@@ -519,7 +598,7 @@ private struct DayCellView: View {
     let isLandscape: Bool
     let icons: [String]
     let onTap: () -> Void
-
+    
     var body: some View {
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 0)
@@ -548,7 +627,7 @@ private struct AdjacentDayCell: View {
     let selectedYear: Int
     let selectedMonth: Int
     let uniqueIcons: (Date) -> [String]
-
+    
     var body: some View {
         ZStack(alignment: .topLeading) {
             RoundedRectangle(cornerRadius: 0)
@@ -560,20 +639,20 @@ private struct AdjacentDayCell: View {
             content
         }
     }
-
+    
     private var content: some View {
         let date1 = Calendar.current.date(from: DateComponents(year: selectedYear, month: selectedMonth, day: 1))!
         let previousMonthDate = Calendar.current.date(byAdding: .month, value: -1, to: date1)!
         let nextMonthDate = Calendar.current.date(byAdding: .month, value: 1, to: date1)!
-
+        
         let prevComps = Calendar.current.dateComponents([.year, .month], from: previousMonthDate)
         let nextComps = Calendar.current.dateComponents([.year, .month], from: nextMonthDate)
-
+        
         let prevYear = prevComps.year!
         let prevMonth = prevComps.month!
         let nextYear = nextComps.year!
         let nextMonth = nextComps.month!
-
+        
         // Determine if this adjacent day belongs to previous or next month based on day number
         let isPrev = (day >= 26 && day <= 31)
         let targetDate: Date = {
@@ -583,9 +662,9 @@ private struct AdjacentDayCell: View {
                 return Calendar.current.date(from: DateComponents(year: nextYear, month: nextMonth, day: day))!
             }
         }()
-
+        
         let icons = uniqueIcons(targetDate)
-
+        
         return Group {
             if isLandscape {
                 CalendarDayCell(day: targetDate, cellWidth: 119, cellHeight: 119, icons: icons, adjacentCell: true, cellDebug: false)
@@ -598,15 +677,15 @@ private struct AdjacentDayCell: View {
 
 private struct MonthlySummaryChart: View {
     let monthActivities: [(icon: String, count: Int)]
-
+    
     var body: some View {
         Group {
             if !monthActivities.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("This Month by Activity")
+                    Text("Activities by Category")
                         .font(.headline)
                         .padding(.top, 8)
-
+                    
                     Chart(monthActivities, id: \.icon) { item in
                         BarMark(
                             x: .value("Activity", item.icon),
@@ -656,7 +735,7 @@ private struct DayActivitySheet: View {
     
     @Environment(\.modelContext) private var modelContext
     @Query private var activities: [Activity]
-
+    
     @State private var isPresentingAddHistory = false
     @State private var selectedActivity: Activity? = nil
     @State private var newHistoryDate: Date = Date()
