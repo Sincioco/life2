@@ -9,6 +9,7 @@
 import SwiftUI
 import SwiftData
 import UIKit
+import Charts
 
 struct CalendarView: View {
     let year: Int
@@ -165,6 +166,23 @@ struct CalendarView: View {
         return unique
     }
     
+    private func monthlyActivityCounts() -> [(icon: String, count: Int)] {
+        // Count entries per activity icon within the currently selected month
+        var counts: [String: Int] = [:]
+        for entry in historyThisMonth {
+            if let icon = entry.activity?.icon {
+                counts[icon, default: 0] += 1
+            }
+        }
+        // Sort by count descending, then icon name
+        return counts
+            .map { ($0.key, $0.value) }
+            .sorted { lhs, rhs in
+                if lhs.1 != rhs.1 { return lhs.1 > rhs.1 }
+                return lhs.0 < rhs.0
+            }
+    }
+    
     private func dateForCurrentMonth(day: Int) -> Date {
         var comps = DateComponents()
         comps.year = selectedYear
@@ -310,114 +328,38 @@ struct CalendarView: View {
     }
     
     
-    
     var body: some View {
         NavigationStack {
             Group {
                 GeometryReader { proxy in
                     let totalWidth = proxy.size.width
+                    let isLandscape = proxy.size.width > proxy.size.height
                     let dayCellWidth = totalWidth / 7.0
                     let dayCellHeight = dayCellWidth
-                    
+
                     ScrollView(.vertical) {
-                        LazyVGrid(columns: columns(for: totalWidth), spacing: 0) {
-                            ForEach(cells, id: \.self) { cell in
-                                switch cell {
-                                case .header(let title):
-                                    ZStack {
-                                        RoundedRectangle(cornerRadius: 0)
-                                            .fill(Color(.secondarySystemBackground))
-                                        Text(title)
-                                            .font(.headline)
-                                    }
-                                    .frame(height: 40)
-                                    
-                                case .adjacent(let d, _):
-                                    ZStack(alignment: .topLeading) {
-                                        RoundedRectangle(cornerRadius: 0)
-                                            .fill(Color(.systemBackground))
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 0)
-                                                    .stroke(Color.gray.opacity(0.25))
-                                            )
-                                        
-                                        let year = selectedYear
-                                        let month = selectedMonth
-                                        let isLandscape = proxy.size.width > proxy.size.height
-                                        
-                                        if (d >= 26 && d <= 31) {
-                                            // Previous Month Logic
-                                            let date1 = Calendar.current.date(from: DateComponents(year: year, month: month, day: 1))!
-                                            let previousMonthDate = Calendar.current.date(byAdding: .month, value: -1, to: date1)!
-                                            let comps = Calendar.current.dateComponents([.year, .month], from: previousMonthDate)
-                                            
-                                            let prevYear = comps.year!
-                                            let prevMonth = comps.month!
-                                            let prevMonthFull = Calendar.current.date(from: DateComponents(year: prevYear, month: prevMonth, day: d))!
-                                            
-                                            let icons = uniqueIcons(date: prevMonthFull)
-                                            
-                                            if (isLandscape == false) {
-                                                CalendarDayCell(day: prevMonthFull, cellWidth: 63, cellHeight: 63, icons: icons, adjacentCell: true, cellDebug: false)
-                                            } else {
-                                                CalendarDayCell(day: prevMonthFull, cellWidth: 119, cellHeight: 119, icons: icons, adjacentCell: true, cellDebug: false)
-                                            }
-                                        } else
-                                        // Next Month logic
-                                        if (d >= 7 || d <= 7) {
-                                            let date2 = Calendar.current.date(from: DateComponents(year: year, month: month, day: 1))!
-                                            let nextMonthDate = Calendar.current.date(byAdding: .month, value: 1, to: date2)!
-                                            let comps1 = Calendar.current.dateComponents([.year, .month], from: nextMonthDate)
-                                            //
-                                            let nextYear = comps1.year!
-                                            let nextMonth = comps1.month!
-                                            let nextMonthFull = Calendar.current.date(from: DateComponents(year: nextYear, month: nextMonth, day: d))!
-                                            
-                                            let icons1 = uniqueIcons(date: nextMonthFull)
-                                    
-                                            
-                                            if (isLandscape == false) {
-                                                CalendarDayCell(day: nextMonthFull, cellWidth: 63, cellHeight: 63, icons: icons1, adjacentCell: true, cellDebug: false)
-                                            } else {
-                                                CalendarDayCell(day: nextMonthFull, cellWidth: 119, cellHeight: 119, icons: icons1, adjacentCell: true, cellDebug: false)
-                                            }
-                                        }
-                                        
-                                    }
-                                    .frame(height: dayCellHeight)
-                                    
-                                case .day(let d):
-                                    ZStack(alignment: .topLeading) {
-                                        RoundedRectangle(cornerRadius: 0)
-                                            .fill(Color(.systemBackground))
-                                            .overlay(
-                                                RoundedRectangle(cornerRadius: 0)
-                                                    .stroke(Color.gray.opacity(0.3))
-                                            )
-                                        
-                                        let date = dateForCurrentMonth(day: d)
-                                        let icons = iconsFor(date: date)
-                                        
-                                        let isLandscape = proxy.size.width > proxy.size.height
-                                        
-                                        if (isLandscape == false) {
-                                            CalendarDayCell(day: date, cellWidth: 63, cellHeight: 63, icons: icons, adjacentCell: false, cellDebug: false)
-                                        } else {
-                                            CalendarDayCell(day: date, cellWidth: 119, cellHeight: 119, icons: icons, adjacentCell: false, cellDebug: false)
-                                        }
-                                    }
-                                    .contentShape(Rectangle())
-                                    .onTapGesture {
-                                        let date = dateForCurrentMonth(day: d)
-                                        sheetDate = IdentifiableDate(date: date)
-                                    }
-                                    .frame(height: dayCellHeight)
+                        VStack(spacing: 16) {
+                            CalendarMonthGrid(
+                                cells: cells,
+                                dayCellHeight: dayCellHeight,
+                                isLandscape: isLandscape,
+                                calendar: calendar,
+                                selectedYear: selectedYear,
+                                selectedMonth: selectedMonth,
+                                dateForCurrentMonth: dateForCurrentMonth,
+                                iconsFor: iconsFor,
+                                uniqueIcons: uniqueIcons,
+                                onSelectDay: { date in
+                                    sheetDate = IdentifiableDate(date: date)
                                 }
-                            }
+                            )
+
+                            MonthlySummaryChart(monthActivities: monthlyActivityCounts())
+                                .padding(.horizontal)
                         }
+                        .frame(maxWidth: .infinity)
                     }
                 }
-                
             }
             .navigationTitle(monthName)
             .sheet(item: $sheetDate) { identifiable in
@@ -428,64 +370,246 @@ struct CalendarView: View {
                     calendar: calendar
                 )
             }
-            
-            .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button {
-                        let now = Date()
-                        selectedYear = calendar.component(.year, from: now)
-                        selectedMonth = calendar.component(.month, from: now)
-                    } label: {
-                        Image(systemName: "house")
-                    }
-                    .accessibilityLabel("Home")
+            .toolbar { calendarToolbar }
+        }
+    }
+    
+    private var calendarToolbar: some ToolbarContent {
+        Group {
+            ToolbarItem(placement: .topBarLeading) {
+                Button {
+                    let now = Date()
+                    selectedYear = calendar.component(.year, from: now)
+                    selectedMonth = calendar.component(.month, from: now)
+                } label: {
+                    Image(systemName: "house")
                 }
-                // Previous month button
-                ToolbarItem(placement: .automatic) {
-                    Button(action: goToPreviousMonth) {
-                        Image(systemName: "chevron.left")
-                    }
-                    .accessibilityLabel("Previous Month")
+                .accessibilityLabel("Home")
+            }
+            ToolbarItem(placement: .automatic) {
+                Button(action: goToPreviousMonth) {
+                    Image(systemName: "chevron.left")
                 }
-                // Month picker
-                ToolbarItem(placement: .automatic) {
-                    Picker(selection: $selectedMonth) {
-                        ForEach(1...12, id: \.self) { m in
-                            Text(DateFormatter().monthSymbols[m - 1]).tag(m)
+                .accessibilityLabel("Previous Month")
+            }
+            ToolbarItem(placement: .automatic) {
+                Picker(selection: $selectedMonth) {
+                    ForEach(1...12, id: \.self) { m in
+                        Text(DateFormatter().monthSymbols[m - 1]).tag(m)
+                    }
+                } label: {
+                    Image(systemName: "calendar.badge.plus")
+                }
+                .pickerStyle(.menu)
+                .labelsHidden()
+                .accessibilityLabel("Select Month")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Picker(selection: $selectedYear) {
+                    let current = Calendar.current.component(.year, from: Date())
+                    let range = 2025...(current + 1)
+                    ForEach(Array(range).reversed(), id: \.self) { y in
+                        Text("\(y, format: .number.grouping(.never))").tag(y)
+                    }
+                } label: {
+                    Image(systemName: "calendar")
+                }
+                .pickerStyle(.menu)
+                .labelsHidden()
+                .accessibilityLabel("Select Year")
+            }
+            ToolbarItem(placement: .topBarTrailing) {
+                Button(action: goToNextMonth) {
+                    Image(systemName: "chevron.right")
+                }
+                .accessibilityLabel("Next Month")
+            }
+        }
+    }
+}
+
+private struct CalendarMonthGrid: View {
+    let cells: [CalendarView.Cell]
+    let dayCellHeight: CGFloat
+    let isLandscape: Bool
+    let calendar: Calendar
+    let selectedYear: Int
+    let selectedMonth: Int
+    let dateForCurrentMonth: (Int) -> Date
+    let iconsFor: (Date) -> [String]
+    let uniqueIcons: (Date) -> [String]
+    let onSelectDay: (Date) -> Void
+
+    var body: some View {
+        LazyVGrid(columns: columns, spacing: 0) {
+            ForEach(cells, id: \.self) { cell in
+                switch cell {
+                case .header(let title):
+                    HeaderCell(title: title)
+                        .frame(height: 40)
+                case .adjacent(let d, _):
+                    AdjacentDayCell(
+                        day: d,
+                        isLandscape: isLandscape,
+                        calendar: calendar,
+                        selectedYear: selectedYear,
+                        selectedMonth: selectedMonth,
+                        uniqueIcons: uniqueIcons
+                    )
+                    .frame(height: dayCellHeight)
+                case .day(let d):
+                    let date = dateForCurrentMonth(d)
+                    let icons = iconsFor(date)
+                    DayCellView(date: date, isLandscape: isLandscape, icons: icons) {
+                        onSelectDay(date)
+                    }
+                    .frame(height: dayCellHeight)
+                }
+            }
+        }
+    }
+
+    private var columns: [GridItem] {
+        Array(repeating: GridItem(.flexible(minimum: 0), spacing: 0), count: 7)
+    }
+}
+
+private struct HeaderCell: View {
+    let title: String
+    var body: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: 0)
+                .fill(Color(.secondarySystemBackground))
+            Text(title)
+                .font(.headline)
+        }
+    }
+}
+
+private struct DayCellView: View {
+    let date: Date
+    let isLandscape: Bool
+    let icons: [String]
+    let onTap: () -> Void
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            RoundedRectangle(cornerRadius: 0)
+                .fill(Color(.systemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 0)
+                        .stroke(Color.gray.opacity(0.3))
+                )
+            Group {
+                if isLandscape {
+                    CalendarDayCell(day: date, cellWidth: 119, cellHeight: 119, icons: icons, adjacentCell: false, cellDebug: false)
+                } else {
+                    CalendarDayCell(day: date, cellWidth: 63, cellHeight: 63, icons: icons, adjacentCell: false, cellDebug: false)
+                }
+            }
+        }
+        .contentShape(Rectangle())
+        .onTapGesture { onTap() }
+    }
+}
+
+private struct AdjacentDayCell: View {
+    let day: Int
+    let isLandscape: Bool
+    let calendar: Calendar
+    let selectedYear: Int
+    let selectedMonth: Int
+    let uniqueIcons: (Date) -> [String]
+
+    var body: some View {
+        ZStack(alignment: .topLeading) {
+            RoundedRectangle(cornerRadius: 0)
+                .fill(Color(.systemBackground))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 0)
+                        .stroke(Color.gray.opacity(0.25))
+                )
+            content
+        }
+    }
+
+    private var content: some View {
+        let date1 = Calendar.current.date(from: DateComponents(year: selectedYear, month: selectedMonth, day: 1))!
+        let previousMonthDate = Calendar.current.date(byAdding: .month, value: -1, to: date1)!
+        let nextMonthDate = Calendar.current.date(byAdding: .month, value: 1, to: date1)!
+
+        let prevComps = Calendar.current.dateComponents([.year, .month], from: previousMonthDate)
+        let nextComps = Calendar.current.dateComponents([.year, .month], from: nextMonthDate)
+
+        let prevYear = prevComps.year!
+        let prevMonth = prevComps.month!
+        let nextYear = nextComps.year!
+        let nextMonth = nextComps.month!
+
+        // Determine if this adjacent day belongs to previous or next month based on day number
+        let isPrev = (day >= 26 && day <= 31)
+        let targetDate: Date = {
+            if isPrev {
+                return Calendar.current.date(from: DateComponents(year: prevYear, month: prevMonth, day: day))!
+            } else {
+                return Calendar.current.date(from: DateComponents(year: nextYear, month: nextMonth, day: day))!
+            }
+        }()
+
+        let icons = uniqueIcons(targetDate)
+
+        return Group {
+            if isLandscape {
+                CalendarDayCell(day: targetDate, cellWidth: 119, cellHeight: 119, icons: icons, adjacentCell: true, cellDebug: false)
+            } else {
+                CalendarDayCell(day: targetDate, cellWidth: 63, cellHeight: 63, icons: icons, adjacentCell: true, cellDebug: false)
+            }
+        }
+    }
+}
+
+private struct MonthlySummaryChart: View {
+    let monthActivities: [(icon: String, count: Int)]
+
+    var body: some View {
+        Group {
+            if !monthActivities.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("This Month by Activity")
+                        .font(.headline)
+                        .padding(.top, 8)
+
+                    Chart(monthActivities, id: \.icon) { item in
+                        BarMark(
+                            x: .value("Activity", item.icon),
+                            y: .value("Count", item.count)
+                        )
+                        .foregroundStyle(.green)
+                        .annotation(position: .top, alignment: .center) {
+                            if item.count > 0 {
+                                Text("\(item.count)")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
-                    } label: {
-                        Image(systemName: "calendar.badge.plus")
                     }
-                    .pickerStyle(.menu)
-                    .labelsHidden()
-                    .accessibilityLabel("Select Month")
-                }
-                // Year picker
-                ToolbarItem(placement: .topBarTrailing) {
-                    Picker(selection: $selectedYear) {
-                        let current = Calendar.current.component(.year, from: Date())
-                        let range = 2025...(current + 1)
-                        ForEach(Array(range).reversed(), id: \.self) { y in
-                            Text("\(y, format: .number.grouping(.never))").tag(y)
+                    .chartXAxis {
+                        AxisMarks(values: .automatic) { value in
+                            if let icon = value.as(String.self) {
+                                AxisValueLabel {
+                                    Image(systemName: icon)
+                                        .font(.caption)
+                                }
+                            }
                         }
-                    } label: {
-                        Image(systemName: "calendar")
                     }
-                    .pickerStyle(.menu)
-                    .labelsHidden()
-                    .accessibilityLabel("Select Year")
-                }
-                // Next month button
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button(action: goToNextMonth) {
-                        Image(systemName: "chevron.right")
-                    }
-                    .accessibilityLabel("Next Month")
+                    .frame(height: 180)
                 }
             }
         }
     }
 }
+
 
 /// Wrapper so we don't extend Foundation.Date to Identifiable
 private struct IdentifiableDate: Identifiable, Equatable {
