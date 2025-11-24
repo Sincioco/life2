@@ -543,6 +543,9 @@ private struct DayActivitySheet: View {
     @State private var selectedActivity: Activity? = nil
     @State private var newHistoryDate: Date = Date()
     
+    @State private var pendingDelete: ActivityHistory? = nil
+    @State private var showDeleteAlert: Bool = false
+    
     private var title: String {
         let formatter = DateFormatter()
         formatter.calendar = calendar
@@ -591,11 +594,8 @@ private struct DayActivitySheet: View {
                         .padding(.vertical, 4)
                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                             Button(role: .destructive) {
-                                modelContext.delete(history)
-                                try? modelContext.save()
-                                NotificationCenter.default.post(name: .activityDidChange, object: nil)
-                                let success = UINotificationFeedbackGenerator()
-                                success.notificationOccurred(.success)
+                                pendingDelete = history
+                                showDeleteAlert = true
                             } label: {
                                 Label("Delete", systemImage: "trash")
                             }
@@ -605,6 +605,21 @@ private struct DayActivitySheet: View {
             }
             .navigationTitle(title)
             .navigationBarTitleDisplayMode(.inline)
+            .alert("Delete History?", isPresented: $showDeleteAlert, presenting: pendingDelete) { history in
+                Button("Delete", role: .destructive) {
+                    modelContext.delete(history)
+                    try? modelContext.save()
+                    NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                    let success = UINotificationFeedbackGenerator()
+                    success.notificationOccurred(.success)
+                    pendingDelete = nil
+                }
+                Button("Cancel", role: .cancel) {
+                    pendingDelete = nil
+                }
+            } message: { _ in
+                Text("This action cannot be undone.")
+            }
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
