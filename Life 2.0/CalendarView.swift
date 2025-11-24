@@ -589,6 +589,17 @@ private struct DayActivitySheet: View {
                             }
                         }
                         .padding(.vertical, 4)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                            Button(role: .destructive) {
+                                modelContext.delete(history)
+                                try? modelContext.save()
+                                NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                                let success = UINotificationFeedbackGenerator()
+                                success.notificationOccurred(.success)
+                            } label: {
+                                Label("Delete", systemImage: "trash")
+                            }
+                        }
                     }
                 }
             }
