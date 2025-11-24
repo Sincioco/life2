@@ -30,9 +30,11 @@ struct MainView: View {
             Tab("History", systemImage: "line.3.horizontal") {
                 ActivityHistoryView()
             }
-            Tab("Search", systemImage: "magnifyingglass", role: .search) {
-                
+            Tab("Options", systemImage: "gear") {
             }
+//            Tab("Search", systemImage: "magnifyingglass", role: .search) {
+//                
+//            }
         }
     }
     
