@@ -20,6 +20,14 @@ struct CalendarView: View {
     @State private var sheetDate: IdentifiableDate? = nil
     @Query private var historyEntries: [ActivityHistory]
     
+    private enum CalendarTab: String, CaseIterable, Identifiable {
+        case calendar = "Calendar"
+        case chart = "Chart"
+        var id: String { rawValue }
+    }
+    
+    @State private var selectedTab: CalendarTab = .calendar
+    
     init(year: Int? = nil, month: Int? = nil) {
         let now = Date()
         let cal = Calendar(identifier: .gregorian)
@@ -338,30 +346,50 @@ struct CalendarView: View {
                     let dayCellHeight = dayCellWidth
 
                     ScrollView(.vertical) {
-                        VStack(spacing: 16) {
-                            CalendarMonthGrid(
-                                cells: cells,
-                                dayCellHeight: dayCellHeight,
-                                isLandscape: isLandscape,
-                                calendar: calendar,
-                                selectedYear: selectedYear,
-                                selectedMonth: selectedMonth,
-                                dateForCurrentMonth: dateForCurrentMonth,
-                                iconsFor: iconsFor,
-                                uniqueIcons: uniqueIcons,
-                                onSelectDay: { date in
-                                    sheetDate = IdentifiableDate(date: date)
+                        VStack(spacing: 12) {
+                            Picker("View Mode", selection: $selectedTab) {
+                                ForEach(CalendarTab.allCases) { tab in
+                                    Text(tab.rawValue).tag(tab)
                                 }
-                            )
+                            }
+                            .pickerStyle(.segmented)
+                            .padding(.horizontal)
+                            .accessibilityLabel("View Mode")
+                            .padding()
 
-                            MonthlySummaryChart(monthActivities: monthlyActivityCounts())
-                                .padding(.horizontal)
+                            switch selectedTab {
+                            case .calendar:
+                                //VStack(spacing: 16) {
+                                    CalendarMonthGrid(
+                                        cells: cells,
+                                        dayCellHeight: dayCellHeight,
+                                        isLandscape: isLandscape,
+                                        calendar: calendar,
+                                        selectedYear: selectedYear,
+                                        selectedMonth: selectedMonth,
+                                        dateForCurrentMonth: dateForCurrentMonth,
+                                        iconsFor: iconsFor,
+                                        uniqueIcons: uniqueIcons,
+                                        onSelectDay: { date in
+                                            sheetDate = IdentifiableDate(date: date)
+                                        }
+                                    )
+                                    .padding()
+//                                }
+//                                .frame(maxWidth: .infinity)
+
+                            case .chart:
+//                                VStack(spacing: 16) {
+                                    MonthlySummaryChart(monthActivities: monthlyActivityCounts())
+                                        .padding(.horizontal)
+//                                }
+//                                .frame(maxWidth: .infinity)
+                            }
                         }
-                        .frame(maxWidth: .infinity)
                     }
                 }
             }
-            .navigationTitle(monthName)
+            //.navigationTitle(monthName)
             .sheet(item: $sheetDate) { identifiable in
                 let date = identifiable.date
                 DayActivitySheet(

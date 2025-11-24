@@ -19,9 +19,7 @@ struct MainView: View {
                 ActivitiesView()
             }
             Tab("Calendar", systemImage: "calendar") {
-                VStack {
-                    CalendarView()
-                }
+                CalendarView()
             }
             Tab("History", systemImage: "line.3.horizontal") {
                 ActivityHistoryView()
