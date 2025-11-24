@@ -7,7 +7,6 @@
 // Purpose:  Setup the main Tab view of the application.
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 
-import Foundation
 import SwiftUI
 import SwiftData
 

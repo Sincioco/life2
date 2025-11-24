@@ -298,13 +298,12 @@ struct IconPickerView: View {
                     }
                     .pickerStyle(.segmented)
                 } else {
-                    // Portrait or regular height
                     Picker("Category", selection: $selectedCategory) {
                         ForEach(IconCategory.allCases) { category in
                             Text(category.title).tag(category)
                         }
                     }
-                    .pickerStyle(.automatic)   // or .menu, .navigationLink, etc.
+                    .pickerStyle(.automatic)
                 }
             }
             .padding([.horizontal, .top])
@@ -451,3 +450,4 @@ struct IconPickerView: View {
         saveRecentIcons()
     }
 }
+

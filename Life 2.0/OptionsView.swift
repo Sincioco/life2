@@ -53,8 +53,6 @@ struct OptionsView: View {
                     } label: {
                         Label("Delete All History", systemImage: "calendar")
                     }
-                    
-                    
                 }
             }
             .navigationTitle("Options")
@@ -177,7 +175,6 @@ struct OptionsView: View {
             for activity in allActivities {
                 modelContext.delete(activity) // histories cascade due to deleteRule: .cascade
             }
-            //try modelContext.save()
             NotificationCenter.default.post(name: .activityDidChange, object: nil)
             let success = UINotificationFeedbackGenerator()
             success.notificationOccurred(.success)
@@ -207,7 +204,6 @@ struct OptionsView: View {
     }
 
     private func deleteHistory(for activity: Activity) {
-        // Filter and delete only histories belonging to the selected activity
         do {
             let descriptor = FetchDescriptor<ActivityHistory>()
             let allHistories = try modelContext.fetch(descriptor)

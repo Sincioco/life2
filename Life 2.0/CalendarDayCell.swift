@@ -13,20 +13,11 @@ import SwiftUI
 struct CalendarDayCell: View {
     
     var day: Date = Date()
-    var cellWidth: CGFloat = 63
-    var cellHeight: CGFloat = 63
-    
-    //    var cellWidth: CGFloat = 119
-    //    var cellHeight: CGFloat = 119
+    var cellWidth: CGFloat = 63     // values are 63 for Portrait or 119 for Landscape for iPhone 16 Pro Max
+    var cellHeight: CGFloat = 63    // values are 63 for Portrait or 119 for Landscape for iPhone 16 Pro Max
     
     var icons = [
         "basketball.fill"
-//        "figure.run",
-//        "house",
-//        "pencil",
-//        "star",
-//        "eraser",
-//        "globe.americas"
     ]
     var adjacentCell: Bool = false
     var cellDebug: Bool = true
@@ -34,7 +25,6 @@ struct CalendarDayCell: View {
     var body: some View {
         
         let dayString = String(Calendar.current.component(.day, from: day))
-        //let dayString = "16"
         
         GeometryReader { geometry in
             
@@ -183,9 +173,7 @@ struct CalendarDayCell: View {
                     }
                 } else {
                     
-                    // We have 6 or more icons to show
-                    
-                    // Where the icons show up (scrollable incase there are more icons
+                    // 6 or more icons - create a view that is scrollable so we can see more icons
                     ScrollView(.vertical, showsIndicators: true) {
                         
                         // 2 columns so you see 2 images per row
@@ -220,12 +208,9 @@ struct CalendarDayCell: View {
             .overlay(alignment: .topLeading) {
                 // This is the Day Text
                 Text("\(dayString)")
-                //Text("\(dayString) \(iconCount)")
                     .font(.headline)
                     .padding(8)
                     .foregroundStyle(adjacentCell ? .secondary : .primary)
-                //.shadow(color: invertedPrimaryColor().opacity(0.6), radius: 2)
-                
             }
             .frame(height: geometry.size.height)    // ScrollView visible height
         }

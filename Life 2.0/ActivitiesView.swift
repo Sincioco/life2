@@ -269,4 +269,3 @@ extension Notification.Name {
     ActivitiesView()
         .modelContainer(previewContainer)
 }
-
