@@ -132,6 +132,7 @@ struct ActivitiesView: View {
                                 }
                             }
                         }
+                        .listRowSeparator(.hidden)
                         .contentShape(Rectangle())
                     }
                 }
@@ -308,11 +309,12 @@ struct ActivityRow: View {
             let stepX = geo.size.width / CGFloat(denom)
             let maxY: CGFloat = 1.0
             let height = geo.size.height
+            let isEmptySeries = !values.contains(1)
 
             ZStack(alignment: .bottomLeading) {
                 // Thin baseline along the x-axis
                 Rectangle()
-                    .fill(Color.secondary.opacity(0.35))
+                    .fill(.separator)
                     .frame(height: 1)
 
                 // Smooth line path across the month
@@ -349,7 +351,7 @@ struct ActivityRow: View {
                         }
                     }
                 }
-                .stroke(Color.green, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
+                .stroke(isEmptySeries ? Color(.separator) : Color.green, style: StrokeStyle(lineWidth: 1.5, lineCap: .round, lineJoin: .round))
             }
         }
     }
