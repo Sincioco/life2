@@ -657,7 +657,7 @@ private struct MonthlySummaryChart: View {
         Group {
             if !monthActivities.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Activities by Category")
+                    Text("Activity Count")
                         .font(.headline)
                         .padding(.top, 8)
 
