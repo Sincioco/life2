@@ -47,8 +47,8 @@ enum Recurrence: String, Codable, CaseIterable {
 
 @Model
 class Activity {
-    var name: String
-    var icon: String
+    @Attribute(.unique) var name: String
+    @Attribute(.unique) var icon: String
     var recurrence: Recurrence
     var maxCount: Int
     var color: ActivityColor
