@@ -267,6 +267,7 @@ struct AddActivityView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") { saveActivity() }
+                    .disabled(name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             }
             .onAppear {
@@ -323,6 +324,11 @@ struct AddActivityView: View {
 
     // Save a new Activity to SwiftData
     private func saveActivity() {
+        // Validate required name
+        guard !name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return
+        }
+
         // Enforce icon uniqueness at the Add level as a safety net,
         // in case an icon somehow slips through the picker filtering.
         if usedIconNames.contains(icon) {
