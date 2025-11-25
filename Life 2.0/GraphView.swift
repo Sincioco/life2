@@ -1,10 +1,10 @@
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
-//                                         Life 2.0 - Calendar View
+//                                         Life 2.0 - Graph View
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 // Programmed By:  Louiery R. Sincioco                                                     Version: 1.0
-// Programmed Date:  November 21, 2025                                                      For: iOS 26
+// Programmed Date:  November 25, 2025                                                      For: iOS 26
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
-// Purpose:  Calendar view of activities.
+// Purpose:  Graph view of activities.
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 import SwiftUI
 import SwiftData
@@ -19,7 +19,7 @@ private struct CategorySummary: Identifiable {
     let color: Color
 }
 
-struct CalendarView: View {
+struct GraphView: View {
     let year: Int
     let month: Int // 1...12
 
@@ -427,33 +427,22 @@ struct CalendarView: View {
 
                     ScrollView(.vertical) {
                         VStack(spacing: 0) {
-                            CalendarMonthGrid(
-                                cells: cells,
-                                dayCellHeight: dayCellHeight,
-                                isLandscape: isLandscape,
-                                calendar: calendar,
-                                selectedYear: selectedYear,
-                                selectedMonth: selectedMonth,
-                                dateForCurrentMonth: dateForCurrentMonth,
-                                iconsFor: iconsFor,
-                                uniqueIcons: uniqueIcons,
-                                colorForIcon: colorForIcon,
-                                onSelectDay: { date in
-                                    sheetDate = IdentifiableDate(date: date)
-                                }
+                            
+
+                            MonthlySummaryChart(
+                                monthActivities: monthlyActivityCounts(),
+                                colorForIcon: colorForIcon
                             )
                             .padding()
+                            .navigationTitle("Overview")
 
-//                            MonthlySummaryChart(
-//                                monthActivities: monthlyActivityCounts(),
-//                                colorForIcon: colorForIcon
-//                            )
-//                            .padding()
-//
-//                            MonthlyCategoryPieChart(
-//                                categorySummaries: monthlyCategorySummaries()
-//                            )
-//                            .padding([.horizontal, .bottom])
+                            
+                            MonthlyCategoryPieChart(
+                                categorySummaries: monthlyCategorySummaries()
+                            )
+                            .padding()
+                            .navigationTitle("Overview")
+                            
                         }
                         .frame(maxWidth: .infinity)
                     }
@@ -469,6 +458,7 @@ struct CalendarView: View {
             }
             .toolbar { calendarToolbar }
         }
+        .safeAreaPadding(.top, 20)
         .sheet(item: $sheetDate) { identifiable in
             let date = identifiable.date
             DayActivitySheet(
@@ -729,7 +719,8 @@ private struct MonthlySummaryChart: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Activity Count")
                         .font(.headline)
-                        .padding(.top, 8)
+                        //.padding(.top, 8)
+                        .padding()
 
                     Chart(monthActivities, id: \.icon) { item in
                         BarMark(
@@ -773,7 +764,8 @@ private struct MonthlyCategoryPieChart: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("Activity by Category")
                         .font(.headline)
-                        .padding(.top, 8)
+                        //.padding(.top, 8)
+                        .padding()
 
                     Chart(categorySummaries) { item in
                         SectorMark(

@@ -15,6 +15,9 @@ struct MainView: View {
     var body: some View {
         
         TabView {
+            Tab("Overview", systemImage: "chart.bar.xaxis.ascending") {
+                GraphView()
+            }
             Tab("Activities", systemImage: "list.bullet.rectangle") {
                 ActivitiesView()
             }
