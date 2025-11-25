@@ -23,22 +23,22 @@ struct GraphView: View {
     @State private var selectedYear: Int
     @State private var selectedMonth: Int
     @Query private var historyEntries: [ActivityHistory]
-
+    
     // Tapped selection state
     @State private var tappedBarIcon: String? = nil
     @State private var tappedPieCategory: String? = nil
     @State private var showBarAlert: Bool = false
     @State private var showPieAlert: Bool = false
-
+    
     init() {
         let now = Date()
         let cal = Calendar.current
         _selectedYear = State(initialValue: cal.component(.year, from: now))
         _selectedMonth = State(initialValue: cal.component(.month, from: now))
     }
-
+    
     // MARK: - Calendar helpers
-
+    
     private var calendar: Calendar {
         var cal = Calendar.current
         cal.locale = .current
@@ -46,36 +46,36 @@ struct GraphView: View {
         cal.firstWeekday = 1 // Sunday
         return cal
     }
-
+    
     private var monthStart: Date {
         calendar.date(from: DateComponents(year: selectedYear, month: selectedMonth, day: 1)) ?? Date()
     }
-
+    
     private var monthRange: Range<Date> {
         let start = calendar.startOfDay(for: monthStart)
         let next = calendar.date(byAdding: .month, value: 1, to: start) ?? start
         return start..<next
     }
-
+    
     private var historiesThisMonth: [ActivityHistory] {
         historyEntries.filter { history in
             history.dateCompleted >= monthRange.lowerBound &&
             history.dateCompleted < monthRange.upperBound
         }
     }
-
+    
     // MARK: - Data builders
-
+    
     // Bar chart: count per activity icon
     private func monthlyActivityCounts() -> [(icon: String, count: Int)] {
         var counts: [String: Int] = [:]
-
+        
         for history in historiesThisMonth {
             if let icon = history.activity?.icon {
                 counts[icon, default: 0] += 1
             }
         }
-
+        
         return counts
             .map { (icon: $0.key, count: $0.value) }
             .sorted { lhs, rhs in
@@ -83,7 +83,7 @@ struct GraphView: View {
                 return lhs.icon < rhs.icon
             }
     }
-
+    
     // Look up a color for a given SF Symbol icon from any activity that uses it
     private func colorForIcon(_ icon: String) -> Color {
         for history in historyEntries {
@@ -93,53 +93,53 @@ struct GraphView: View {
         }
         return .blue
     }
-
+    
     // Pie chart: count per category with color from dominant activity in that category
     private func monthlyCategorySummaries() -> [CategorySummary] {
         var totalsByCategory: [String: Int] = [:]
         var perActivityCounts: [String: [String: Int]] = [:]
         var colorByIcon: [String: Color] = [:]
-
+        
         for history in historiesThisMonth {
             guard let activity = history.activity else { continue }
             let category = activity.category
             let icon = activity.icon
             let color = activity.color.colorValue
-
+            
             totalsByCategory[category, default: 0] += 1
-
+            
             var perActivity = perActivityCounts[category] ?? [:]
             perActivity[icon, default: 0] += 1
             perActivityCounts[category] = perActivity
-
+            
             colorByIcon[icon] = color
         }
-
+        
         var result: [CategorySummary] = []
-
+        
         for (category, total) in totalsByCategory {
             guard let perActivity = perActivityCounts[category], !perActivity.isEmpty else {
                 continue
             }
-
+            
             // Icon with the highest count for this category in the selected month
             let dominant = perActivity.max { a, b in a.value < b.value }
             let dominantIcon = dominant?.key ?? perActivity.first!.key
             let color = colorByIcon[dominantIcon] ?? .blue
-
+            
             result.append(
                 CategorySummary(category: category, count: total, color: color)
             )
         }
-
+        
         return result.sorted { lhs, rhs in
             if lhs.count != rhs.count { return lhs.count > rhs.count }
             return lhs.category < rhs.category
         }
     }
-
+    
     // MARK: - Month navigation
-
+    
     private func goToPreviousMonth() {
         if selectedMonth == 1 {
             selectedMonth = 12
@@ -149,7 +149,7 @@ struct GraphView: View {
         }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
-
+    
     private func goToNextMonth() {
         if selectedMonth == 12 {
             selectedMonth = 1
@@ -159,21 +159,23 @@ struct GraphView: View {
         }
         UIImpactFeedbackGenerator(style: .light).impactOccurred()
     }
-
+    
     // MARK: - View
-
+    
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-
+                    
+                    // MARK: Bar Chart
                     // ———————————————— BAR CHART ————————————————
                     let monthCounts = monthlyActivityCounts()
                     if !monthCounts.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Activity Count")
                                 .font(.headline)
-
+                                .padding(.bottom, 8)
+                            
                             Chart(monthCounts, id: \.icon) { item in
                                 BarMark(
                                     x: .value("Activity", item.icon),
@@ -218,14 +220,16 @@ struct GraphView: View {
                         }
                         .padding()
                     }
-
+                    
+                    // MARK: Pie Chart
                     // ———————————————— PIE CHART ————————————————
                     let categoryData = monthlyCategorySummaries()
                     if !categoryData.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Activity by Category")
                                 .font(.headline)
-
+                                .padding(.bottom, 8)
+                            
                             Chart(categoryData) { item in
                                 SectorMark(
                                     angle: .value("Count", item.count)
@@ -233,20 +237,28 @@ struct GraphView: View {
                                 // Use a discrete style key so Swift Charts can generate a legend
                                 .foregroundStyle(by: .value("Category", item.category))
                                 .annotation(position: .overlay) {
-                                        if item.count > 0 {
+                                    if item.count > 0 {
+                                        VStack(spacing: 2) {
+                                            Text(item.category)
+                                                .font(.caption2)
+                                                .fontWeight(.semibold)
+                                            
                                             Text("\(item.count)")
                                                 .font(.caption2)
                                                 .fontWeight(.bold)
-                                                .foregroundStyle(.white) 
                                         }
+                                        .foregroundStyle(.white)
+                                        .multilineTextAlignment(.center)
                                     }
+                                }
                             }
                             // Map category → color (dominant activity color)
                             .chartForegroundStyleScale(
                                 domain: categoryData.map { $0.category },
                                 range: categoryData.map { $0.color }
                             )
-                            .chartLegend(position: .trailing)
+                            //.chartLegend(position: .trailing)
+                            .chartLegend(.hidden)
                             .frame(height: 240)
                             .chartOverlay { proxy in
                                 GeometryReader { geometry in
@@ -256,32 +268,32 @@ struct GraphView: View {
                                         .onTapGesture { location in
                                             guard let plotFrame = proxy.plotFrame else { return }
                                             let frame = geometry[plotFrame]
-
+                                            
                                             let center = CGPoint(x: frame.midX, y: frame.midY)
                                             let dx = location.x - center.x
                                             let dy = location.y - center.y
                                             let distance = sqrt(dx * dx + dy * dy)
-
+                                            
                                             let radius = min(frame.width, frame.height) / 2
                                             guard distance <= radius, radius > 0 else { return }
-
+                                            
                                             var angle = atan2(dy, dx) * 180 / .pi
                                             if angle < 0 { angle += 360 }
-
+                                            
                                             let total = categoryData.map { $0.count }.reduce(0, +)
                                             guard total > 0 else { return }
-
+                                            
                                             var startAngle: Double = 0
                                             for slice in categoryData {
                                                 let sweep = Double(slice.count) / Double(total) * 360
                                                 let endAngle = startAngle + sweep
-
+                                                
                                                 if angle >= startAngle && angle < endAngle {
                                                     tappedPieCategory = slice.category
                                                     showPieAlert = true
                                                     break
                                                 }
-
+                                                
                                                 startAngle = endAngle
                                             }
                                         }
@@ -310,9 +322,9 @@ struct GraphView: View {
             }
         }
     }
-
+    
     // MARK: - Toolbar
-
+    
     private var calendarToolbar: some ToolbarContent {
         Group {
             ToolbarItem(placement: .topBarLeading) {
@@ -377,7 +389,7 @@ struct GraphView: View {
             ActivityHistory.self,
             configurations: config
         )
-
+        
         return GraphView()
             .modelContainer(container)
     } catch {
