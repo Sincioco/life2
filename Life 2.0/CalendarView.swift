@@ -216,11 +216,15 @@ struct CalendarView: View {
             }
     }
 
-    // Category summaries for the pie chart
+    // Category summaries for the pie chart.
+    //  - Slice size (count) is based on THIS MONTH's total history per category.
+    //  - Slice color comes from the activity in that category with the MOST HISTORY
+    //    for the SELECTED YEAR & MONTH.
     private func monthlyCategorySummaries() -> [CategorySummary] {
-        var totalByCategory: [String: Int] = [:]
-        var activityCountsByCategory: [String: [String: Int]] = [:]
-        var colorByActivity: [String: Color] = [:]
+        // 1. Per-category totals and per-activity counts for the CURRENT month
+        var monthlyTotalByCategory: [String: Int] = [:]
+        var monthlyCountsByCategoryAndActivity: [String: [String: Int]] = [:]
+        var colorByActivityIcon: [String: Color] = [:]
 
         for entry in historyThisMonth {
             guard let activity = entry.activity else { continue }
@@ -228,31 +232,41 @@ struct CalendarView: View {
             let icon = activity.icon
             let color = activity.color.colorValue
 
-            totalByCategory[category, default: 0] += 1
+            // Total per category (determines slice size)
+            monthlyTotalByCategory[category, default: 0] += 1
 
-            var perActivity = activityCountsByCategory[category] ?? [:]
+            // Per-activity count within this category for the selected month
+            var perActivity = monthlyCountsByCategoryAndActivity[category] ?? [:]
             perActivity[icon, default: 0] += 1
-            activityCountsByCategory[category] = perActivity
+            monthlyCountsByCategoryAndActivity[category] = perActivity
 
-            colorByActivity[icon] = color
+            // Capture color for each activity icon
+            colorByActivityIcon[icon] = color
         }
 
         var result: [CategorySummary] = []
 
-        for (category, totalCount) in totalByCategory {
-            guard let perActivity = activityCountsByCategory[category], !perActivity.isEmpty else {
+        // 2. For each category this month, pick the activity with the highest
+        //    count (for this month) and use that activity's color.
+        for (category, monthlyCount) in monthlyTotalByCategory {
+            guard
+                let perActivity = monthlyCountsByCategoryAndActivity[category],
+                !perActivity.isEmpty
+            else {
                 continue
             }
 
-            // Find the activity with the highest count in this category
+            // Activity with most history in this category for the selected month
             let dominantEntry = perActivity.max { a, b in a.value < b.value }
             let dominantIcon = dominantEntry?.key ?? perActivity.first!.key
-            let color = colorByActivity[dominantIcon] ?? .blue
+            let color = colorByActivityIcon[dominantIcon] ?? .blue
 
-            result.append(CategorySummary(category: category, count: totalCount, color: color))
+            result.append(
+                CategorySummary(category: category, count: monthlyCount, color: color)
+            )
         }
 
-        // Sort by count descending, then category name
+        // Sort by monthly count descending, then category name
         return result.sorted { lhs, rhs in
             if lhs.count != rhs.count { return lhs.count > rhs.count }
             return lhs.category < rhs.category
@@ -757,7 +771,7 @@ private struct MonthlyCategoryPieChart: View {
         Group {
             if !categorySummaries.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Activity Count by Category")
+                    Text("Activity by Category")
                         .font(.headline)
                         .padding(.top, 8)
 
