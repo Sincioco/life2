@@ -232,6 +232,14 @@ struct GraphView: View {
                                 )
                                 // Use a discrete style key so Swift Charts can generate a legend
                                 .foregroundStyle(by: .value("Category", item.category))
+                                .annotation(position: .overlay) {
+                                        if item.count > 0 {
+                                            Text("\(item.count)")
+                                                .font(.caption2)
+                                                .fontWeight(.bold)
+                                                .foregroundStyle(.white) 
+                                        }
+                                    }
                             }
                             // Map category → color (dominant activity color)
                             .chartForegroundStyleScale(
