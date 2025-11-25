@@ -32,6 +32,10 @@ struct AddActivityView: View {
     @State private var recurrence: Recurrence = .weekly
     @State private var category: String = "Fitness"
     @State private var notes: String = ""
+    @State private var color: ActivityColor = .blue
+    @State private var isPresentingColorPicker: Bool = false
+    @State private var showIconInUseAlert: Bool = false
+
 
     // Focus management
     @FocusState private var isNameFocused: Bool
@@ -49,6 +53,69 @@ struct AddActivityView: View {
 
     /// Picks a default icon that is not currently used by any existing Activity, if possible.
     /// Falls back to the current `icon` value if all candidates are taken.
+
+    /// Returns a small list of recommended SF Symbols based on the selected category.
+    /// Filters out icons that are already used by other activities.
+    private func recommendedIcons(for category: String) -> [String] {
+        let base: [String]
+        switch category {
+        case "Fitness":
+            base = [
+                "figure.walk",
+                "figure.run",
+                "figure.strengthtraining.traditional",
+                "bicycle",
+                "flame.fill",
+                "heart.fill",
+                "sportscourt.fill",
+                "dumbbell.fill"
+            ]
+        case "Bills":
+            base = [
+                "creditcard",
+                "creditcard.fill",
+                "dollarsign.circle",
+                "dollarsign.circle.fill",
+                "list.bullet.rectangle"
+            ]
+        case "Learning":
+            base = [
+                "book",
+                "book.fill",
+                "graduationcap.fill",
+                "brain.head.profile"
+            ]
+        case "Maintenance":
+            base = [
+                "wrench.and.screwdriver.fill",
+                "gearshape.fill",
+                "hammer.fill"
+            ]
+        case "Work":
+            base = [
+                "briefcase.fill",
+                "laptopcomputer",
+                "calendar.badge.clock"
+            ]
+        case "Personal":
+            base = [
+                "person.fill",
+                "heart.text.square.fill",
+                "face.smiling"
+            ]
+        case "Others":
+            fallthrough
+        default:
+            base = [
+                "star.fill",
+                "sparkles",
+                "square.and.pencil",
+                "square.grid.2x2"
+            ]
+        }
+        return base.filter { !usedIconNames.contains($0) }
+    }
+
     private func pickDefaultIcon() -> String {
         // Small set of reasonable default candidates; the icon picker will still
         // enforce uniqueness for the full symbol list.
@@ -94,12 +161,64 @@ struct AddActivityView: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
-//                            Text(icon)
-//                                .font(.caption)
-//                                .foregroundStyle(.secondary)
-//                                .lineLimit(1)
-//                                .truncationMode(.middle)
+                            Text(icon)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                                .lineLimit(1)
+                                .truncationMode(.middle)
                         }
+                    }
+
+                    if !color.rawValue.isEmpty {
+                        HStack {
+                            Text("Color")
+                            Spacer()
+                            Circle()
+                                .fill(color.colorValue)
+                                .frame(width: 16, height: 16)
+                            Text(color.rawValue.capitalized)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            isPresentingColorPicker = true
+                        }
+                    }
+
+                    let suggestions = recommendedIcons(for: category)
+                    if !suggestions.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Recommended Icons")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 8) {
+                                    ForEach(suggestions, id: \.self) { suggestion in
+                                        Button {
+                                            icon = suggestion
+                                        } label: {
+                                            HStack(spacing: 4) {
+                                                Image(systemName: suggestion)
+                                                    .resizable()
+                                                    .scaledToFit()
+                                                    .frame(width: 16, height: 16)
+                                                Text(suggestion)
+                                                    .font(.caption2)
+                                                    .lineLimit(1)
+                                                    .truncationMode(.middle)
+                                            }
+                                            .padding(.horizontal, 8)
+                                            .padding(.vertical, 4)
+                                            .background(Color(.secondarySystemBackground))
+                                            .clipShape(RoundedRectangle(cornerRadius: 8))
+                                        }
+                                        .buttonStyle(.plain)
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.top, 4)
                     }
 
                     Picker("Category", selection: $category) {
@@ -162,11 +281,55 @@ struct AddActivityView: View {
                     IconPickerView(selectedIcon: $icon)
                 }
             }
+            .sheet(isPresented: $isPresentingColorPicker) {
+                NavigationStack {
+                    VStack(alignment: .leading) {
+                        Text("Choose Color")
+                            .font(.headline)
+                            .padding(.bottom, 8)
+
+                        ScrollView {
+                            LazyVGrid(columns: [GridItem(.adaptive(minimum: 60), spacing: 16)], spacing: 16) {
+                                ForEach(ActivityColor.allCases, id: \.self) { colorOption in
+                                    Button {
+                                        color = colorOption
+                                        isPresentingColorPicker = false
+                                    } label: {
+                                        VStack {
+                                            Circle()
+                                                .fill(colorOption.colorValue)
+                                                .frame(width: 32, height: 32)
+                                            Text(colorOption.rawValue.capitalized)
+                                                .font(.caption2)
+                                                .multilineTextAlignment(.center)
+                                        }
+                                        .padding(4)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+                    }
+                    .padding()
+                }
+            }
+        }
+        .alert("Icon already in use", isPresented: $showIconInUseAlert) {
+            Button("OK", role: .cancel) { }
+        } message: {
+            Text("This icon is already used by another activity. Please choose a different icon.")
         }
     }
 
     // Save a new Activity to SwiftData
     private func saveActivity() {
+        // Enforce icon uniqueness at the Add level as a safety net,
+        // in case an icon somehow slips through the picker filtering.
+        if usedIconNames.contains(icon) {
+            showIconInUseAlert = true
+            return
+        }
+
         let now = Date()
         let newActivity = Activity(
             name: name,
@@ -174,6 +337,7 @@ struct AddActivityView: View {
             recurrence: recurrence,
             category: category,
             notes: notes,
+            color: color,
             maxCount: maxCount,
             dateCreated: now,
             dateModified: now
