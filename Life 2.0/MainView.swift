@@ -15,14 +15,14 @@ struct MainView: View {
     var body: some View {
         
         TabView {
-            Tab("Overview", systemImage: "chart.bar.xaxis.ascending") {
-                GraphView()
-            }
             Tab("Activities", systemImage: "list.bullet.rectangle") {
                 ActivitiesView()
             }
             Tab("Calendar", systemImage: "calendar") {
                 CalendarView()
+            }
+            Tab("Overview", systemImage: "chart.bar.xaxis.ascending") {
+                GraphView()
             }
             Tab("History", systemImage: "line.3.horizontal") {
                 ActivityHistoryView()

@@ -226,7 +226,7 @@ struct GraphView: View {
                     let categoryData = monthlyCategorySummaries()
                     if !categoryData.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Activity by Category")
+                            Text("Activity Count by Category")
                                 .font(.headline)
                                 .padding(.bottom, 8)
                             
@@ -301,6 +301,14 @@ struct GraphView: View {
                             }
                         }
                         .padding()
+                    }
+                    
+                    if (monthCounts.isEmpty && categoryData.isEmpty) {
+                        ContentUnavailableView(
+                            "No Activity History",
+                            systemImage: "clock.arrow.circlepath",
+                            description: Text("Completed activities are needed to render graphs.")
+                        )
                     }
                 }
                 .padding(.top)

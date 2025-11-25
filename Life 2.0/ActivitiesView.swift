@@ -85,6 +85,50 @@ struct ActivitiesView: View {
     
     var body: some View {
         NavigationStack {
+            
+            if Activities.isEmpty && showEmptyPrompt {
+                VStack(spacing: 0) {
+                    ContentUnavailableView(
+                        "No Activities Created",
+                        systemImage: "text.pad.header.badge.plus",
+                        description: Text("Would you like to add activites by tapping the + button above or should I create starter activities for you to get started?")
+                    )
+                    Button("Create Starter Activities") {
+                        withAnimation {
+                            Activity.generateStarterActivities(in: modelContext)
+                            showEmptyPrompt = false
+                        }
+                    }
+                    .buttonStyle(.borderedProminent)
+                    .keyboardShortcut(.defaultAction)
+                    Spacer()
+//                            Text("No Activies Found")
+//                                .font(.title3)
+//                                .fontWeight(.semibold)
+//                            Text("Create sample activities for you to start with?")
+//                                .multilineTextAlignment(.center)
+//                                .font(.body)
+//                                .foregroundStyle(.secondary)
+//                                .padding(.horizontal, 24)
+//                            HStack(spacing: 16) {
+//                                Button("Later") {
+//                                    withAnimation { showEmptyPrompt = false }
+//                                }
+//                                .buttonStyle(.bordered)
+//                                Button("Yes") {
+//                                    withAnimation {
+//                                        Activity.generateStarterActivities(in: modelContext)
+//                                        showEmptyPrompt = false
+//                                    }
+//                                }
+//                                .buttonStyle(.borderedProminent)
+//                                .keyboardShortcut(.defaultAction)
+//                            }
+//                            .padding(.top, 4)
+                 
+                }
+                //.frame(maxWidth: .infinity, maxHeight: .infinity)
+            }
             Group {
                 List {
                     ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
@@ -154,36 +198,6 @@ struct ActivitiesView: View {
                     }
                 } message: { _ in
                     Text("This action cannot be undone.")
-                }
-                .overlay {
-                    if Activities.isEmpty && showEmptyPrompt {
-                        VStack(spacing: 16) {
-                            Text("No Activies Found")
-                                .font(.title3)
-                                .fontWeight(.semibold)
-                            Text("Create sample activities for you to start with?")
-                                .multilineTextAlignment(.center)
-                                .font(.body)
-                                .foregroundStyle(.secondary)
-                                .padding(.horizontal, 24)
-                            HStack(spacing: 16) {
-                                Button("Later") {
-                                    withAnimation { showEmptyPrompt = false }
-                                }
-                                .buttonStyle(.bordered)
-                                Button("Yes") {
-                                    withAnimation {
-                                        Activity.generateStarterActivities(in: modelContext)
-                                        showEmptyPrompt = false
-                                    }
-                                }
-                                .buttonStyle(.borderedProminent)
-                                .keyboardShortcut(.defaultAction)
-                            }
-                            .padding(.top, 4)
-                        }
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
                 }
                 .onChange(of: Activities.count) { oldValue, newValue in
                     if newValue == 0 { showEmptyPrompt = true }
