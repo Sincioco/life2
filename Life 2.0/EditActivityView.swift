@@ -162,7 +162,7 @@ struct EditActivityView: View {
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 20, height: 20)
-                                    .foregroundStyle(.blue)
+                                    .foregroundStyle(activity.color.colorValue)
                                     .padding(.top, 2)
                                 VStack(alignment: .leading, spacing: 2) {
                                     Text(history.dateCompleted, style: .date)

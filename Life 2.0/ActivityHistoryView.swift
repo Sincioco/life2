@@ -180,7 +180,7 @@ private struct HistoryRow: View {
                 .resizable()
                 .scaledToFit()
                 .frame(width: 28, height: 28)
-                .foregroundStyle(.blue)
+                .foregroundStyle(history.activity?.color.colorValue ?? .gray)
                 .padding(.top, 4)
             
             VStack(alignment: .leading, spacing: 4) {

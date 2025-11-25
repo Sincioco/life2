@@ -70,7 +70,7 @@ struct CalendarDayCell: View {
                         Image(systemName: icons[1])
                             .resizable()
                             .scaledToFit()
-                            .frame(width: side * 0.6, height: side * 0.5)
+                            .frame(width: side * 0.4, height: side * 0.5)
                             .foregroundColor(colorForIcon(icons[1]))
                             .border(cellDebug == true ? Color.red : Color.clear)
                             .opacity(adjacentCell ? 0.5 : 1.0)
