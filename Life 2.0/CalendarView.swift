@@ -11,6 +11,14 @@ import SwiftData
 import UIKit
 import Charts
 
+// Summary model for category-based pie chart
+private struct CategorySummary: Identifiable {
+    let id = UUID()
+    let category: String
+    let count: Int
+    let color: Color
+}
+
 struct CalendarView: View {
     let year: Int
     let month: Int // 1...12
@@ -208,6 +216,49 @@ struct CalendarView: View {
             }
     }
 
+    // Category summaries for the pie chart
+    private func monthlyCategorySummaries() -> [CategorySummary] {
+        var totalByCategory: [String: Int] = [:]
+        var activityCountsByCategory: [String: [String: Int]] = [:]
+        var colorByActivity: [String: Color] = [:]
+
+        for entry in historyThisMonth {
+            guard let activity = entry.activity else { continue }
+            let category = activity.category
+            let icon = activity.icon
+            let color = activity.color.colorValue
+
+            totalByCategory[category, default: 0] += 1
+
+            var perActivity = activityCountsByCategory[category] ?? [:]
+            perActivity[icon, default: 0] += 1
+            activityCountsByCategory[category] = perActivity
+
+            colorByActivity[icon] = color
+        }
+
+        var result: [CategorySummary] = []
+
+        for (category, totalCount) in totalByCategory {
+            guard let perActivity = activityCountsByCategory[category], !perActivity.isEmpty else {
+                continue
+            }
+
+            // Find the activity with the highest count in this category
+            let dominantEntry = perActivity.max { a, b in a.value < b.value }
+            let dominantIcon = dominantEntry?.key ?? perActivity.first!.key
+            let color = colorByActivity[dominantIcon] ?? .blue
+
+            result.append(CategorySummary(category: category, count: totalCount, color: color))
+        }
+
+        // Sort by count descending, then category name
+        return result.sorted { lhs, rhs in
+            if lhs.count != rhs.count { return lhs.count > rhs.count }
+            return lhs.category < rhs.category
+        }
+    }
+
     private func dateForCurrentMonth(day: Int) -> Date {
         var comps = DateComponents()
         comps.year = selectedYear
@@ -304,10 +355,10 @@ struct CalendarView: View {
                         Spacer(minLength: 0)
 
                         VStack(alignment: .center, spacing: vSpacing) {
-                            ForEach(Array(rows.enumerated()), id: \ .offset) { _, row in
+                            ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                                 HStack(spacing: hSpacing) {
                                     Spacer(minLength: 0)
-                                    ForEach(row, id: \ .self) { iconName in
+                                    ForEach(row, id: \.self) { iconName in
                                         Image(systemName: iconName)
                                             .resizable()
                                             .aspectRatio(contentMode: .fit)
@@ -329,9 +380,9 @@ struct CalendarView: View {
                 // 7+ icons: scrollable grid, using the original layout.
                 ScrollView(.vertical, showsIndicators: true) {
                     VStack(alignment: .leading, spacing: 2) {
-                        ForEach(Array(rows.enumerated()), id: \ .offset) { _, row in
+                        ForEach(Array(rows.enumerated()), id: \.offset) { _, row in
                             HStack(spacing: 2) {
-                                ForEach(row, id: \ .self) { iconName in
+                                ForEach(row, id: \.self) { iconName in
                                     Image(systemName: iconName)
                                         .resizable()
                                         .aspectRatio(contentMode: .fit)
@@ -384,6 +435,11 @@ struct CalendarView: View {
                                 colorForIcon: colorForIcon
                             )
                             .padding()
+
+                            MonthlyCategoryPieChart(
+                                categorySummaries: monthlyCategorySummaries()
+                            )
+                            .padding([.horizontal, .bottom])
                         }
                         .frame(maxWidth: .infinity)
                     }
@@ -687,6 +743,36 @@ private struct MonthlySummaryChart: View {
                         }
                     }
                     .frame(height: 180)
+                }
+            }
+        }
+    }
+}
+
+// Pie chart for activity count by category
+private struct MonthlyCategoryPieChart: View {
+    let categorySummaries: [CategorySummary]
+
+    var body: some View {
+        Group {
+            if !categorySummaries.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Activity Count by Category")
+                        .font(.headline)
+                        .padding(.top, 8)
+
+                    Chart(categorySummaries) { item in
+                        SectorMark(
+                            angle: .value("Count", item.count)
+                        )
+                        .foregroundStyle(by: .value("Category", item.category))
+                    }
+                    .chartForegroundStyleScale(
+                        domain: categorySummaries.map { $0.category },
+                        range: categorySummaries.map { $0.color }
+                    )
+                    .chartLegend(position: .trailing)
+                    .frame(height: 220)
                 }
             }
         }
