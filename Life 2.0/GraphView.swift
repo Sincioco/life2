@@ -23,7 +23,12 @@ struct GraphView: View {
     @State private var selectedYear: Int
     @State private var selectedMonth: Int
     @Query private var historyEntries: [ActivityHistory]
+    
+    @State private var selectedActivityCount: String?
+    @State private var selectedCategoryRawCount: Int?
+    @State private var selectedCategoryName: String?
 
+    
     init() {
         let now = Date()
         let cal = Calendar.current
@@ -164,6 +169,7 @@ struct GraphView: View {
             ScrollView {
                 VStack(spacing: 24) {
 
+                    // MARK: Bar Chart
                     // ———————————————— BAR CHART ————————————————
                     let monthCounts = monthlyActivityCounts()
                     if !monthCounts.isEmpty {
@@ -196,11 +202,17 @@ struct GraphView: View {
                                     }
                                 }
                             }
+                            
+                            .chartXSelection(value: $selectedActivityCount)
+                            .onChange(of: selectedActivityCount) { oldValue, newValue in
+                                print(newValue ?? "No Value")
+                            }
                             .frame(height: 200)
                         }
                         .padding()
                     }
 
+                    // MARK: Pie Chart
                     // ———————————————— PIE CHART ————————————————
                     let categoryData = monthlyCategorySummaries()
                     if !categoryData.isEmpty {
@@ -218,6 +230,24 @@ struct GraphView: View {
                                 domain: categoryData.map { $0.category },
                                 range: categoryData.map { $0.color }
                             )
+                            
+                            .chartAngleSelection(value: $selectedCategoryRawCount)
+                            .onChange(of: selectedCategoryRawCount) { oldValue, newValue in
+                                guard let newValue else {
+                                    selectedCategoryName = nil
+                                    return
+                                }
+                                // Map raw count back to a category based on cumulative totals
+                                var running = 0
+                                for item in categoryData {
+                                    running += item.count
+                                    if newValue <= running {
+                                        selectedCategoryName = item.category
+                                        break
+                                    }
+                                }
+                                print("Selected category: \(selectedCategoryName ?? "?") (raw: \(newValue))")
+                            }
                             .chartLegend(position: .trailing)
                             .frame(height: 240)
                         }
