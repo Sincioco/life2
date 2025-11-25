@@ -27,6 +27,9 @@ struct MainView: View {
             Tab("History", systemImage: "line.3.horizontal") {
                 ActivityHistoryView()
             }
+            Tab("Pie", systemImage: "line.3.horizontal") {
+                SimplePieChartView()
+            }
             Tab("Options", systemImage: "gear") {
                 OptionsView()
             }
