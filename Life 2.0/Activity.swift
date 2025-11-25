@@ -20,30 +20,30 @@ enum Recurrence: String, Codable, CaseIterable {
 }
 
 // Pure SwiftUI System Colors Only
-    enum ActivityColor: String, Codable, CaseIterable {
-        case red, orange, yellow, green, mint, teal, cyan, blue
-        case indigo, purple, pink, brown, gray, black, white
-
-        var colorValue: Color {
-            switch self {
-            case .red: return .red
-            case .orange: return .orange
-            case .yellow: return .yellow
-            case .green: return .green
-            case .mint: return .mint
-            case .teal: return .teal
-            case .cyan: return .cyan
-            case .blue: return .blue
-            case .indigo: return .indigo
-            case .purple: return .purple
-            case .pink: return .pink
-            case .brown: return .brown
-            case .gray: return .gray
-            case .black: return .black
-            case .white: return .white
-            }
+enum ActivityColor: String, Codable, CaseIterable {
+    case red, orange, yellow, green, mint, teal, cyan, blue
+    case indigo, purple, pink, brown, gray, black, white
+    
+    var colorValue: Color {
+        switch self {
+        case .red: return .red
+        case .orange: return .orange
+        case .yellow: return .yellow
+        case .green: return .green
+        case .mint: return .mint
+        case .teal: return .teal
+        case .cyan: return .cyan
+        case .blue: return .blue
+        case .indigo: return .indigo
+        case .purple: return .purple
+        case .pink: return .pink
+        case .brown: return .brown
+        case .gray: return .gray
+        case .black: return .black
+        case .white: return .white
         }
     }
+}
 
 @Model
 class Activity {
@@ -56,10 +56,10 @@ class Activity {
     var notes: String
     var dateCreated: Date
     var dateModified: Date
-
+    
     @Relationship(deleteRule: .cascade, inverse: \ActivityHistory.activity)
     var histories: [ActivityHistory] = []
-
+    
     /// Default max count mapping for a recurrence
     static func defaultMaxCount(for recurrence: Recurrence) -> Int {
         switch recurrence {
@@ -70,18 +70,18 @@ class Activity {
         case .none:    return 0
         }
     }
-
+    
     /// Count is now derived from history within the recurrence window
     var count: Int {
         historiesForCurrentRecurrence().count
     }
-
+    
     /// Progress (0–100)
     var progress: Double {
         guard maxCount > 0 else { return 0 }
         return min(Double(count) / Double(maxCount), 1.0) * 100.0
     }
-
+    
     init(
         name: String,
         icon: String,
@@ -106,41 +106,41 @@ class Activity {
 }
 
 extension Activity {
-
+    
     /// Filters history based on recurrence window
     func historiesForCurrentRecurrence(
         relativeTo now: Date = Date(),
         calendar baseCalendar: Calendar = .current
     ) -> [ActivityHistory] {
-
+        
         var calendar = baseCalendar
         let all = histories
-
+        
         switch recurrence {
         case .daily:
             return all.filter { calendar.isDate($0.dateCompleted, inSameDayAs: now) }
-
+            
         case .weekly:
             calendar.firstWeekday = 2
             guard let interval = calendar.dateInterval(of: .weekOfYear, for: now)
             else { return [] }
             return all.filter { interval.contains($0.dateCompleted) }
-
+            
         case .monthly:
             guard let interval = calendar.dateInterval(of: .month, for: now)
             else { return [] }
             return all.filter { interval.contains($0.dateCompleted) }
-
+            
         case .yearly:
             guard let interval = calendar.dateInterval(of: .year, for: now)
             else { return [] }
             return all.filter { interval.contains($0.dateCompleted) }
-
+            
         case .none:
             return all
         }
     }
-
+    
     /// Increment by one – directly inserts a history entry
     func increment(in context: ModelContext) {
         let now = Date()
@@ -148,7 +148,7 @@ extension Activity {
         context.insert(entry)
         self.dateModified = now
     }
-
+    
     /// Increment multiple times
     func increment(by amount: Int, in context: ModelContext) {
         guard amount > 0 else { return }
@@ -159,24 +159,24 @@ extension Activity {
         }
         self.dateModified = now
     }
-
+    
     /// Adjust history to match a target count
     func setCount(_ newValue: Int, in context: ModelContext) {
         let target = max(0, newValue)
         let current = count
-
+        
         if target > current {
             increment(by: target - current, in: context)
         } else if target < current {
             let diff = current - target
             let window = historiesForCurrentRecurrence()
                 .sorted { $0.dateCompleted > $1.dateCompleted }
-
+            
             for entry in window.prefix(diff) {
                 context.delete(entry)
             }
         }
-
+        
         self.dateModified = Date()
     }
     
@@ -308,22 +308,22 @@ extension Activity {
     }
     
     static func generateRandomHistoricalActivities(in context: ModelContext) {
-
+        
         let calendar = Calendar.current
         let now = Date()
-
+        
         // Start date: two months ago (start of that day), up to and including today.
         guard let twoMonthsAgo = calendar.date(byAdding: .month, value: -2, to: now) else {
             return
         }
-
+        
         let startDate = calendar.startOfDay(for: twoMonthsAgo)
         let today = calendar.startOfDay(for: now)
-
+        
         // Number of days between startDate and today (inclusive)
         let daysDiff = calendar.dateComponents([.day], from: startDate, to: today).day ?? 0
         if daysDiff < 0 { return }
-
+        
         // Fetch all activities from the model context
         let activities: [Activity]
         do {
@@ -332,12 +332,12 @@ extension Activity {
             print("Error fetching activities for history generation: \(error)")
             return
         }
-
+        
         // For each existing activity, create random history entries between
         // two months ago and today inclusive. Ensure that no single day
         // has the same activity more than once.
         for activity in activities {
-
+            
             // Build a set of existing days for this activity within the range
             var existingDays = Set<Date>()
             for history in activity.histories {
@@ -346,33 +346,33 @@ extension Activity {
                     existingDays.insert(day)
                 }
             }
-
+            
             // Iterate each day from startDate up to today
             for dayOffset in 0...daysDiff {
                 guard let baseDate = calendar.date(byAdding: .day, value: dayOffset, to: startDate) else {
                     continue
                 }
-
+                
                 let dayKey = calendar.startOfDay(for: baseDate)
                 // Skip if this activity already has an entry on this day
                 if existingDays.contains(dayKey) { continue }
-
+                
                 // Randomly decide whether this activity occurs on this day (0 or 1 time)
                 let shouldCreateEntry = Bool.random()
                 if !shouldCreateEntry { continue }
-
+                
                 // Random time during that day (e.g. 0–23h, 0–59m, 0–59s)
                 let hour = Int.random(in: 0..<24)
                 let minute = Int.random(in: 0..<60)
                 let second = Int.random(in: 0..<60)
-
+                
                 let randomDate = calendar.date(
                     bySettingHour: hour,
                     minute: minute,
                     second: second,
                     of: baseDate
                 ) ?? baseDate
-
+                
                 let history = ActivityHistory(
                     activity: activity,
                     dateCompleted: randomDate
@@ -381,14 +381,25 @@ extension Activity {
                 existingDays.insert(dayKey)
             }
         }
-
+        
         do {
             try context.save()
         } catch {
             print("Error saving random historical activities: \(error)")
         }
-
+        
         // Notify other views (calendar, lists, etc.) that data changed
         NotificationCenter.default.post(name: .activityDidChange, object: nil)
+        
+        
+        
+    }
+    
+    /// Convenience wrapper to generate random histories using the same
+    /// rules as `generateRandomHistoricalActivities`:
+    /// - Between two months ago and today (inclusive)
+    /// - At most one history per activity per day
+    static func generateRandomHistories(in context: ModelContext) {
+        generateRandomHistoricalActivities(in: context)
     }
 }
