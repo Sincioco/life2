@@ -308,21 +308,22 @@ extension Activity {
     }
     
     static func generateRandomHistoricalActivities(in context: ModelContext) {
-        
+
         let calendar = Calendar.current
         let now = Date()
-        
-        // Start of the current month (e.g. 2025-11-01 00:00)
-        guard let startOfMonth = calendar.date(
-            from: calendar.dateComponents([.year, .month], from: now)
-        ) else {
+
+        // Start date: two months ago (start of that day), up to and including today.
+        guard let twoMonthsAgo = calendar.date(byAdding: .month, value: -2, to: now) else {
             return
         }
-        
-        // Number of days between start of month and today (inclusive)
-        let daysDiff = calendar.dateComponents([.day], from: startOfMonth, to: now).day ?? 0
+
+        let startDate = calendar.startOfDay(for: twoMonthsAgo)
+        let today = calendar.startOfDay(for: now)
+
+        // Number of days between startDate and today (inclusive)
+        let daysDiff = calendar.dateComponents([.day], from: startDate, to: today).day ?? 0
         if daysDiff < 0 { return }
-        
+
         // Fetch all activities from the model context
         let activities: [Activity]
         do {
@@ -331,51 +332,63 @@ extension Activity {
             print("Error fetching activities for history generation: \(error)")
             return
         }
-        
-        // For each existing activity, create random history entries within THIS month only
+
+        // For each existing activity, create random history entries between
+        // two months ago and today inclusive. Ensure that no single day
+        // has the same activity more than once.
         for activity in activities {
-            
-            // Iterate each day from start of month up to today
-            for dayOffset in 0...daysDiff {
-                guard let baseDate = calendar.date(byAdding: .day, value: dayOffset, to: startOfMonth) else {
-                    continue
-                }
-                
-                // Random number of completions for this activity on this day.
-                // 0 means none; 1–3 ensures some days have multiple entries.
-                let entriesToday = Int.random(in: 0...3)
-                if entriesToday == 0 { continue }
-                
-                for _ in 0..<entriesToday {
-                    // Random time during that day (0–23h, 0–59m, 0–59s)
-                    let hour = Int.random(in: 0..<24)
-                    let minute = Int.random(in: 0..<60)
-                    let second = Int.random(in: 0..<60)
-                    
-                    let randomDate = calendar.date(
-                        bySettingHour: hour,
-                        minute: minute,
-                        second: second,
-                        of: baseDate
-                    ) ?? baseDate
-                    
-                    let history = ActivityHistory(
-                        activity: activity,
-                        dateCompleted: randomDate
-                    )
-                    context.insert(history)
+
+            // Build a set of existing days for this activity within the range
+            var existingDays = Set<Date>()
+            for history in activity.histories {
+                let day = calendar.startOfDay(for: history.dateCompleted)
+                if day >= startDate && day <= today {
+                    existingDays.insert(day)
                 }
             }
+
+            // Iterate each day from startDate up to today
+            for dayOffset in 0...daysDiff {
+                guard let baseDate = calendar.date(byAdding: .day, value: dayOffset, to: startDate) else {
+                    continue
+                }
+
+                let dayKey = calendar.startOfDay(for: baseDate)
+                // Skip if this activity already has an entry on this day
+                if existingDays.contains(dayKey) { continue }
+
+                // Randomly decide whether this activity occurs on this day (0 or 1 time)
+                let shouldCreateEntry = Bool.random()
+                if !shouldCreateEntry { continue }
+
+                // Random time during that day (e.g. 0–23h, 0–59m, 0–59s)
+                let hour = Int.random(in: 0..<24)
+                let minute = Int.random(in: 0..<60)
+                let second = Int.random(in: 0..<60)
+
+                let randomDate = calendar.date(
+                    bySettingHour: hour,
+                    minute: minute,
+                    second: second,
+                    of: baseDate
+                ) ?? baseDate
+
+                let history = ActivityHistory(
+                    activity: activity,
+                    dateCompleted: randomDate
+                )
+                context.insert(history)
+                existingDays.insert(dayKey)
+            }
         }
-        
+
         do {
             try context.save()
         } catch {
             print("Error saving random historical activities: \(error)")
         }
-        
+
         // Notify other views (calendar, lists, etc.) that data changed
         NotificationCenter.default.post(name: .activityDidChange, object: nil)
     }
 }
-
