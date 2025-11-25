@@ -6,6 +6,8 @@ struct AddActivityView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
 
+    @Query private var activities: [Activity]
+
     // Available categories
     private let categories = [
         "Bills",
@@ -41,6 +43,40 @@ struct AddActivityView: View {
         return max(0, ratio) * 100
     }
 
+    private var usedIconNames: Set<String> {
+        Set(activities.map { $0.icon })
+    }
+
+    /// Picks a default icon that is not currently used by any existing Activity, if possible.
+    /// Falls back to the current `icon` value if all candidates are taken.
+    private func pickDefaultIcon() -> String {
+        // Small set of reasonable default candidates; the icon picker will still
+        // enforce uniqueness for the full symbol list.
+        let candidates = [
+            "figure.walk",
+            "figure.run",
+            "figure.strengthtraining.traditional",
+            "bicycle",
+            "flame.fill",
+            "heart.fill",
+            "star.fill",
+            "house.fill",
+            "pencil",
+            "book",
+            "briefcase.fill"
+        ]
+
+        for candidate in candidates {
+            if !usedIconNames.contains(candidate) {
+                return candidate
+            }
+        }
+
+        // If everything above is already used, keep the existing default.
+        return icon
+    }
+
+
     var body: some View {
         NavigationStack {
             Form {
@@ -58,11 +94,11 @@ struct AddActivityView: View {
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
-                            Text(icon)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .lineLimit(1)
-                                .truncationMode(.middle)
+//                            Text(icon)
+//                                .font(.caption)
+//                                .foregroundStyle(.secondary)
+//                                .lineLimit(1)
+//                                .truncationMode(.middle)
                         }
                     }
 
@@ -115,6 +151,8 @@ struct AddActivityView: View {
                 }
             }
             .onAppear {
+                // Choose a default icon that has not yet been used by any Activity, if possible
+                icon = pickDefaultIcon()
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     isNameFocused = true
                 }
