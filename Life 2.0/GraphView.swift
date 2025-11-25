@@ -23,23 +23,7 @@ struct GraphView: View {
     @State private var selectedYear: Int
     @State private var selectedMonth: Int
     @Query private var historyEntries: [ActivityHistory]
-    
-    @State private var selectedSlice: PieSlice? = nil
-    @State private var showAlert = false
 
-//    private var data: [PieSlice] = [
-//        PieSlice(label: "A", value: 30, color: .red),
-//        PieSlice(label: "B", value: 40, color: .blue),
-//        PieSlice(label: "C", value: 20, color: .green),
-//        PieSlice(label: "D", value: 10, color: .orange)
-//    ]
-    private var categoryData = [
-        CategorySummary(category: "Category 1", count: 10, color: .red),
-        CategorySummary(category: "Category 2", count: 20, color: .blue),
-        CategorySummary(category: "Category 3", count: 30, color: .green),
-        CategorySummary(category: "Category 4", count: 40, color: .orange)
-    ]
-    
     init() {
         let now = Date()
         let cal = Calendar.current
@@ -219,7 +203,6 @@ struct GraphView: View {
 
                     // ———————————————— PIE CHART ————————————————
                     let categoryData = monthlyCategorySummaries()
-                    
                     if !categoryData.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Activity by Category")
@@ -237,23 +220,6 @@ struct GraphView: View {
                             )
                             .chartLegend(position: .trailing)
                             .frame(height: 240)
-                            .chartOverlay { proxy in
-                                GeometryReader { geo in
-                                    Rectangle()
-                                        .fill(Color.clear)
-                                        .contentShape(Rectangle())
-                                        .gesture(
-                                            DragGesture(minimumDistance: 0)
-                                                .onEnded { value in
-                                                    handleTap(
-                                                        at: value.location,
-                                                        chartProxy: proxy,
-                                                        geometry: geo
-                                                    )
-                                                }
-                                        )
-                                }
-                            }
                         }
                         .padding()
                     }
@@ -262,20 +228,9 @@ struct GraphView: View {
             }
             .navigationTitle("Overview")
             .toolbar { calendarToolbar }
-            .alert("Category Details",
-                   isPresented: $showAlert,
-                   presenting: selectedSlice) { slice in
-                Button("OK", role: .cancel) {
-                    selectedSlice = nil
-                }
-            } message: { slice in
-                Text("\(slice.label): \(Int(slice.value))")
-            }
         }
-        
     }
 
-    
     // MARK: - Toolbar
 
     private var calendarToolbar: some ToolbarContent {
@@ -328,55 +283,6 @@ struct GraphView: View {
                 }
                 .accessibilityLabel("Next Month")
             }
-        }
-    }
-    
-    // MARK: - Tap handling
-
-    private func handleTap(
-        at location: CGPoint,
-        chartProxy: ChartProxy,
-        geometry: GeometryProxy
-    ) {
-        // Get the plot area frame in the view’s coordinates
-        let plotFrame = geometry[chartProxy.plotAreaFrame]
-
-        // Convert tap location to coordinates relative to center of the pie
-        let center = CGPoint(x: plotFrame.midX, y: plotFrame.midY)
-        let dx = location.x - center.x
-        let dy = location.y - center.y
-
-        let distance = sqrt(dx * dx + dy * dy)
-
-        // If tap is outside the pie radius, ignore
-        let radius = min(plotFrame.width, plotFrame.height) / 2.0
-        guard distance <= radius, radius > 0 else { return }
-
-        // Compute angle (0..360), 0 at positive X axis, increasing counter-clockwise
-        var angle = atan2(dy, dx) * 180 / .pi
-        if angle < 0 { angle += 360 }
-
-        // Find which slice this angle falls into
-        let total = categoryData.map { $0.count }.reduce(0, +)
-        guard total > 0 else { return }
-
-        var startAngle: Double = 0
-
-        for slice in categoryData {
-            let sweep = slice.count / total * 360
-            let endAngle = (Double(slice.count) / Double(total)) * 360.0
-
-            if angle >= startAngle && angle < endAngle {
-                selectedSlice = PieSlice(
-                        label: slice.category,
-                        value: Double(slice.count),
-                        color: slice.color
-                    )
-                showAlert = true
-                return
-            }
-
-            startAngle = endAngle
         }
     }
 }
