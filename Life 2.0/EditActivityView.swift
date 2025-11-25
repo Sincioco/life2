@@ -225,16 +225,18 @@ struct EditActivityView: View {
         }
         .navigationTitle("Edit Activity")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
+                .toolbar {
             if selectedTab == .activity {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
+                        if activity.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty { return }
                         didSave = true
                         activity.dateModified = Date()
                         try? modelContext.save()
                         NotificationCenter.default.post(name: .activityDidChange, object: nil)
                         dismiss()
                     }
+                    .disabled(activity.name.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
             } else if selectedTab == .history {
                 ToolbarItem(placement: .topBarTrailing) {
@@ -248,7 +250,8 @@ struct EditActivityView: View {
                 }
             }
         }
-        .onAppear {
+
+.onAppear {
             originalName = activity.name
             originalIcon = activity.icon
             originalCategory = activity.category
