@@ -10,6 +10,7 @@
 import Foundation
 import SwiftUI
 import UIKit
+import SwiftData
 
 // MARK: - Models
 
@@ -65,6 +66,21 @@ struct IconPickerView: View {
     
     // Persist recent icon names (comma-separated)
     @AppStorage("recentIconNames") private var recentIconNamesStorage: String = ""
+
+    @Query private var activities: [Activity]
+    
+    /// All icon names currently used by existing activities
+    private var usedIconNames: Set<String> {
+        Set(activities.map { $0.icon })
+    }
+    
+    /// Icons that should be excluded in the picker (used by *other* activities)
+    private var excludedIconNames: Set<String> {
+        var set = usedIconNames
+        set.remove(selectedIcon)   // allow the currently selected icon, so editing an activity still shows its icon
+        return set
+    }
+
     
     // MARK: Category symbol lists (~30 each)
 
@@ -409,8 +425,10 @@ struct IconPickerView: View {
     
     private func loadAllSymbols() {
         // Only keep symbols that are actually available on this OS
+        // and are not already used by other Activity records
         allSymbols = allBaseNames
             .filter { UIImage(systemName: $0) != nil }
+            .filter { !excludedIconNames.contains($0) }
             .sorted()
             .map { SymbolItem(name: $0) }
     }
