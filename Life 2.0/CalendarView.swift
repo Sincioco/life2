@@ -622,8 +622,8 @@ private struct DayCellView: View {
                 if isLandscape {
                     CalendarDayCell(
                         day: date,
-                        cellWidth: 119,
-                        cellHeight: 119,
+//                        cellWidth: 119,
+//                        cellHeight: 119,
                         icons: icons,
                         adjacentCell: false,
                         cellDebug: false,
@@ -632,8 +632,8 @@ private struct DayCellView: View {
                 } else {
                     CalendarDayCell(
                         day: date,
-                        cellWidth: 63,
-                        cellHeight: 63,
+//                        cellWidth: 63,
+//                        cellHeight: 63,
                         icons: icons,
                         adjacentCell: false,
                         cellDebug: false,
@@ -697,8 +697,8 @@ private struct AdjacentDayCell: View {
             if isLandscape {
                 CalendarDayCell(
                     day: targetDate,
-                    cellWidth: 119,
-                    cellHeight: 119,
+//                    cellWidth: 119,
+//                    cellHeight: 119,
                     icons: icons,
                     adjacentCell: true,
                     cellDebug: false,
@@ -707,8 +707,8 @@ private struct AdjacentDayCell: View {
             } else {
                 CalendarDayCell(
                     day: targetDate,
-                    cellWidth: 63,
-                    cellHeight: 63,
+//                    cellWidth: 63,
+//                    cellHeight: 63,
                     icons: icons,
                     adjacentCell: true,
                     cellDebug: false,

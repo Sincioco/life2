@@ -13,9 +13,30 @@ import SwiftUI
 struct CalendarDayCell: View {
 
     var day: Date = Date()
-    var cellWidth: CGFloat = 63     // values are 63 for Portrait or 119 for Landscape for iPhone 16 Pro Max
-    var cellHeight: CGFloat = 63    // values are 63 for Portrait or 119 for Landscape for iPhone 16 Pro Max
+    /// Simple orientation helper (no UIScreen.main)
+        private var isLandscape: Bool {
+            UIDevice.current.orientation.isLandscape
+        }
 
+        private var isPad: Bool {
+            UIDevice.current.userInterfaceIdiom == .pad
+        }
+
+        private var cellWidth: CGFloat {
+            if isPad {
+                return isLandscape ? 159 : 104  // iPad
+            } else {
+                return isLandscape ? 119 : 63   // iPhone
+            }
+        }
+
+        private var cellHeight: CGFloat {
+            if isPad {
+                return isLandscape ? 159 : 104  // iPad
+            } else {
+                return isLandscape ? 119 : 63   // iPhone
+            }
+        }
     var icons = [
         "basketball.fill",
         "figure.run",
