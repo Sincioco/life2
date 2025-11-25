@@ -1,17 +1,17 @@
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 //                                         Life 2.0 - Graph View
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
-// Programmed By:  Louiery R. Sincioco                                                     Version: 1.1
+// Programmed By:  Louiery R. Sincioco                                                     Version: 1.2
 // Programmed Date:  November 25, 2025                                                      For: iOS 26
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 // Purpose:  Graph view of activities (bar + pie chart only).
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
-
 import SwiftUI
 import SwiftData
 import UIKit
 import Charts
 
+// Summary model for category-based pie chart
 private struct CategorySummary: Identifiable {
     let id = UUID()
     let category: String
@@ -20,16 +20,15 @@ private struct CategorySummary: Identifiable {
 }
 
 struct GraphView: View {
-
     @State private var selectedYear: Int
     @State private var selectedMonth: Int
     @Query private var historyEntries: [ActivityHistory]
 
-    // Tapped selection
+    // Tapped selection state
     @State private var tappedBarIcon: String? = nil
     @State private var tappedPieCategory: String? = nil
-    @State private var showBarAlert = false
-    @State private var showPieAlert = false
+    @State private var showBarAlert: Bool = false
+    @State private var showPieAlert: Bool = false
 
     init() {
         let now = Date()
@@ -38,13 +37,13 @@ struct GraphView: View {
         _selectedMonth = State(initialValue: cal.component(.month, from: now))
     }
 
-    // MARK: Calendar helpers
+    // MARK: - Calendar helpers
 
     private var calendar: Calendar {
         var cal = Calendar.current
         cal.locale = .current
         cal.timeZone = .current
-        cal.firstWeekday = 1
+        cal.firstWeekday = 1 // Sunday
         return cal
     }
 
@@ -59,74 +58,87 @@ struct GraphView: View {
     }
 
     private var historiesThisMonth: [ActivityHistory] {
-        historyEntries.filter {
-            $0.dateCompleted >= monthRange.lowerBound &&
-            $0.dateCompleted < monthRange.upperBound
+        historyEntries.filter { history in
+            history.dateCompleted >= monthRange.lowerBound &&
+            history.dateCompleted < monthRange.upperBound
         }
     }
 
-    // MARK: Data Builders
+    // MARK: - Data builders
 
+    // Bar chart: count per activity icon
     private func monthlyActivityCounts() -> [(icon: String, count: Int)] {
-        var dict: [String: Int] = [:]
-        for h in historiesThisMonth {
-            if let icon = h.activity?.icon {
-                dict[icon, default: 0] += 1
+        var counts: [String: Int] = [:]
+
+        for history in historiesThisMonth {
+            if let icon = history.activity?.icon {
+                counts[icon, default: 0] += 1
             }
         }
-        return dict.map { ($0.key, $0.value) }
+
+        return counts
+            .map { (icon: $0.key, count: $0.value) }
             .sorted { lhs, rhs in
                 if lhs.count != rhs.count { return lhs.count > rhs.count }
                 return lhs.icon < rhs.icon
             }
     }
 
+    // Look up a color for a given SF Symbol icon from any activity that uses it
     private func colorForIcon(_ icon: String) -> Color {
-        for h in historyEntries {
-            if let a = h.activity, a.icon == icon {
-                return a.color.colorValue
+        for history in historyEntries {
+            if let activity = history.activity, activity.icon == icon {
+                return activity.color.colorValue
             }
         }
         return .blue
     }
 
+    // Pie chart: count per category with color from dominant activity in that category
     private func monthlyCategorySummaries() -> [CategorySummary] {
-        var totals: [String: Int] = [:]
-        var perActivity: [String: [String: Int]] = [:]
-        var iconColor: [String: Color] = [:]
+        var totalsByCategory: [String: Int] = [:]
+        var perActivityCounts: [String: [String: Int]] = [:]
+        var colorByIcon: [String: Color] = [:]
 
-        for h in historiesThisMonth {
-            guard let a = h.activity else { continue }
-            let cat = a.category
-            totals[cat, default: 0] += 1
+        for history in historiesThisMonth {
+            guard let activity = history.activity else { continue }
+            let category = activity.category
+            let icon = activity.icon
+            let color = activity.color.colorValue
 
-            var inner = perActivity[cat] ?? [:]
-            inner[a.icon, default: 0] += 1
-            perActivity[cat] = inner
+            totalsByCategory[category, default: 0] += 1
 
-            iconColor[a.icon] = a.color.colorValue
+            var perActivity = perActivityCounts[category] ?? [:]
+            perActivity[icon, default: 0] += 1
+            perActivityCounts[category] = perActivity
+
+            colorByIcon[icon] = color
         }
 
-        var output: [CategorySummary] = []
+        var result: [CategorySummary] = []
 
-        for (category, total) in totals {
-            guard let inner = perActivity[category], !inner.isEmpty else { continue }
-            let dominant = inner.max { $0.value < $1.value }
-            let domIcon = dominant?.key ?? inner.first!.key
-            output.append(CategorySummary(
-                category: category,
-                count: total,
-                color: iconColor[domIcon] ?? .blue
-            ))
+        for (category, total) in totalsByCategory {
+            guard let perActivity = perActivityCounts[category], !perActivity.isEmpty else {
+                continue
+            }
+
+            // Icon with the highest count for this category in the selected month
+            let dominant = perActivity.max { a, b in a.value < b.value }
+            let dominantIcon = dominant?.key ?? perActivity.first!.key
+            let color = colorByIcon[dominantIcon] ?? .blue
+
+            result.append(
+                CategorySummary(category: category, count: total, color: color)
+            )
         }
 
-        return output.sorted {
-            if $0.count != $1.count { return $0.count > $1.count }
-            return $0.category < $1.category
+        return result.sorted { lhs, rhs in
+            if lhs.count != rhs.count { return lhs.count > rhs.count }
+            return lhs.category < rhs.category
         }
     }
 
-    // MARK: - Month Navigation
+    // MARK: - Month navigation
 
     private func goToPreviousMonth() {
         if selectedMonth == 1 {
@@ -155,15 +167,14 @@ struct GraphView: View {
             ScrollView {
                 VStack(spacing: 24) {
 
-                    // ——————————————— BAR CHART ———————————————
-
-                    let barData = monthlyActivityCounts()
-                    if !barData.isEmpty {
+                    // ———————————————— BAR CHART ————————————————
+                    let monthCounts = monthlyActivityCounts()
+                    if !monthCounts.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Activity Count")
                                 .font(.headline)
 
-                            Chart(barData, id: \.icon) { item in
+                            Chart(monthCounts, id: \.icon) { item in
                                 BarMark(
                                     x: .value("Activity", item.icon),
                                     y: .value("Count", item.count)
@@ -173,10 +184,11 @@ struct GraphView: View {
                                     Text("\(item.count)")
                                         .font(.caption2)
                                         .fontWeight(.semibold)
+                                        .foregroundStyle(Color.primary)
                                 }
                             }
                             .chartXAxis {
-                                AxisMarks { value in
+                                AxisMarks(values: .automatic) { value in
                                     if let icon = value.as(String.self) {
                                         AxisValueLabel {
                                             Image(systemName: icon)
@@ -187,21 +199,17 @@ struct GraphView: View {
                                 }
                             }
                             .frame(height: 200)
-
-                            // TAP overlay for bar chart
                             .chartOverlay { proxy in
-                                GeometryReader { geo in
+                                GeometryReader { geometry in
                                     Rectangle()
                                         .fill(Color.clear)
                                         .contentShape(Rectangle())
-                                        .onTapGesture { point in
-                                            // ⬇️ Safely unwrap plotFrame (Anchor<CGRect>?)
+                                        .onTapGesture { location in
                                             guard let plotFrame = proxy.plotFrame else { return }
-                                            let frame = geo[plotFrame]
-                                            let x = point.x - frame.origin.x
-
-                                            if let tapped: String = proxy.value(atX: x) {
-                                                tappedBarIcon = tapped
+                                            let frame = geometry[plotFrame]
+                                            let xInPlot = location.x - frame.origin.x
+                                            if let icon: String = proxy.value(atX: xInPlot) {
+                                                tappedBarIcon = icon
                                                 showBarAlert = true
                                             }
                                         }
@@ -211,60 +219,62 @@ struct GraphView: View {
                         .padding()
                     }
 
-                    // ——————————————— PIE CHART ———————————————
-
-                    let pieData = monthlyCategorySummaries()
-                    if !pieData.isEmpty {
+                    // ———————————————— PIE CHART ————————————————
+                    let categoryData = monthlyCategorySummaries()
+                    if !categoryData.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
                             Text("Activity by Category")
                                 .font(.headline)
 
-                            Chart(pieData) { item in
+                            Chart(categoryData) { item in
                                 SectorMark(
                                     angle: .value("Count", item.count)
                                 )
-                                .foregroundStyle(item.color)
+                                // Use a discrete style key so Swift Charts can generate a legend
+                                .foregroundStyle(by: .value("Category", item.category))
                             }
+                            // Map category → color (dominant activity color)
+                            .chartForegroundStyleScale(
+                                domain: categoryData.map { $0.category },
+                                range: categoryData.map { $0.color }
+                            )
                             .chartLegend(position: .trailing)
                             .frame(height: 240)
-
-                            // TAP overlay for pie chart
                             .chartOverlay { proxy in
-                                GeometryReader { geo in
+                                GeometryReader { geometry in
                                     Rectangle()
                                         .fill(Color.clear)
                                         .contentShape(Rectangle())
-                                        .onTapGesture { tap in
-                                            // ⬇️ Safely unwrap plotFrame here too
+                                        .onTapGesture { location in
                                             guard let plotFrame = proxy.plotFrame else { return }
-                                            let frame = geo[plotFrame]
-                                            let center = CGPoint(x: frame.midX, y: frame.midY)
+                                            let frame = geometry[plotFrame]
 
-                                            let dx = tap.x - center.x
-                                            let dy = tap.y - center.y
-                                            let dist = sqrt(dx * dx + dy * dy)
+                                            let center = CGPoint(x: frame.midX, y: frame.midY)
+                                            let dx = location.x - center.x
+                                            let dy = location.y - center.y
+                                            let distance = sqrt(dx * dx + dy * dy)
 
                                             let radius = min(frame.width, frame.height) / 2
-                                            guard dist <= radius else { return }
+                                            guard distance <= radius, radius > 0 else { return }
 
                                             var angle = atan2(dy, dx) * 180 / .pi
                                             if angle < 0 { angle += 360 }
 
-                                            // Find slice
-                                            let total = pieData.reduce(0) { $0 + $1.count }
+                                            let total = categoryData.map { $0.count }.reduce(0, +)
                                             guard total > 0 else { return }
 
-                                            var start: Double = 0
-                                            for item in pieData {
-                                                let sweep = Double(item.count) / Double(total) * 360
-                                                let end = start + sweep
+                                            var startAngle: Double = 0
+                                            for slice in categoryData {
+                                                let sweep = Double(slice.count) / Double(total) * 360
+                                                let endAngle = startAngle + sweep
 
-                                                if angle >= start && angle < end {
-                                                    tappedPieCategory = item.category
+                                                if angle >= startAngle && angle < endAngle {
+                                                    tappedPieCategory = slice.category
                                                     showPieAlert = true
                                                     break
                                                 }
-                                                start = end
+
+                                                startAngle = endAngle
                                             }
                                         }
                                 }
@@ -277,14 +287,15 @@ struct GraphView: View {
             }
             .navigationTitle("Overview")
             .toolbar { calendarToolbar }
-
-            // Alerts
-            .alert("Bar Tapped", isPresented: $showBarAlert) {
+            // Alerts for taps
+            .alert("Activity Selected",
+                   isPresented: $showBarAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
-                Text("You tapped on activity icon: \(tappedBarIcon ?? "?")")
+                Text("You tapped activity icon: \(tappedBarIcon ?? "?")")
             }
-            .alert("Pie Slice Tapped", isPresented: $showPieAlert) {
+            .alert("Category Selected",
+                   isPresented: $showPieAlert) {
                 Button("OK", role: .cancel) { }
             } message: {
                 Text("You tapped category: \(tappedPieCategory ?? "?")")
@@ -304,14 +315,14 @@ struct GraphView: View {
                 } label: {
                     Image(systemName: "house")
                 }
+                .accessibilityLabel("Home")
             }
-
             ToolbarItem(placement: .automatic) {
                 Button(action: goToPreviousMonth) {
                     Image(systemName: "chevron.left")
                 }
+                .accessibilityLabel("Previous Month")
             }
-
             ToolbarItem(placement: .automatic) {
                 Picker(selection: $selectedMonth) {
                     ForEach(1...12, id: \.self) { m in
@@ -322,30 +333,33 @@ struct GraphView: View {
                 }
                 .pickerStyle(.menu)
                 .labelsHidden()
+                .accessibilityLabel("Select Month")
             }
-
             ToolbarItem(placement: .topBarTrailing) {
                 Picker(selection: $selectedYear) {
                     let current = Calendar.current.component(.year, from: Date())
                     let range = 2025...(current + 1)
                     ForEach(Array(range).reversed(), id: \.self) { y in
-                        Text("\(y)").tag(y)
+                        Text("\(y, format: .number.grouping(.never))").tag(y)
                     }
                 } label: {
                     Image(systemName: "calendar")
                 }
                 .pickerStyle(.menu)
                 .labelsHidden()
+                .accessibilityLabel("Select Year")
             }
-
             ToolbarItem(placement: .topBarTrailing) {
                 Button(action: goToNextMonth) {
                     Image(systemName: "chevron.right")
                 }
+                .accessibilityLabel("Next Month")
             }
         }
     }
 }
+
+// MARK: - Preview
 
 #Preview {
     do {
@@ -355,9 +369,10 @@ struct GraphView: View {
             ActivityHistory.self,
             configurations: config
         )
+
         return GraphView()
             .modelContainer(container)
     } catch {
-        return Text("Preview Error: \(error)")
+        return Text("Failed to create preview: \(error.localizedDescription)")
     }
 }
