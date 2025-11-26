@@ -13,6 +13,7 @@ import SwiftData
 struct MainView: View {
     
     var body: some View {
+        @State var icon: String = ""
         
         TabView {
             Tab("Activities", systemImage: "list.bullet.rectangle") {
@@ -33,11 +34,14 @@ struct MainView: View {
             Tab("Categories", systemImage: "folder") {
                 CategoryListView()
             }
+            Tab("Options", systemImage: "gear") {
+                OptionsView()
+            }
             Tab("Export / Import", systemImage: "arrow.up.arrow.down.circle") {
                 ExportImportView()
             }
-            Tab("Options", systemImage: "gear") {
-                OptionsView()
+            Tab("Icon Viewer", systemImage: "xmark.triangle.circle.square") {
+                IconPickerView(selectedIcon: $icon)
             }
             
         }
