@@ -12,6 +12,7 @@ struct ActivityRow: View {
     @State private var hasAnimated = false
     @State private var showDeleteConfirm = false
     @State private var isDeletingVisual = false
+    @AppStorage("showMonthHistogram") private var showMonthHistogram: Bool = true
 
     private var gaugeColor: Color {
         let value = activity.progress
@@ -171,10 +172,12 @@ struct ActivityRow: View {
                 .foregroundStyle(.secondary)
 
                 // Mini histogram for the current month (done/not-done per day)
-                monthHistogram
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .frame(height: 10)
-                    .padding(.top, 4)
+                if showMonthHistogram {
+                    monthHistogram
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .frame(height: 10)
+                        .padding(.top, 4)
+                }
             }
         }
         .opacity(isDeletingVisual ? 0.0 : 1.0)
@@ -287,3 +290,4 @@ struct ActivityRow: View {
         return Text("Failed to create preview: \(error.localizedDescription)")
     }
 }
+

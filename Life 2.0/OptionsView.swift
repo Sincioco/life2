@@ -18,29 +18,25 @@ struct OptionsView: View {
     @State private var showDeleteForActivitySheet = false
     @State private var selectedActivityToDelete: Activity? = nil
     @State private var showDeleteForActivityConfirm = false
+    
+    @AppStorage("showMonthHistogram") private var showMonthHistogram: Bool = true
 
     var body: some View {
         NavigationStack {
             List {
-                Section("Debugging - Data Tools") {
+                Section("Preferences") {
+                    Toggle(isOn: $showMonthHistogram) {
+                        Label("Show Month Histogram in Activity Rows", systemImage: "chart.xyaxis.line")
+                    }
+                }
+                Section("Developer Tools for Testing and Debugging") {
                     Button {
                         selectedActivity = activities.first
                         showGenerateForActivitySheet = true
                     } label: {
                         Label("Generate History for an Activity", systemImage: "wand.and.stars")
                     }
-                    Button {
-                        showGenerateConfirm = true
-                    } label: {
-                        Label("Generate Random Histories for all Activities", systemImage: "sparkles")
-                    }
-
-                    Button(role: .destructive) {
-                        showDeleteAllActivitiesConfirm = true
-                    } label: {
-                        Label("Delete All Activities", systemImage: "trash")
-                    }
-
+                    
                     Button(role: .destructive) {
                         selectedActivityToDelete = activities.first
                         showDeleteForActivitySheet = true
@@ -49,11 +45,25 @@ struct OptionsView: View {
                     }
                     
                     Button(role: .destructive) {
+                        showDeleteAllActivitiesConfirm = true
+                    } label: {
+                        Label("Delete All Activities", systemImage: "trash")
+                    }
+                    
+                    Button {
+                        showGenerateConfirm = true
+                    } label: {
+                        Label("Generate Random Histories for all Activities", systemImage: "sparkles")
+                    }
+
+
+                    Button(role: .destructive) {
                         showDeleteAllHistoryConfirm = true
                     } label: {
                         Label("Delete All History", systemImage: "calendar")
                     }
                 }
+                
             }
             .navigationTitle("Options")
             // Alerts
@@ -273,3 +283,4 @@ struct OptionsView: View {
         return Text("Failed to create preview: \\(error.localizedDescription)")
     }
 }
+
