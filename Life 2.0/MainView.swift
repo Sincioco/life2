@@ -11,9 +11,9 @@ import SwiftUI
 import SwiftData
 
 struct MainView: View {
+    @State var icon: String = ""
     
     var body: some View {
-        @State var icon: String = ""
         
         TabView {
             Tab("Activities", systemImage: "list.bullet.rectangle") {
@@ -43,7 +43,18 @@ struct MainView: View {
             Tab("Icon Viewer", systemImage: "xmark.triangle.circle.square") {
                 IconPickerView(selectedIcon: $icon)
             }
+            Tab("Mesh Gradient", systemImage: "arrow.up.arrow.down.circle") {
+                AnimatedGradientMeshBackground()
+            }
+            Tab("Mesh Gradient 2", systemImage: "arrow.up.arrow.down.circle") {
+                //GradientMeshMotionBackground()
+                GradientMeshBackground();
+            }
             
+            
+//            Tab("Mesh Gradient 3", systemImage: "arrow.up.arrow.down.circle") {
+//                GradientMeshMotionBackground()
+//            }
         }
     }
     

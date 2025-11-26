@@ -462,15 +462,8 @@ struct CalendarView: View {
                     }
                 }
             }
-            .sheet(item: $sheetDate) { identifiable in
-                let date = identifiable.date
-                DayActivitySheet(
-                    date: date,
-                    entries: historyEntries(on: date),
-                    calendar: calendar
-                )
-            }
             .toolbar { calendarToolbar }
+            .navigationTitle(monthName)
         }
         .sheet(item: $sheetDate) { identifiable in
             let date = identifiable.date
