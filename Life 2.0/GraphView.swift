@@ -10,7 +10,7 @@ import SwiftUI
 import SwiftData
 import UIKit
 import Charts
-
+ 
 // Summary model for category-based pie chart
 private struct CategorySummary: Identifiable {
     let id = UUID()
@@ -23,6 +23,7 @@ struct GraphView: View {
     @State private var selectedYear: Int
     @State private var selectedMonth: Int
     @Query private var historyEntries: [ActivityHistory]
+    @Query private var categories: [Category]
     
     // Tapped selection state
     @State private var tappedBarIcon: String? = nil
@@ -122,13 +123,11 @@ struct GraphView: View {
                 continue
             }
             
-            // Icon with the highest count for this category in the selected month
-            let dominant = perActivity.max { a, b in a.value < b.value }
-            let dominantIcon = dominant?.key ?? perActivity.first!.key
-            let color = colorByIcon[dominantIcon] ?? .blue
+            // Look up the Category model to get its color
+            let categoryColor: Color = categories.first(where: { $0.name == category })?.color.colorValue ?? .blue
             
             result.append(
-                CategorySummary(category: category, count: total, color: color)
+                CategorySummary(category: category, count: total, color: categoryColor)
             )
         }
         
