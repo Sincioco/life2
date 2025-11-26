@@ -15,11 +15,14 @@ import UIKit
 struct ExportImportView: View {
     @Environment(\.modelContext) private var modelContext
 
+    @Query private var activities: [Activity]
+
     @State private var isExporting: Bool = false
     @State private var exportDocument: BackupFileDocument? = nil
 
     @State private var isImporting: Bool = false
     @State private var pendingImportConfirmation: Bool = false
+    @State private var showMustDeleteFirstAlert: Bool = false
 
     @State private var lastErrorMessage: String? = nil
 
@@ -35,9 +38,18 @@ struct ExportImportView: View {
                 }
                 
                 Section("Import") {
-                    Text("IMPORTANT:  To prevent the app from crashing, please delete all existing data first by going to Options -> Delete All Activities before clicking the Import Backup button below.")
+                    Text("Note:  Before you can import, please delete all existing data first by going to Options -> Delete All Activities.")
                     Button(role: .destructive) {
-                        pendingImportConfirmation = true
+                        lastErrorMessage = nil
+                        if !activities.isEmpty {
+                            // Block import and tell user what to do
+                            showMustDeleteFirstAlert = true
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.error)
+                        } else {
+                            // No activities, safe to proceed with normal import flow
+                            pendingImportConfirmation = true
+                        }
                     } label: {
                         Label("Import Backup", systemImage: "square.and.arrow.down")
                     }
@@ -85,7 +97,7 @@ struct ExportImportView: View {
                 }
             }
             .alert(
-                "WARNING - IMPORT",
+                "Import Process",
                 isPresented: $pendingImportConfirmation
             ) {
                 Button("Import", role: .destructive) {
@@ -93,7 +105,15 @@ struct ExportImportView: View {
                 }
                 Button("Cancel", role: .cancel) { }
             } message: {
-                Text("Importing from backup will permanently delete ALL existing data (Activities, Activity History, Categories, etc.) and it cannot be undone.  Life 2.0 would also terminate (you need to restart it) before you can see the imported data.  Do you want to continue?")
+                Text("You will be prompted to select a backup file.  After the import process completes it may take a minute for the UI to reflects the changes.")
+            }
+            .alert(
+                "Delete All Activities First",
+                isPresented: $showMustDeleteFirstAlert
+            ) {
+                Button("OK", role: .cancel) { }
+            } message: {
+                Text("You must first delete all activities before importing a backup by going to Options -> Delete All Activities.")
             }
         }
     }

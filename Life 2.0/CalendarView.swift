@@ -38,7 +38,7 @@ struct CalendarView: View {
     }
     
     @State private var selectedTab: CalendarTab = .calendar
-    @AppStorage("showAdjacentMonthIcons") private var showAdjacentMonthIcons: Bool = true
+    @AppStorage("showAdjacentMonthIcons") private var showAdjacentMonthIcons: Bool = false
     
     init(year: Int? = nil, month: Int? = nil) {
         let now = Date()
