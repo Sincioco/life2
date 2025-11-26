@@ -14,6 +14,7 @@ struct ActivityRow: View {
     @State private var isDeletingVisual = false
     @AppStorage("showMonthHistogram") private var showMonthHistogram: Bool = true
     @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
+    @AppStorage("animateActivityBars") private var animateActivityBars: Bool = true   // NEW
 
     private var gaugeColor: Color {
         let value = activity.progress
@@ -190,14 +191,35 @@ struct ActivityRow: View {
         .opacity(isDeletingVisual ? 0.0 : 1.0)
         .scaleEffect(isDeletingVisual ? 0.98 : 1.0)
         .onAppear {
-            // Only animate once per row
-            guard !hasAnimated else { return }
-            hasAnimated = true
+            // Honor the animation toggle
+            if animateActivityBars {
+                // Only animate once per row
+                guard !hasAnimated else { return }
+                hasAnimated = true
 
-            // Animate bar graph from 0 to the actual value
-            animatedProgress = 0
-            withAnimation(.easeOut(duration: 0.8)) {
+                animatedProgress = 0
+                withAnimation(.easeOut(duration: 0.8)) {
+                    animatedProgress = activity.progress
+                }
+            } else {
+                // No animation: just snap to the real progress
                 animatedProgress = activity.progress
+            }
+        }
+        .onChange(of: animateActivityBars) { _, newValue in
+            // If user flips the toggle while the row is on-screen,
+            // adjust the gauge behavior accordingly.
+            if newValue {
+                // Re-animate from 0 to the current progress
+                animatedProgress = 0
+                withAnimation(.easeOut(duration: 0.8)) {
+                    animatedProgress = activity.progress
+                }
+            } else {
+                // Snap to current progress
+                withAnimation(.easeOut(duration: 0.2)) {
+                    animatedProgress = activity.progress
+                }
             }
         }
         // Removed swipeActions entirely as per instruction
@@ -223,76 +245,3 @@ struct ActivityRow: View {
         }
     }
 }
-
-//#Preview("ActivityRow") {
-//    // Build a model container in-memory for previews
-//    let container: ModelContainer = {
-//        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-//        return try! ModelContainer(
-//            for: Activity.self,
-//                 ActivityHistory.self,
-//            configurations: config
-//        )
-//    }()
-//
-//    let context = container.mainContext
-//
-//    // Sample activity
-//    let sample = Activity(
-//        name: "Sample Run",
-//        icon: "figure.run",
-//        recurrence: .weekly,
-//        category: "Fitness",
-//        notes: "Preview sample"
-//    )
-//    context.insert(sample)
-//
-//    // Add a few history entries across recent days
-//    let cal = Calendar.current
-//    let now = Date()
-//    for d in [0, -1, -3, -5] {
-//        if let date = cal.date(byAdding: .day, value: d, to: now) {
-//            let entry = ActivityHistory(activity: sample, dateCompleted: date)
-//            context.insert(entry)
-//        }
-//    }
-//
-//    // Another sample activity
-//    let sample2 = Activity(
-//        name: "Gym",
-//        icon: "dumbbell.fill",
-//        recurrence: .weekly,
-//        category: "Fitness",
-//        notes: "Strength training"
-//    )
-//    context.insert(sample2)
-//    for d in [0, -2, -4] {
-//        if let date = cal.date(byAdding: .day, value: d, to: now) {
-//            let entry = ActivityHistory(activity: sample2, dateCompleted: date)
-//            context.insert(entry)
-//        }
-//    }
-//
-//    // Third sample with sparse history
-//    let sample3 = Activity(
-//        name: "Read Book",
-//        icon: "book.fill",
-//        recurrence: .weekly,
-//        category: "Learning",
-//        notes: "Reading time"
-//    )
-//    context.insert(sample3)
-//    if let date = cal.date(byAdding: .day, value: -6, to: now) {
-//        let entry = ActivityHistory(activity: sample3, dateCompleted: date)
-//        context.insert(entry)
-//    }
-//
-//    VStack(alignment: .leading, spacing: 12) {
-//        ActivityRow(activity: sample)
-//        ActivityRow(activity: sample2)
-//        ActivityRow(activity: sample3)
-//    }
-//    .modelContainer(container)
-//    .padding()
-//}
-//

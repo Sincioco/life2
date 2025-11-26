@@ -21,6 +21,7 @@ struct OptionsView: View {
 
     @AppStorage("showMonthHistogram") private var showMonthHistogram: Bool = true
     @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
+    @AppStorage("animateActivityBars") private var animateActivityBars: Bool = true   // NEW
 
     var body: some View {
         NavigationStack {
@@ -31,6 +32,9 @@ struct OptionsView: View {
                     }
                     Toggle(isOn: $useRealisticIcons) {
                         Label("Photorealistic Icons", systemImage: "photo")
+                    }
+                    Toggle(isOn: $animateActivityBars) {      // NEW
+                        Label("Enable Activity Bar Animation", systemImage: "waveform.path.ecg")
                     }
                 }
                 Section("Developer Tools for Testing and Debugging") {
@@ -60,16 +64,16 @@ struct OptionsView: View {
                         Label("Generate Random Histories for all Activities", systemImage: "sparkles")
                     }
 
-
                     Button(role: .destructive) {
                         showDeleteAllHistoryConfirm = true
                     } label: {
                         Label("Delete All History", systemImage: "calendar")
                     }
                 }
-                
             }
             .navigationTitle("Options")
+            // ... rest of file unchanged ...
+
             // Alerts
             .alert("Generate random history for this month?", isPresented: $showGenerateConfirm) {
                 Button("Generate", role: .destructive) {

@@ -33,7 +33,7 @@ struct MainView: View {
             Tab("Categories", systemImage: "folder") {
                 CategoryListView()
             }
-Tab("Backup", systemImage: "arrow.up.arrow.down.circle") {
+Tab("Export / Import", systemImage: "arrow.up.arrow.down.circle") {
     ExportImportView()
 }
             Tab("Options", systemImage: "gear") {

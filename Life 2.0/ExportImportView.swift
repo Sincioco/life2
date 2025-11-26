@@ -26,13 +26,16 @@ struct ExportImportView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Backup") {
+                Section("Export") {
                     Button {
                         exportBackup()
                     } label: {
                         Label("Export Backup", systemImage: "square.and.arrow.up")
                     }
-
+                }
+                
+                Section("Import") {
+                    Text("IMPORTANT:  To prevent the app from crashing, please delete all existing data first by going to Options -> Delete All Activities before clicking the Import Backup button below.")
                     Button(role: .destructive) {
                         pendingImportConfirmation = true
                     } label: {
