@@ -228,7 +228,7 @@ struct CalendarView: View {
 
         for entry in historyThisMonth {
             guard let activity = entry.activity else { continue }
-            let category = activity.category
+            let category = activity.categoryName
             let icon = activity.icon
             let color = activity.color.colorValue
 
@@ -945,3 +945,4 @@ private struct DayActivitySheet: View {
 #Preview {
     CalendarView()
 }
+

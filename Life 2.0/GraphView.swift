@@ -102,7 +102,7 @@ struct GraphView: View {
         
         for history in historiesThisMonth {
             guard let activity = history.activity else { continue }
-            let category = activity.category
+            let category = activity.categoryName
             let icon = activity.icon
             let color = activity.color.colorValue
             

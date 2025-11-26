@@ -17,6 +17,7 @@ import Charts
 struct ActivitiesView: View {
     @Environment(\.modelContext) private var modelContext
     @Query var Activities: [Activity]
+    @Query(sort: [SortDescriptor(\Category.name, order: .forward)]) private var categories: [Category]
     @State private var isPresentingAddActivity = false
     @State private var searchText: String = ""
     @State private var showEmptyPrompt: Bool = true
@@ -29,23 +30,23 @@ struct ActivitiesView: View {
         let base = Activities
         let categoryFiltered: [Activity]
         if let selected = selectedCategory, !selected.isEmpty {
-            categoryFiltered = base.filter { $0.category == selected }
+            categoryFiltered = base.filter { $0.categoryName == selected }
         } else {
             categoryFiltered = base
         }
         guard !searchText.isEmpty else { return categoryFiltered }
         return categoryFiltered.filter { activity in
             activity.name.localizedCaseInsensitiveContains(searchText) ||
-            activity.category.localizedCaseInsensitiveContains(searchText)
+            activity.categoryName.localizedCaseInsensitiveContains(searchText)
         }
     }
     
     private var uniqueCategories: [String] {
-        Array(Set(Activities.map { $0.category })).sorted()
+        categories.map { $0.name }
     }
     
     private var groupedByCategory: [String: [Activity]] {
-        Dictionary(grouping: filteredActivities, by: { $0.category })
+        Dictionary(grouping: filteredActivities, by: { $0.categoryName })
     }
     
     // Build a daily series for the current month: 1 if any activity in the category has a history on that day, else 0
@@ -60,7 +61,7 @@ struct ActivitiesView: View {
         let end = cal.startOfDay(for: nextMonth)
 
         // Collect all activities in this category from the currently filtered set (ignoring text filter to reflect raw category)
-        let activitiesInCategory = Activities.filter { $0.category == category }
+        let activitiesInCategory = Activities.filter { $0.categoryName == category }
         // Build a set of days (as startOfDay) where at least one history exists for the category
         var daysWithAny: Set<Date> = []
         for activity in activitiesInCategory {
@@ -284,3 +285,4 @@ extension Notification.Name {
     ActivitiesView()
         .modelContainer(previewContainer)
 }
+

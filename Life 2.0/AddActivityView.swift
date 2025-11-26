@@ -8,17 +8,7 @@ struct AddActivityView: View {
     @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
 
     @Query private var activities: [Activity]
-
-    // Available categories
-    private let categories = [
-        "Bills",
-        "Fitness",
-        "Learning",
-        "Maintenance",
-        "Personal",
-        "Work",
-        "Others"
-    ]
+    @Query(sort: [SortDescriptor(\Category.name, order: .forward)]) private var categories: [Category]
 
     private let recurrencies = Recurrence.allCases
 
@@ -31,7 +21,7 @@ struct AddActivityView: View {
     @State private var count: Int = 0
     @State private var maxCount: Int = 7
     @State private var recurrence: Recurrence = .weekly
-    @State private var category: String = "Fitness"
+    @State private var categoryName: String = ""
     @State private var notes: String = ""
     @State private var color: ActivityColor = .blue
     @State private var isPresentingColorPicker: Bool = false
@@ -57,9 +47,9 @@ struct AddActivityView: View {
 
     /// Returns a small list of recommended SF Symbols based on the selected category.
     /// Filters out icons that are already used by other activities.
-    private func recommendedIcons(for category: String) -> [String] {
+    private func recommendedIcons(for categoryName: String) -> [String] {
         let base: [String]
-        switch category {
+        switch categoryName {
         case "Fitness":
             base = [
                 "figure.walk",
@@ -189,7 +179,7 @@ struct AddActivityView: View {
                         }
                     }
 
-                    let suggestions = recommendedIcons(for: category)
+                    let suggestions = recommendedIcons(for: categoryName)
                     if !suggestions.isEmpty {
                         VStack(alignment: .leading, spacing: 4) {
                             Text("Recommended Icons")
@@ -226,9 +216,9 @@ struct AddActivityView: View {
                         .padding(.top, 4)
                     }
 
-                    Picker("Category", selection: $category) {
-                        ForEach(categories, id: \.self) { cat in
-                            Text(cat).tag(cat)
+                    Picker("Category", selection: $categoryName) {
+                        ForEach(categories) { cat in
+                            Text(cat.name).tag(cat.name)
                         }
                     }
 
@@ -278,6 +268,9 @@ struct AddActivityView: View {
             .onAppear {
                 // Choose a default icon that has not yet been used by any Activity, if possible
                 icon = pickDefaultIcon()
+                if categoryName.isEmpty {
+                    categoryName = categories.first?.name ?? ""
+                }
                 DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
                     isNameFocused = true
                 }
@@ -346,7 +339,7 @@ struct AddActivityView: View {
             name: name,
             icon: icon,
             recurrence: recurrence,
-            category: category,
+            categoryName: categoryName,
             notes: notes,
             color: color,
             maxCount: maxCount,
@@ -372,3 +365,4 @@ struct AddActivityView: View {
         return Text("Failed to create preview: \(error.localizedDescription)")
     }
 }
+

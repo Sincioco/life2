@@ -52,7 +52,7 @@ class Activity {
     var recurrence: Recurrence
     var maxCount: Int
     var color: ActivityColor
-    var category: String
+    var categoryName: String
     var notes: String
     var dateCreated: Date
     var dateModified: Date
@@ -86,7 +86,7 @@ class Activity {
         name: String,
         icon: String,
         recurrence: Recurrence,
-        category: String,
+        categoryName: String,
         notes: String,
         color: ActivityColor = .blue,
         maxCount: Int? = nil,
@@ -96,7 +96,7 @@ class Activity {
         self.name = name
         self.icon = icon
         self.recurrence = recurrence
-        self.category = category
+        self.categoryName = categoryName
         self.notes = notes
         self.maxCount = maxCount ?? Activity.defaultMaxCount(for: recurrence)
         self.color = color
@@ -222,7 +222,7 @@ extension Activity {
                 name: "Morning Run",
                 icon: "figure.run",
                 recurrence: .weekly,
-                category: "Fitness",
+                categoryName: "Fitness",
                 notes: "Easy-paced 20–30 minute run.",
                 maxCount: Activity.defaultMaxCount(for: .weekly),
                 dateCreated: randomizedDate(for: .weekly, now: now),
@@ -232,7 +232,7 @@ extension Activity {
                 name: "Gym",
                 icon: "dumbbell.fill",
                 recurrence: .weekly,
-                category: "Fitness",
+                categoryName: "Fitness",
                 notes: "Strength training at the gym.",
                 maxCount: 4,
                 dateCreated: randomizedDate(for: .weekly, now: now),
@@ -242,7 +242,7 @@ extension Activity {
                 name: "Walk the Dog",
                 icon: "dog.fill",
                 recurrence: .daily,
-                category: "Fitness",
+                categoryName: "Fitness",
                 notes: "Walk Max every day",
                 maxCount: 7,
                 dateCreated: randomizedDate(for: .daily, now: now),
@@ -252,7 +252,7 @@ extension Activity {
                 name: "Play Elden Ring",
                 icon: "gamecontroller.fill",
                 recurrence: .weekly,
-                category: "Fun",
+                categoryName: "Fun",
                 notes: "I'm stuck at the final boss",
                 maxCount: 3,
                 dateCreated: randomizedDate(for: .weekly, now: now),
@@ -262,7 +262,7 @@ extension Activity {
                 name: "Play Basketball",
                 icon: "basketball.fill",
                 recurrence: .weekly,
-                category: "Fun",
+                categoryName: "Fun",
                 notes: "Basketball just for fun",
                 maxCount: 2,
                 dateCreated: randomizedDate(for: .weekly, now: now),
@@ -272,7 +272,7 @@ extension Activity {
                 name: "Team Meeting",
                 icon: "person.3.fill",
                 recurrence: .weekly,
-                category: "Work",
+                categoryName: "Work",
                 notes: "Morning Scrum.",
                 maxCount: 5,
                 dateCreated: randomizedDate(for: .weekly, now: now),
@@ -282,7 +282,7 @@ extension Activity {
                 name: "Weekly Planning",
                 icon: "calendar.badge.clock",
                 recurrence: .weekly,
-                category: "Work",
+                categoryName: "Work",
                 notes: "Plan tasks and priorities for the week.",
                 maxCount: 1,
                 dateCreated: randomizedDate(for: .weekly, now: now),
@@ -403,3 +403,4 @@ extension Activity {
         generateRandomHistoricalActivities(in: context)
     }
 }
+

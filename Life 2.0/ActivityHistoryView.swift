@@ -246,45 +246,52 @@ private struct HistoryRow: View {
 // MARK: - Preview
 
 #Preview {
-    do {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(
-            for: Activity.self,
-            ActivityHistory.self,
-            configurations: config
-        )
-        
-        let context = container.mainContext
-        
-        // Sample activity
-        let sampleActivity = Activity(
-            name: "Sample Run",
-            icon: "figure.run",
-            recurrence: .daily,
-            category: "Fitness",
-            notes: "Morning jog around the park"
-        )
-        
-        context.insert(sampleActivity)
-        
-        // Sample history entries
-        let history1 = ActivityHistory(
-            activity: sampleActivity,
-            dateCompleted: .now.addingTimeInterval(-3600 * 5)
-        )
-        let history2 = ActivityHistory(
-            activity: sampleActivity,
-            dateCompleted: .now.addingTimeInterval(-3600 * 2)
-        )
-        
-        context.insert(history1)
-        context.insert(history2)
-        
-        return ActivityHistoryView()
-            .modelContainer(container)
-    } catch {
-        return Text("Failed to create preview: \\(error.localizedDescription)")
-    }
+    ActivityHistoryView.previewWithSampleData()
 }
 
+private extension ActivityHistoryView {
+    static func previewWithSampleData() -> AnyView {
+        do {
+            let config = ModelConfiguration(isStoredInMemoryOnly: true)
+            let container = try ModelContainer(
+                for: Activity.self,
+                     ActivityHistory.self,
+                configurations: config
+            )
+
+            let context = container.mainContext
+
+            // Sample activity
+            let sampleActivity = Activity(
+                name: "Sample Run",
+                icon: "figure.run",
+                recurrence: .daily,
+                categoryName: "Fitness",
+                notes: "Morning jog around the park"
+            )
+
+            context.insert(sampleActivity)
+
+            // Sample history entries
+            let history1 = ActivityHistory(
+                activity: sampleActivity,
+                dateCompleted: .now.addingTimeInterval(-3600 * 5)
+            )
+            let history2 = ActivityHistory(
+                activity: sampleActivity,
+                dateCompleted: .now.addingTimeInterval(-3600 * 2)
+            )
+
+            context.insert(history1)
+            context.insert(history2)
+
+            return AnyView(
+                ActivityHistoryView()
+                    .modelContainer(container)
+            )
+        } catch {
+            return AnyView(Text("Failed to create preview: \((error as NSError).localizedDescription)"))
+        }
+    }
+}
 

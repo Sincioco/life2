@@ -224,77 +224,75 @@ struct ActivityRow: View {
     }
 }
 
-#Preview {
-    do {
-        let config = ModelConfiguration(isStoredInMemoryOnly: true)
-        let container = try ModelContainer(
-            for: Activity.self,
-            ActivityHistory.self,
-            configurations: config
-        )
-
-        let context = container.mainContext
-
-        // Sample activity
-        let sample = Activity(
-            name: "Sample Run",
-            icon: "figure.run",
-            recurrence: .weekly,
-            category: "Fitness",
-            notes: "Preview sample"
-        )
-        context.insert(sample)
-
-        // Add a few history entries across recent days
-        let cal = Calendar.current
-        let now = Date()
-        for d in [0, -1, -3, -5] {
-            if let date = cal.date(byAdding: .day, value: d, to: now) {
-                let entry = ActivityHistory(activity: sample, dateCompleted: date)
-                context.insert(entry)
-            }
-        }
-
-        // Another sample activity
-        let sample2 = Activity(
-            name: "Gym",
-            icon: "dumbbell.fill",
-            recurrence: .weekly,
-            category: "Fitness",
-            notes: "Strength training"
-        )
-        context.insert(sample2)
-        for d in [0, -2, -4] {
-            if let date = cal.date(byAdding: .day, value: d, to: now) {
-                let entry = ActivityHistory(activity: sample2, dateCompleted: date)
-                context.insert(entry)
-            }
-        }
-
-        // Third sample with sparse history
-        let sample3 = Activity(
-            name: "Read Book",
-            icon: "book.fill",
-            recurrence: .weekly,
-            category: "Learning",
-            notes: "Reading time"
-        )
-        context.insert(sample3)
-        if let date = cal.date(byAdding: .day, value: -6, to: now) {
-            let entry = ActivityHistory(activity: sample3, dateCompleted: date)
-            context.insert(entry)
-        }
-
-        return VStack(alignment: .leading, spacing: 12) {
-            ActivityRow(activity: sample)
-            ActivityRow(activity: sample2)
-            ActivityRow(activity: sample3)
-        }
-        .modelContainer(container)
-        .padding()
-        //.previewLayout(.sizeThatFits)
-    } catch {
-        return Text("Failed to create preview: \(error.localizedDescription)")
-    }
-}
-
+//#Preview("ActivityRow") {
+//    // Build a model container in-memory for previews
+//    let container: ModelContainer = {
+//        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+//        return try! ModelContainer(
+//            for: Activity.self,
+//                 ActivityHistory.self,
+//            configurations: config
+//        )
+//    }()
+//
+//    let context = container.mainContext
+//
+//    // Sample activity
+//    let sample = Activity(
+//        name: "Sample Run",
+//        icon: "figure.run",
+//        recurrence: .weekly,
+//        category: "Fitness",
+//        notes: "Preview sample"
+//    )
+//    context.insert(sample)
+//
+//    // Add a few history entries across recent days
+//    let cal = Calendar.current
+//    let now = Date()
+//    for d in [0, -1, -3, -5] {
+//        if let date = cal.date(byAdding: .day, value: d, to: now) {
+//            let entry = ActivityHistory(activity: sample, dateCompleted: date)
+//            context.insert(entry)
+//        }
+//    }
+//
+//    // Another sample activity
+//    let sample2 = Activity(
+//        name: "Gym",
+//        icon: "dumbbell.fill",
+//        recurrence: .weekly,
+//        category: "Fitness",
+//        notes: "Strength training"
+//    )
+//    context.insert(sample2)
+//    for d in [0, -2, -4] {
+//        if let date = cal.date(byAdding: .day, value: d, to: now) {
+//            let entry = ActivityHistory(activity: sample2, dateCompleted: date)
+//            context.insert(entry)
+//        }
+//    }
+//
+//    // Third sample with sparse history
+//    let sample3 = Activity(
+//        name: "Read Book",
+//        icon: "book.fill",
+//        recurrence: .weekly,
+//        category: "Learning",
+//        notes: "Reading time"
+//    )
+//    context.insert(sample3)
+//    if let date = cal.date(byAdding: .day, value: -6, to: now) {
+//        let entry = ActivityHistory(activity: sample3, dateCompleted: date)
+//        context.insert(entry)
+//    }
+//
+//    VStack(alignment: .leading, spacing: 12) {
+//        ActivityRow(activity: sample)
+//        ActivityRow(activity: sample2)
+//        ActivityRow(activity: sample3)
+//    }
+//    .modelContainer(container)
+//    .padding()
+//}
+//

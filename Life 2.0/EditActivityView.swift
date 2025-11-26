@@ -10,15 +10,7 @@ struct EditActivityView: View {
 
     @Bindable var activity: Activity
 
-    private let categories = [
-        "Bills",
-        "Fitness",
-        "Learning",
-        "Maintenance",
-        "Personal",
-        "Work",
-        "Others"
-    ]
+    @Query(sort: [SortDescriptor(\Category.name, order: .forward)]) private var categories: [Category]
 
     private enum AddEditTab: String, CaseIterable, Identifiable {
         case activity = "Activity"
@@ -91,9 +83,9 @@ struct EditActivityView: View {
                         }
                     }
 
-                    Picker("Category", selection: $activity.category) {
-                        ForEach(categories, id: \.self) { cat in
-                            Text(cat).tag(cat)
+                    Picker("Category", selection: $activity.categoryName) {
+                        ForEach(categories) { cat in
+                            Text(cat.name).tag(cat.name)
                         }
                     }
 //                    Picker("Color", selection: $activity.color) {
@@ -263,7 +255,7 @@ struct EditActivityView: View {
 .onAppear {
             originalName = activity.name
             originalIcon = activity.icon
-            originalCategory = activity.category
+            originalCategory = activity.categoryName
             originalNotes = activity.notes
             didSave = false
         }
@@ -271,7 +263,7 @@ struct EditActivityView: View {
             if didSave == false {
                 activity.name = originalName
                 activity.icon = originalIcon
-                activity.category = originalCategory
+                activity.categoryName = originalCategory
                 activity.notes = originalNotes
             }
         }
@@ -420,7 +412,7 @@ struct EditActivityView: View {
             name: "Sample Run",
             icon: "figure.run",
             recurrence: .weekly,
-            category: "Fitness",
+            categoryName: "Fitness",
             notes: "Edit preview"
         )
         context.insert(sample)
