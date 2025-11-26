@@ -22,6 +22,7 @@ struct OptionsView: View {
     @AppStorage("showMonthHistogram") private var showMonthHistogram: Bool = true
     @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
     @AppStorage("animateActivityBars") private var animateActivityBars: Bool = true   // NEW
+    @AppStorage("useActivityColorForBar") private var useActivityColorForBar: Bool = true
 
     var body: some View {
         NavigationStack {
@@ -35,6 +36,9 @@ struct OptionsView: View {
                     }
                     Toggle(isOn: $animateActivityBars) {      // NEW
                         Label("Enable Activity Bar Animation", systemImage: "waveform.path.ecg")
+                    }
+                    Toggle(isOn: $useActivityColorForBar) {
+                        Label("Use Activity Color for Gauge", systemImage: "paintpalette")
                     }
                 }
                 Section("Developer Tools for Testing and Debugging") {

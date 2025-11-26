@@ -15,16 +15,21 @@ struct ActivityRow: View {
     @AppStorage("showMonthHistogram") private var showMonthHistogram: Bool = true
     @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
     @AppStorage("animateActivityBars") private var animateActivityBars: Bool = true   // NEW
+    @AppStorage("useActivityColorForBar") private var useActivityColorForBar: Bool = true
 
     private var gaugeColor: Color {
-//        let value = activity.progress
-//        if value < 30 { return .red }
-//        else if value < 70 { return .yellow }
-//        else { return .green }
-        return activity.color.colorValue
+        if useActivityColorForBar {
+            return activity.color.colorValue
+        } else {
+            let value = activity.progress
+            if value < 30 { return .red }
+            else if value < 80 { return .yellow }
+            else { return .green }
+        }
     }
 
-    private var isModifiedToday: Bool {
+
+    private var isCompletedForToday: Bool {
         guard let latest = activity.histories.sorted(by: { $0.dateCompleted > $1.dateCompleted }).first else {
             return false
         }
@@ -129,7 +134,7 @@ struct ActivityRow: View {
                 .frame(width: 40, height: 40)
                 .padding(0)
                 .overlay {
-                    if (activity.count > 0 && isModifiedToday) {
+                    if (activity.count > 0 && isCompletedForToday) {
                         Image(systemName: "checkmark.circle.fill")
                             .resizable()
                             .scaledToFit()
