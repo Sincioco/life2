@@ -74,7 +74,11 @@ struct EditActivityView: View {
                         HStack {
                             Text("Icon")
                             Spacer()
-                            Image(systemName: activity.icon)
+                            let icon = activity.icon
+                            let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
+                            let img = isAsset ? Image(icon) : Image(systemName: icon)
+                        
+                            img
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
@@ -158,7 +162,11 @@ struct EditActivityView: View {
                     } else {
                         ForEach(sortedHistories) { history in
                             HStack(alignment: .top, spacing: 12) {
-                                Image(systemName: activity.icon)
+                                let icon = activity.icon
+                                let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
+                                let img = isAsset ? Image(icon) : Image(systemName: icon)
+                            
+                                img
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: 20, height: 20)
