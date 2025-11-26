@@ -5,7 +5,7 @@ import SwiftUI
 @Model
 class Category {
     @Attribute(.unique) var name: String
-    var icon: String
+    @Attribute(.unique) var icon: String
     var color: ActivityColor
     var dateCreated: Date
     var dateModified: Date
