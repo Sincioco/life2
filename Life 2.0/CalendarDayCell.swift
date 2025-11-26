@@ -54,7 +54,8 @@ struct CalendarDayCell: View {
     var body: some View {
 
         let dayString = String(Calendar.current.component(.day, from: day))
-
+        @State var additionalScale1: CGFloat = 0.0
+        
         GeometryReader { geometry in
 
             let totalWidth = geometry.size.width
@@ -67,12 +68,16 @@ struct CalendarDayCell: View {
 
                 if (iconCount == 1) {
 
-                    Image(systemName: icons[0])
+                    let icon = icons[0]
+                    let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
+                    let img = isAsset ? Image(icon) : Image(systemName: icon)
+                
+                    img
                         .resizable()
                         .scaledToFit()
                         .frame(width: side * 0.75, height: side * 0.75)
-                        .foregroundColor(colorForIcon(icons[0]))
-                        .border(cellDebug == true ? Color.red : Color.clear)
+                        .foregroundColor(colorForIcon(icon))
+                        .border(cellDebug ? .red : .clear)
                         .frame(width: side, height: side)
                         .padding(.top, 26)
                         .opacity(adjacentCell ? 0.5 : 1.0)
@@ -80,7 +85,11 @@ struct CalendarDayCell: View {
                 } else if (iconCount == 2) {
 
                     HStack(spacing: 2) {
-                        Image(systemName: icons[0])
+                        let icon = icons[0]
+                        let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
+                        let img = isAsset ? Image(icon) : Image(systemName: icon)
+                    
+                        img
                             .resizable()
                             .scaledToFit()
                             .frame(width: side * 0.5, height: side * 0.5)
@@ -88,7 +97,11 @@ struct CalendarDayCell: View {
                             .border(cellDebug == true ? Color.blue : Color.clear)
                             .opacity(adjacentCell ? 0.5 : 1.0)
 
-                        Image(systemName: icons[1])
+                        let icon1 = icons[1]
+                        let isAsset1 = UIImage(named: icon1) != nil     // detect if image exists in Assets
+                        let img1 = isAsset1 ? Image(icon1) : Image(systemName: icon1)
+                    
+                        img1
                             .resizable()
                             .scaledToFit()
                             .frame(width: side * 0.4, height: side * 0.5)
@@ -104,7 +117,11 @@ struct CalendarDayCell: View {
 
                     VStack (spacing: 0) {
                         HStack(spacing: 6) {
-                            Image(systemName: icons[0])
+                            let icon = icons[0]
+                            let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
+                            let img = isAsset ? Image(icon) : Image(systemName: icon)
+                        
+                            img
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: side * 0.4, height: side * 0.4)
@@ -112,7 +129,11 @@ struct CalendarDayCell: View {
                                 .border(cellDebug == true ? Color.blue : Color.clear)
                                 .opacity(adjacentCell ? 0.5 : 1.0)
 
-                            Image(systemName: icons[1])
+                            let icon1 = icons[1]
+                            let isAsset1 = UIImage(named: icon1) != nil     // detect if image exists in Assets
+                            let img1 = isAsset1 ? Image(icon1) : Image(systemName: icon1)
+                        
+                            img1
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: side * 0.4, height: side * 0.4)
@@ -124,7 +145,11 @@ struct CalendarDayCell: View {
 
                         if (iconCount == 4) {
                             HStack(spacing: 6) {
-                                Image(systemName: icons[2])
+                                let icon2 = icons[2]
+                                let isAsset2 = UIImage(named: icon2) != nil     // detect if image exists in Assets
+                                let img2 = isAsset2 ? Image(icon2) : Image(systemName: icon2)
+                            
+                                img2
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: side * 0.4, height: side * 0.4)
@@ -132,7 +157,11 @@ struct CalendarDayCell: View {
                                     .border(cellDebug == true ? Color.blue : Color.clear)
                                     .opacity(adjacentCell ? 0.5 : 1.0)
 
-                                Image(systemName: icons[3])
+                                let icon3 = icons[3]
+                                let isAsset3 = UIImage(named: icon3) != nil     // detect if image exists in Assets
+                                let img3 = isAsset3 ? Image(icon3) : Image(systemName: icon3)
+                            
+                                img3
                                     .resizable()
                                     .scaledToFit()
                                     .frame(width: side * 0.4, height: side * 0.4)
@@ -151,7 +180,12 @@ struct CalendarDayCell: View {
                             Color.clear
                                 .frame(width: side * 0.4, height: side * 0.4)
                                 .border(cellDebug ? .blue : .clear)
-                            Image(systemName: icons[0])
+                            
+                            let icon = icons[0]
+                            let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
+                            let img = isAsset ? Image(icon) : Image(systemName: icon)
+                        
+                            img
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: side * 0.4, height: side * 0.4)
@@ -163,7 +197,11 @@ struct CalendarDayCell: View {
 
 
                         HStack(spacing: 6) {
-                            Image(systemName: icons[1])
+                            let icon1 = icons[1]
+                            let isAsset1 = UIImage(named: icon1) != nil     // detect if image exists in Assets
+                            let img1 = isAsset1 ? Image(icon1) : Image(systemName: icon1)
+                        
+                            img1
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: side * 0.4, height: side * 0.4)
@@ -171,7 +209,11 @@ struct CalendarDayCell: View {
                                 .border(cellDebug == true ? Color.blue : Color.clear)
                                 .opacity(adjacentCell ? 0.5 : 1.0)
 
-                            Image(systemName: icons[2])
+                            let icon2 = icons[2]
+                            let isAsset2 = UIImage(named: icon2) != nil     // detect if image exists in Assets
+                            let img2 = isAsset2 ? Image(icon2) : Image(systemName: icon2)
+                        
+                            img2
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: side * 0.4, height: side * 0.4)
@@ -181,7 +223,11 @@ struct CalendarDayCell: View {
                         }
 
                         HStack(spacing: 6) {
-                            Image(systemName: icons[3])
+                            let icon3 = icons[3]
+                            let isAsset3 = UIImage(named: icon3) != nil     // detect if image exists in Assets
+                            let img3 = isAsset3 ? Image(icon3) : Image(systemName: icon3)
+                        
+                            img3
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: side * 0.4, height: side * 0.4)
@@ -189,7 +235,11 @@ struct CalendarDayCell: View {
                                 .border(cellDebug == true ? Color.blue : Color.clear)
                                 .opacity(adjacentCell ? 0.5 : 1.0)
 
-                            Image(systemName: icons[4])
+                            let icon4 = icons[4]
+                            let isAsset4 = UIImage(named: icon4) != nil     // detect if image exists in Assets
+                            let img4 = isAsset4 ? Image(icon4) : Image(systemName: icon4)
+                        
+                            img4
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: side * 0.4, height: side * 0.4)
@@ -212,7 +262,11 @@ struct CalendarDayCell: View {
                         LazyVGrid(columns: columns, spacing: 0) {
                             ForEach(icons, id: \.self) { symbol in
                                 HStack(spacing: 0) {
-                                    Image(systemName: symbol)
+                                    let icon = symbol
+                                    let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
+                                    let img = isAsset ? Image(icon) : Image(systemName: icon)
+                                
+                                    img
                                         .resizable()
                                         .scaledToFit()
                                         .frame(width: side * 0.4, height: side * 0.4)
