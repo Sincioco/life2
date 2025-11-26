@@ -144,7 +144,7 @@ struct ActivityRow: View {
                                 Circle()
                                     .fill(.background)
                             )
-                            .offset(x: 26, y: -17)
+                            .offset(x: 26, y: -27)
                     }
                 }
 
