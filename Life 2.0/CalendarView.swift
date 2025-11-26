@@ -467,6 +467,7 @@ struct CalendarView: View {
                     calendar: calendar
                 )
             }
+            .navigationTitle(monthName)
             .toolbar { calendarToolbar }
         }
         .sheet(item: $sheetDate) { identifiable in
