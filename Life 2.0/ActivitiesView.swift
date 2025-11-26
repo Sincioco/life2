@@ -18,6 +18,7 @@ struct ActivitiesView: View {
     @Environment(\.modelContext) private var modelContext
     @Query var Activities: [Activity]
     @Query(sort: [SortDescriptor(\Category.name, order: .forward)]) private var categories: [Category]
+    
     @State private var isPresentingAddActivity = false
     @State private var searchText: String = ""
     @State private var showEmptyPrompt: Bool = true
@@ -25,6 +26,10 @@ struct ActivitiesView: View {
     @State private var pendingDelete: Activity? = nil
     @State private var isShowingDeleteAlert: Bool = false
     @State private var selectedCategory: String? = nil
+    
+    // Hard-refresh visual state
+    @State private var isRefreshing: Bool = false
+    @State private var refreshRotation: Double = 0
     
     private var filteredActivities: [Activity] {
         let base = Activities
@@ -59,7 +64,7 @@ struct ActivitiesView: View {
         // Start of next month
         let nextMonth = cal.date(byAdding: .month, value: 1, to: start) ?? start
         let end = cal.startOfDay(for: nextMonth)
-
+        
         // Collect all activities in this category from the currently filtered set (ignoring text filter to reflect raw category)
         let activitiesInCategory = Activities.filter { $0.categoryName == category }
         // Build a set of days (as startOfDay) where at least one history exists for the category
@@ -72,7 +77,7 @@ struct ActivitiesView: View {
                 }
             }
         }
-
+        
         // Create daily points from start to end-1 day
         var points: [(Date, Int)] = []
         var cursor = start
@@ -104,83 +109,93 @@ struct ActivitiesView: View {
                     .buttonStyle(.borderedProminent)
                     .keyboardShortcut(.defaultAction)
                     Spacer()
-//                            Text("No Activies Found")
-//                                .font(.title3)
-//                                .fontWeight(.semibold)
-//                            Text("Create sample activities for you to start with?")
-//                                .multilineTextAlignment(.center)
-//                                .font(.body)
-//                                .foregroundStyle(.secondary)
-//                                .padding(.horizontal, 24)
-//                            HStack(spacing: 16) {
-//                                Button("Later") {
-//                                    withAnimation { showEmptyPrompt = false }
-//                                }
-//                                .buttonStyle(.bordered)
-//                                Button("Yes") {
-//                                    withAnimation {
-//                                        Activity.generateStarterActivities(in: modelContext)
-//                                        showEmptyPrompt = false
-//                                    }
-//                                }
-//                                .buttonStyle(.borderedProminent)
-//                                .keyboardShortcut(.defaultAction)
-//                            }
-//                            .padding(.top, 4)
-                 
                 }
-                //.frame(maxWidth: .infinity, maxHeight: .infinity)
             }
+            
             Group {
-                List {
-                    ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
-                        Section(header: Text(category)) {
-
-                            if let activitiesInSection = groupedByCategory[category] {
-                                ForEach(activitiesInSection) { activity in
-                                    NavigationLink {
-                                        EditActivityView(activity: activity)
-                                    } label: {
-                                        ActivityRow(activity: activity)
-                                            .contentShape(Rectangle())
-                                    }
-                                    .swipeActions(edge: .trailing, allowsFullSwipe: true) {
-                                        
-                                        
-                                        // Existing Done button
-                                        let isDisabled = activity.count >= activity.maxCount
-                                        Button {
-                                            if activity.count < activity.maxCount {
-                                                activity.increment(in: modelContext)
-                                                NotificationCenter.default.post(name: .activityDidChange, object: nil)
-                                                let success = UINotificationFeedbackGenerator()
-                                                success.notificationOccurred(.success)
-                                            } else {
-                                                let warning = UINotificationFeedbackGenerator()
-                                                warning.notificationOccurred(.warning)
-                                            }
+                VStack(spacing: 0) {
+                    // Custom animated "hard refresh" banner
+//                    if isRefreshing {
+//                        HStack(spacing: 8) {
+//                            Image(systemName: "arrow.clockwise.circle.fill")
+//                                .symbolRenderingMode(.hierarchical)
+//                                .font(.title3)
+//                                .rotationEffect(.degrees(refreshRotation))
+//                            
+//                            VStack(alignment: .leading, spacing: 2) {
+//                                Text("Refreshing activities")
+//                                    .font(.caption)
+//                                    .fontWeight(.semibold)
+//                                    .textCase(.uppercase)
+//                                Text("Pull-to-refresh triggered a hard data reload.")
+//                                    .font(.caption2)
+//                                    .foregroundStyle(.secondary)
+//                            }
+//                            
+//                            Spacer(minLength: 0)
+//                        }
+//                        .padding(.horizontal, 12)
+//                        .padding(.vertical, 8)
+//                        .frame(maxWidth: .infinity)
+//                        .background(.thinMaterial)
+//                        .overlay(
+//                            Divider()
+//                                .offset(y: 12),
+//                            alignment: .bottom
+//                        )
+//                        .transition(.move(edge: .top).combined(with: .opacity))
+//                        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isRefreshing)
+//                    }
+                    
+                    List {
+                        ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
+                            Section(header: Text(category)) {
+                                
+                                if let activitiesInSection = groupedByCategory[category] {
+                                    ForEach(activitiesInSection) { activity in
+                                        NavigationLink {
+                                            EditActivityView(activity: activity)
                                         } label: {
-                                            Label("Done", systemImage: "checkmark")
+                                            ActivityRow(activity: activity)
+                                                .contentShape(Rectangle())
                                         }
-                                        .tint(.green)
-                                        .disabled(isDisabled)
-                                        
-                                        // Delete button (appears to the left of the Done button)
-                                        Button(role: .destructive) {
-                                            pendingDelete = activity
-                                            isShowingDeleteAlert = true
-                                        } label: {
-                                            Label("Delete", systemImage: "trash")
+                                        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                            
+                                            // Existing Done button
+                                            let isDisabled = activity.count >= activity.maxCount
+                                            Button {
+                                                if activity.count < activity.maxCount {
+                                                    activity.increment(in: modelContext)
+                                                    NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                                                    let success = UINotificationFeedbackGenerator()
+                                                    success.notificationOccurred(.success)
+                                                } else {
+                                                    let warning = UINotificationFeedbackGenerator()
+                                                    warning.notificationOccurred(.warning)
+                                                }
+                                            } label: {
+                                                Label("Done", systemImage: "checkmark")
+                                            }
+                                            .tint(.green)
+                                            .disabled(isDisabled)
+                                            
+                                            // Delete button (appears to the left of the Done button)
+                                            Button(role: .destructive) {
+                                                pendingDelete = activity
+                                                isShowingDeleteAlert = true
+                                            } label: {
+                                                Label("Delete", systemImage: "trash")
+                                            }
                                         }
                                     }
                                 }
                             }
+                            .listRowSeparator(.hidden)
+                            .contentShape(Rectangle())
                         }
-                        .listRowSeparator(.hidden)
-                        .contentShape(Rectangle())
                     }
+                    .id(reloadID)
                 }
-                .id(reloadID)
                 .listRowSeparator(.hidden)
                 .searchable(text: $searchText,
                             placement: .navigationBarDrawer(displayMode: .automatic),
@@ -206,6 +221,10 @@ struct ActivitiesView: View {
                 }
                 .onReceive(NotificationCenter.default.publisher(for: .activityDidChange)) { _ in
                     reloadID = UUID()
+                }
+                // Pull-to-refresh: hard refresh of the activities list
+                .refreshable {
+                    await hardRefresh()
                 }
             }
             .toolbar {
@@ -256,9 +275,43 @@ struct ActivitiesView: View {
                 AddActivityView()
             }
         }
+        // Spin animation driver for the refresh icon
+        .onChange(of: isRefreshing) { _, newValue in
+            if newValue {
+                refreshRotation = 0
+                withAnimation(.linear(duration: 0.8).repeatForever(autoreverses: false)) {
+                    refreshRotation = 360
+                }
+            } else {
+                refreshRotation = 0
+            }
+        }
     }
     
+    // MARK: - Hard refresh logic
     
+    private func hardRefresh() async {
+        await MainActor.run {
+            withAnimation {
+                isRefreshing = true
+            }
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
+        }
+        
+        // Give SwiftData + @Query a moment & simulate a true "hard" reload
+        try? await Task.sleep(nanoseconds: 700_000_000) // ~0.7s
+        await MainActor.run {
+            reloadID = UUID() // forces the List to rebuild
+            NotificationCenter.default.post(name: .activityDidChange, object: nil)
+        }
+        try? await Task.sleep(nanoseconds: 400_000_000) // let the banner be visible
+        
+        await MainActor.run {
+            withAnimation {
+                isRefreshing = false
+            }
+        }
+    }
     
     private func increment(_ activity: Activity) {
         activity.increment(in: modelContext)
@@ -285,4 +338,3 @@ extension Notification.Name {
     ActivitiesView()
         .modelContainer(previewContainer)
 }
-
