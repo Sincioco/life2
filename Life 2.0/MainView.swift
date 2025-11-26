@@ -33,6 +33,9 @@ struct MainView: View {
             Tab("Options", systemImage: "gear") {
                 OptionsView()
             }
+            Tab("Categories", systemImage: "folder") {
+                CategoryListView()
+            }
         }
     }
     

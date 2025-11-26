@@ -18,7 +18,7 @@ struct Life2App: App {
             MainView()
         }
         
-        .modelContainer(for: Activity.self)
+        .modelContainer(for: [Activity.self, ActivityHistory.self, Category.self])
         
     }
 }

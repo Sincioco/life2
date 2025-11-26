@@ -95,6 +95,7 @@ struct ActivitiesView: View {
                     )
                     Button("Create Starter Activities") {
                         withAnimation {
+                            Category.seedDefaultsIfNeeded(in: modelContext)
                             Activity.generateStarterActivities(in: modelContext)
                             showEmptyPrompt = false
                         }
