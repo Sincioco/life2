@@ -30,12 +30,13 @@ struct MainView: View {
 //            Tab("Pie", systemImage: "line.3.horizontal") {
 //                SimplePieChartView()
 //            }
-            Tab("Options", systemImage: "gear") {
-                OptionsView()
-            }
             Tab("Categories", systemImage: "folder") {
                 CategoryListView()
             }
+            Tab("Options", systemImage: "gear") {
+                OptionsView()
+            }
+
         }
     }
     

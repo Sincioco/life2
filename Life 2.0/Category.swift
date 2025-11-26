@@ -25,9 +25,9 @@ class Category {
 
 extension Category {
     static let defaultSeed: [(name: String, icon: String, color: ActivityColor)] = [
-        ("Fitness", "figure.run", .green),
-        ("Fun", "basketball.fill", .orange),
-        ("Work", "calendar.badge.clock", .red)
+        ("Fitness", "figure.run", .blue),
+        ("Fun", "basketball.fill", .yellow),
+        ("Work", "calendar.badge.clock", .green)
     ]
 
     /// Seed defaults if there are no categories yet

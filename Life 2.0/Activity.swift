@@ -224,6 +224,7 @@ extension Activity {
                 recurrence: .weekly,
                 categoryName: "Fitness",
                 notes: "Easy-paced 20–30 minute run.",
+                color: ActivityColor.blue,
                 maxCount: Activity.defaultMaxCount(for: .weekly),
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
@@ -234,6 +235,7 @@ extension Activity {
                 recurrence: .weekly,
                 categoryName: "Fitness",
                 notes: "Strength training at the gym.",
+                color: ActivityColor.blue,
                 maxCount: 4,
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
@@ -244,6 +246,7 @@ extension Activity {
                 recurrence: .daily,
                 categoryName: "Fitness",
                 notes: "Walk Max every day",
+                color: ActivityColor.blue,
                 maxCount: 7,
                 dateCreated: randomizedDate(for: .daily, now: now),
                 dateModified: randomizedDate(for: .daily, now: now)
@@ -254,6 +257,7 @@ extension Activity {
                 recurrence: .weekly,
                 categoryName: "Fun",
                 notes: "I'm stuck at the final boss",
+                color: ActivityColor.yellow,
                 maxCount: 3,
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
@@ -264,6 +268,7 @@ extension Activity {
                 recurrence: .weekly,
                 categoryName: "Fun",
                 notes: "Basketball just for fun",
+                color: ActivityColor.yellow,
                 maxCount: 2,
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
@@ -274,6 +279,7 @@ extension Activity {
                 recurrence: .weekly,
                 categoryName: "Work",
                 notes: "Morning Scrum.",
+                color: ActivityColor.green,
                 maxCount: 5,
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
@@ -284,6 +290,7 @@ extension Activity {
                 recurrence: .weekly,
                 categoryName: "Work",
                 notes: "Plan tasks and priorities for the week.",
+                color: ActivityColor.green,
                 maxCount: 1,
                 dateCreated: randomizedDate(for: .weekly, now: now),
                 dateModified: randomizedDate(for: .weekly, now: now)
