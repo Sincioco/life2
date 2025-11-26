@@ -5,6 +5,7 @@ import SwiftData
 struct AddActivityView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
 
     @Query private var activities: [Activity]
 
@@ -157,7 +158,9 @@ struct AddActivityView: View {
                         HStack {
                             Text("Icon")
                             Spacer()
-                            Image(systemName: icon)
+                            let assetExists = UIImage(named: icon) != nil
+                            let img: Image = (useRealisticIcons && assetExists) ? Image(icon) : Image(systemName: icon)
+                            img
                                 .resizable()
                                 .scaledToFit()
                                 .frame(width: 20, height: 20)
@@ -199,7 +202,9 @@ struct AddActivityView: View {
                                             icon = suggestion
                                         } label: {
                                             HStack(spacing: 4) {
-                                                Image(systemName: suggestion)
+                                                let assetExists = UIImage(named: suggestion) != nil
+                                                let img: Image = (useRealisticIcons && assetExists) ? Image(suggestion) : Image(systemName: suggestion)
+                                                img
                                                     .resizable()
                                                     .scaledToFit()
                                                     .frame(width: 16, height: 16)

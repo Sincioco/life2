@@ -6,6 +6,7 @@ import UIKit
 struct EditActivityView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
 
     @Bindable var activity: Activity
 
@@ -75,8 +76,8 @@ struct EditActivityView: View {
                             Text("Icon")
                             Spacer()
                             let icon = activity.icon
-                            let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
-                            let img = isAsset ? Image(icon) : Image(systemName: icon)
+                            let assetExists = UIImage(named: icon) != nil
+                            let img: Image = (useRealisticIcons && assetExists) ? Image(icon) : Image(systemName: icon)
                         
                             img
                                 .resizable()
@@ -163,8 +164,8 @@ struct EditActivityView: View {
                         ForEach(sortedHistories) { history in
                             HStack(alignment: .top, spacing: 12) {
                                 let icon = activity.icon
-                                let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
-                                let img = isAsset ? Image(icon) : Image(systemName: icon)
+                                let assetExists = UIImage(named: icon) != nil
+                                let img: Image = (useRealisticIcons && assetExists) ? Image(icon) : Image(systemName: icon)
                             
                                 img
                                     .resizable()
@@ -440,3 +441,4 @@ struct EditActivityView: View {
         return Text("Failed to create preview: \(error.localizedDescription)")
     }
 }
+

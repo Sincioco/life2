@@ -149,6 +149,8 @@ struct ActivityHistoryView: View {
 private struct HistoryRow: View {
     
     let history: ActivityHistory
+
+    @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
     
     private var activityName: String {
         history.activity?.name ?? "Unknown Activity"
@@ -176,10 +178,9 @@ private struct HistoryRow: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-//            Image(systemName: iconName)
             let icon = iconName
-            let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
-            let img = isAsset ? Image(icon) : Image(systemName: icon)
+            let assetExists = UIImage(named: icon) != nil
+            let img: Image = (useRealisticIcons && assetExists) ? Image(icon) : Image(systemName: icon)
         
             img
                 .resizable()
@@ -285,4 +286,5 @@ private struct HistoryRow: View {
         return Text("Failed to create preview: \\(error.localizedDescription)")
     }
 }
+
 

@@ -12,6 +12,8 @@ import SwiftUI
 
 struct CalendarDayCell: View {
 
+    @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
+
     var day: Date = Date()
     /// Simple orientation helper (no UIScreen.main)
         private var isLandscape: Bool {
@@ -69,8 +71,8 @@ struct CalendarDayCell: View {
                 if (iconCount == 1) {
 
                     let icon = icons[0]
-                    let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
-                    let img = isAsset ? Image(icon) : Image(systemName: icon)
+                    let assetExists = UIImage(named: icon) != nil
+                    let img: Image = (useRealisticIcons && assetExists) ? Image(icon) : Image(systemName: icon)
                 
                     img
                         .resizable()
@@ -86,8 +88,8 @@ struct CalendarDayCell: View {
 
                     HStack(spacing: 2) {
                         let icon = icons[0]
-                        let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
-                        let img = isAsset ? Image(icon) : Image(systemName: icon)
+                        let assetExists = UIImage(named: icon) != nil
+                        let img: Image = (useRealisticIcons && assetExists) ? Image(icon) : Image(systemName: icon)
                     
                         img
                             .resizable()
@@ -98,8 +100,8 @@ struct CalendarDayCell: View {
                             .opacity(adjacentCell ? 0.5 : 1.0)
 
                         let icon1 = icons[1]
-                        let isAsset1 = UIImage(named: icon1) != nil     // detect if image exists in Assets
-                        let img1 = isAsset1 ? Image(icon1) : Image(systemName: icon1)
+                        let assetExists1 = UIImage(named: icon1) != nil
+                        let img1: Image = (useRealisticIcons && assetExists1) ? Image(icon1) : Image(systemName: icon1)
                     
                         img1
                             .resizable()
@@ -118,8 +120,8 @@ struct CalendarDayCell: View {
                     VStack (spacing: 0) {
                         HStack(spacing: 6) {
                             let icon = icons[0]
-                            let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
-                            let img = isAsset ? Image(icon) : Image(systemName: icon)
+                            let assetExists = UIImage(named: icon) != nil
+                            let img: Image = (useRealisticIcons && assetExists) ? Image(icon) : Image(systemName: icon)
                         
                             img
                                 .resizable()
@@ -130,8 +132,8 @@ struct CalendarDayCell: View {
                                 .opacity(adjacentCell ? 0.5 : 1.0)
 
                             let icon1 = icons[1]
-                            let isAsset1 = UIImage(named: icon1) != nil     // detect if image exists in Assets
-                            let img1 = isAsset1 ? Image(icon1) : Image(systemName: icon1)
+                            let assetExists1 = UIImage(named: icon1) != nil
+                            let img1: Image = (useRealisticIcons && assetExists1) ? Image(icon1) : Image(systemName: icon1)
                         
                             img1
                                 .resizable()
@@ -146,8 +148,8 @@ struct CalendarDayCell: View {
                         if (iconCount == 4) {
                             HStack(spacing: 6) {
                                 let icon2 = icons[2]
-                                let isAsset2 = UIImage(named: icon2) != nil     // detect if image exists in Assets
-                                let img2 = isAsset2 ? Image(icon2) : Image(systemName: icon2)
+                                let assetExists2 = UIImage(named: icon2) != nil
+                                let img2: Image = (useRealisticIcons && assetExists2) ? Image(icon2) : Image(systemName: icon2)
                             
                                 img2
                                     .resizable()
@@ -158,8 +160,8 @@ struct CalendarDayCell: View {
                                     .opacity(adjacentCell ? 0.5 : 1.0)
 
                                 let icon3 = icons[3]
-                                let isAsset3 = UIImage(named: icon3) != nil     // detect if image exists in Assets
-                                let img3 = isAsset3 ? Image(icon3) : Image(systemName: icon3)
+                                let assetExists3 = UIImage(named: icon3) != nil
+                                let img3: Image = (useRealisticIcons && assetExists3) ? Image(icon3) : Image(systemName: icon3)
                             
                                 img3
                                     .resizable()
@@ -182,8 +184,8 @@ struct CalendarDayCell: View {
                                 .border(cellDebug ? .blue : .clear)
                             
                             let icon = icons[0]
-                            let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
-                            let img = isAsset ? Image(icon) : Image(systemName: icon)
+                            let assetExists = UIImage(named: icon) != nil
+                            let img: Image = (useRealisticIcons && assetExists) ? Image(icon) : Image(systemName: icon)
                         
                             img
                                 .resizable()
@@ -198,8 +200,8 @@ struct CalendarDayCell: View {
 
                         HStack(spacing: 6) {
                             let icon1 = icons[1]
-                            let isAsset1 = UIImage(named: icon1) != nil     // detect if image exists in Assets
-                            let img1 = isAsset1 ? Image(icon1) : Image(systemName: icon1)
+                            let assetExists1 = UIImage(named: icon1) != nil
+                            let img1: Image = (useRealisticIcons && assetExists1) ? Image(icon1) : Image(systemName: icon1)
                         
                             img1
                                 .resizable()
@@ -210,8 +212,8 @@ struct CalendarDayCell: View {
                                 .opacity(adjacentCell ? 0.5 : 1.0)
 
                             let icon2 = icons[2]
-                            let isAsset2 = UIImage(named: icon2) != nil     // detect if image exists in Assets
-                            let img2 = isAsset2 ? Image(icon2) : Image(systemName: icon2)
+                            let assetExists2 = UIImage(named: icon2) != nil
+                            let img2: Image = (useRealisticIcons && assetExists2) ? Image(icon2) : Image(systemName: icon2)
                         
                             img2
                                 .resizable()
@@ -224,8 +226,8 @@ struct CalendarDayCell: View {
 
                         HStack(spacing: 6) {
                             let icon3 = icons[3]
-                            let isAsset3 = UIImage(named: icon3) != nil     // detect if image exists in Assets
-                            let img3 = isAsset3 ? Image(icon3) : Image(systemName: icon3)
+                            let assetExists3 = UIImage(named: icon3) != nil
+                            let img3: Image = (useRealisticIcons && assetExists3) ? Image(icon3) : Image(systemName: icon3)
                         
                             img3
                                 .resizable()
@@ -236,8 +238,8 @@ struct CalendarDayCell: View {
                                 .opacity(adjacentCell ? 0.5 : 1.0)
 
                             let icon4 = icons[4]
-                            let isAsset4 = UIImage(named: icon4) != nil     // detect if image exists in Assets
-                            let img4 = isAsset4 ? Image(icon4) : Image(systemName: icon4)
+                            let assetExists4 = UIImage(named: icon4) != nil
+                            let img4: Image = (useRealisticIcons && assetExists4) ? Image(icon4) : Image(systemName: icon4)
                         
                             img4
                                 .resizable()
@@ -263,8 +265,8 @@ struct CalendarDayCell: View {
                             ForEach(icons, id: \.self) { symbol in
                                 HStack(spacing: 0) {
                                     let icon = symbol
-                                    let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
-                                    let img = isAsset ? Image(icon) : Image(systemName: icon)
+                                    let assetExists = UIImage(named: icon) != nil
+                                    let img: Image = (useRealisticIcons && assetExists) ? Image(icon) : Image(systemName: icon)
                                 
                                     img
                                         .resizable()
