@@ -10,7 +10,7 @@ import SwiftUI
 import SwiftData
 import UIKit
 import Charts
- 
+
 // Summary model for category-based pie chart
 private struct CategorySummary: Identifiable {
     let id = UUID()
@@ -30,6 +30,8 @@ struct GraphView: View {
     @State private var tappedPieCategory: String? = nil
     @State private var showBarAlert: Bool = false
     @State private var showPieAlert: Bool = false
+    
+    @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
     
     init() {
         let now = Date()
@@ -192,8 +194,14 @@ struct GraphView: View {
                                 AxisMarks(values: .automatic) { value in
                                     if let icon = value.as(String.self) {
                                         AxisValueLabel {
-                                            Image(systemName: icon)
-                                                .font(.caption)
+                                            
+                                            let isAsset = UIImage(named: icon) != nil
+                                            let img = isAsset && useRealisticIcons ? Image(icon) : Image(systemName: icon)
+                                            
+                                            img
+                                                .resizable()                     // allow resizing
+                                                .scaledToFit()                   // keep aspect ratio
+                                                .frame(width: 16, height: 16)    // 👈 adjust size here
                                                 .foregroundStyle(colorForIcon(icon))
                                         }
                                     }

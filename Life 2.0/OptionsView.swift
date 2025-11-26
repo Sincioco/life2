@@ -30,7 +30,7 @@ struct OptionsView: View {
                         Label("Show Month Histogram in Activity Rows", systemImage: "chart.xyaxis.line")
                     }
                     Toggle(isOn: $useRealisticIcons) {
-                        Label("Use Realistic Icons", systemImage: "photo")
+                        Label("Photorealistic Icons", systemImage: "photo")
                     }
                 }
                 Section("Developer Tools for Testing and Debugging") {
