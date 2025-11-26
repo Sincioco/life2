@@ -31,7 +31,7 @@ struct OptionsView: View {
                         Label("Show Month Histogram in Activity Rows", systemImage: "chart.xyaxis.line")
                     }
                     Toggle(isOn: $useRealisticIcons) {
-                        Label("Photorealistic Icons", systemImage: "photo")
+                        Label("Realistic Icons (when available)", systemImage: "photo")
                     }
                     Toggle(isOn: $animateActivityBars) {      // NEW
                         Label("Enable Activity Bar Animation", systemImage: "waveform.path.ecg")

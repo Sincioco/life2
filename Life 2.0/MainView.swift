@@ -27,19 +27,19 @@ struct MainView: View {
             Tab("History", systemImage: "line.3.horizontal") {
                 ActivityHistoryView()
             }
-//            Tab("Pie", systemImage: "line.3.horizontal") {
-//                SimplePieChartView()
-//            }
+            //            Tab("Pie", systemImage: "line.3.horizontal") {
+            //                SimplePieChartView()
+            //            }
             Tab("Categories", systemImage: "folder") {
                 CategoryListView()
             }
-Tab("Export / Import", systemImage: "arrow.up.arrow.down.circle") {
-    ExportImportView()
-}
+            Tab("Export / Import", systemImage: "arrow.up.arrow.down.circle") {
+                ExportImportView()
+            }
             Tab("Options", systemImage: "gear") {
                 OptionsView()
             }
-
+            
         }
     }
     

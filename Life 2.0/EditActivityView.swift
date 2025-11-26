@@ -113,7 +113,7 @@ struct EditActivityView: View {
                                     .foregroundStyle(.secondary)
                             }
                         }
-                    Picker("Recurrence", selection: $activity.recurrence) {
+                    Picker("Goal", selection: $activity.recurrence) {
                         ForEach(Recurrence.allCases, id: \.self) { rec in
                             Text(rec.rawValue).tag(rec)
                         }

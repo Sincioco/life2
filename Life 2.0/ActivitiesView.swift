@@ -162,22 +162,22 @@ struct ActivitiesView: View {
                                         .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                             
                                             // Existing Done button
-                                            let isDisabled = activity.count >= activity.maxCount
+                                            //let isDisabled = activity.count >= activity.maxCount
                                             Button {
-                                                if activity.count < activity.maxCount {
+                                                //if activity.count < activity.maxCount {
                                                     activity.increment(in: modelContext)
                                                     NotificationCenter.default.post(name: .activityDidChange, object: nil)
                                                     let success = UINotificationFeedbackGenerator()
                                                     success.notificationOccurred(.success)
-                                                } else {
-                                                    let warning = UINotificationFeedbackGenerator()
-                                                    warning.notificationOccurred(.warning)
-                                                }
+//                                                } else {
+//                                                    let warning = UINotificationFeedbackGenerator()
+//                                                    warning.notificationOccurred(.warning)
+//                                                }
                                             } label: {
                                                 Label("Done", systemImage: "checkmark")
                                             }
                                             .tint(.green)
-                                            .disabled(isDisabled)
+                                            //.disabled(isDisabled)
                                             
                                             // Delete button (appears to the left of the Done button)
                                             Button(role: .destructive) {

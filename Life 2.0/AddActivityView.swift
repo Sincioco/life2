@@ -222,7 +222,7 @@ struct AddActivityView: View {
                         }
                     }
 
-                    Picker("Recurrence", selection: $recurrence) {
+                    Picker("Goal", selection: $recurrence) {
                         ForEach(recurrencies, id: \.self) { rec in
                             Text(rec.rawValue).tag(rec)
                         }

@@ -17,10 +17,11 @@ struct ActivityRow: View {
     @AppStorage("animateActivityBars") private var animateActivityBars: Bool = true   // NEW
 
     private var gaugeColor: Color {
-        let value = activity.progress
-        if value < 30 { return .red }
-        else if value < 70 { return .yellow }
-        else { return .green }
+//        let value = activity.progress
+//        if value < 30 { return .red }
+//        else if value < 70 { return .yellow }
+//        else { return .green }
+        return activity.color.colorValue
     }
 
     private var isModifiedToday: Bool {
@@ -157,7 +158,11 @@ struct ActivityRow: View {
                 .frame(maxWidth: .infinity)
                 .padding(.top, -8)
                 .overlay {
-                    Text("\(Int(animatedProgress))%")
+                    let percent = activity.maxCount > 0
+                        ? Int((Double(activity.count) / Double(activity.maxCount)) * 100)
+                        : 0
+
+                    Text("\(percent)%")
                         .monospacedDigit()
                         .font(.caption)
                         .fontWeight(.semibold)
