@@ -133,29 +133,43 @@ struct ActivityRow: View {
                 .foregroundStyle(activity.color.colorValue)
                 .frame(width: 40, height: 40)
                 .padding(0)
-                .overlay {
-                    if (activity.count > 0 && isCompletedForToday) {
-                        Image(systemName: "checkmark.circle.fill")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 14, height: 14)
-                            .foregroundStyle(.green)
-                            .background(
-                                Circle()
-                                    .fill(.background)
-                            )
-                            .offset(x: 26, y: -27)
-                    }
-                }
+//                .overlay {
+//                    if (activity.count > 0 && isCompletedForToday) {
+//                        Image(systemName: "checkmark.circle.fill")
+//                            .resizable()
+//                            .scaledToFit()
+//                            .frame(width: 14, height: 14)
+//                            .foregroundStyle(.green)
+//                            .background(
+//                                Circle()
+//                                    .fill(.background)
+//                            )
+//                            .offset(x: 26, y: -27)
+//                    }
+//                }
 
             Spacer(minLength: 20)
 
             // Activity Name and Progress
             VStack(alignment: .leading) {
-                Text(activity.name)
-                    .font(.body)
-                    .frame(maxWidth: .infinity, alignment: .leading)
+                HStack(spacing: 4) {
+                    if activity.count > 0 && isCompletedForToday {
+                        Image(systemName: "checkmark.circle.fill")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 14, height: 14)
+                            .foregroundStyle(.green)
+                            .padding(.top, 2)
+                    }
+                    
+                        Text(activity.name)
+                            .font(.body)
+                            .lineLimit(1)
+                            .truncationMode(.tail)
+                            .frame(maxWidth: .infinity, alignment: .leading)
 
+                        
+                    }
                 Gauge(value: animatedProgress, in: 0...100) {
                     EmptyView()
                 } currentValueLabel: {
