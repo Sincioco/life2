@@ -459,14 +459,6 @@ struct CalendarView: View {
                     }
                 }
             }
-            .sheet(item: $sheetDate) { identifiable in
-                let date = identifiable.date
-                DayActivitySheet(
-                    date: date,
-                    entries: historyEntries(on: date),
-                    calendar: calendar
-                )
-            }
             .navigationTitle(monthName)
             .toolbar { calendarToolbar }
         }
@@ -478,11 +470,6 @@ struct CalendarView: View {
                 calendar: calendar
             )
         }
-//        .alert("Calendar Grid Height", isPresented: $isShowingHeightAlert) {
-//            Button("OK", role: .cancel) { }
-//        } message: {
-//            Text("Height: \(Int(calendarGridHeight))")
-//        }
     }
 
     private var calendarToolbar: some ToolbarContent {
