@@ -11,10 +11,38 @@ struct CategoryListView: View {
     @State private var newIcon: String = "figure.run"
     @State private var newColor: ActivityColor = .green
     @State private var isPresentingIconPicker: Bool = false
+    @State private var isPresentingColorPicker: Bool = false
     @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
 
     private var usedCategoryNames: Set<String> { Set(categories.map { $0.name }) }
     private var usedCategoryColors: Set<ActivityColor> { Set(categories.map { $0.color }) }
+
+    private func nextUnusedColor() -> ActivityColor {
+        let used = Set(categories.map { $0.color })
+        if let available = ActivityColor.allCases.first(where: { !used.contains($0) }) {
+            return available
+        }
+        // If all colors are used, fallback to a default (e.g., blue)
+        return .blue
+    }
+
+    private func randomUnusedIcon() -> String {
+        // Build the set of used icons from existing categories
+        let used = Set(categories.map { $0.icon })
+        // Candidate symbols: reuse the base list from IconPickerView if available; otherwise use a reasonable subset
+        let candidates: [String] = [
+            // Fitness-related
+            "figure.walk", "figure.run", "figure.strengthtraining.traditional", "bicycle", "flame", "flame.fill", "heart", "heart.fill", "sportscourt", "sportscourt.fill", "dumbbell", "dumbbell.fill",
+            // Work-related
+            "briefcase", "briefcase.fill", "calendar", "calendar.badge.clock", "clock", "alarm", "list.bullet", "tray", "tray.fill", "folder", "folder.fill",
+            // Learning-related
+            "book", "book.fill", "graduationcap", "graduationcap.fill", "pencil", "pencil.circle", "doc", "doc.text",
+            // Lifestyle/Other
+            "house", "house.fill", "leaf", "leaf.fill", "camera", "photo", "music.note", "sparkles", "star", "star.fill"
+        ].filter { UIImage(systemName: $0) != nil }
+        let available = candidates.filter { !used.contains($0) }
+        return available.randomElement() ?? (candidates.randomElement() ?? "figure.run")
+    }
 
     var body: some View {
         NavigationStack {
@@ -54,6 +82,8 @@ struct CategoryListView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        newIcon = randomUnusedIcon()
+                        newColor = nextUnusedColor()
                         isPresentingAdd = true
                     } label: {
                         Image(systemName: "plus")
@@ -84,19 +114,28 @@ struct CategoryListView: View {
                             }
                             .contentShape(Rectangle())
                             .onTapGesture { isPresentingIconPicker = true }
-                            TextField("Symbol name", text: $newIcon)
-                            Picker("Color", selection: $newColor) {
-                                ForEach(ActivityColor.allCases.filter { !usedCategoryColors.contains($0) }, id: \.self) { c in
-                                    HStack(spacing: 8) {
-                                        Circle().fill(c.colorValue).frame(width: 16, height: 16)
-                                        Text(c.rawValue.capitalized)
-                                    }.tag(c)
-                                }
+                            HStack {
+                                Text("Color")
+                                Spacer()
+                                Circle()
+                                    .fill(newColor.colorValue)
+                                    .frame(width: 16, height: 16)
+                                Text(newColor.rawValue.capitalized)
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                isPresentingColorPicker = true
                             }
                         }
                     }
                     .navigationTitle("Add Category")
                     .navigationBarTitleDisplayMode(.inline)
+                    .onAppear {
+                        newIcon = randomUnusedIcon()
+                        newColor = nextUnusedColor()
+                    }
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) { Button("Cancel") { isPresentingAdd = false } }
                         ToolbarItem(placement: .confirmationAction) {
@@ -115,6 +154,38 @@ struct CategoryListView: View {
                             IconPickerView(selectedIcon: $newIcon)
                         }
                     }
+                    .sheet(isPresented: $isPresentingColorPicker) {
+                        NavigationStack {
+                            VStack(alignment: .leading) {
+                                Text("Choose Color")
+                                    .font(.headline)
+                                    .padding(.bottom, 8)
+
+                                ScrollView {
+                                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 60), spacing: 16)], spacing: 16) {
+                                        ForEach(ActivityColor.allCases.filter { !usedCategoryColors.contains($0) }, id: \.self) { colorOption in
+                                            Button {
+                                                newColor = colorOption
+                                                isPresentingColorPicker = false
+                                            } label: {
+                                                VStack {
+                                                    Circle()
+                                                        .fill(colorOption.colorValue)
+                                                        .frame(width: 32, height: 32)
+                                                    Text(colorOption.rawValue.capitalized)
+                                                        .font(.caption2)
+                                                        .multilineTextAlignment(.center)
+                                                }
+                                                .padding(4)
+                                            }
+                                            .buttonStyle(.plain)
+                                        }
+                                    }
+                                }
+                            }
+                            .padding()
+                        }
+                    }
                 }
             }
         }
@@ -128,8 +199,8 @@ struct CategoryListView: View {
         modelContext.insert(cat)
         try? modelContext.save()
         newName = ""
-        newIcon = "figure.run"
-        newColor = .green
+        newColor = nextUnusedColor()
+        newIcon = randomUnusedIcon()
         isPresentingAdd = false
     }
 
@@ -144,8 +215,9 @@ struct EditCategoryView: View {
     @Environment(\.dismiss) private var dismiss
     @Bindable var category: Category
     @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
-    @State private var isPresentingIconPicker: Bool = false
     @Query(sort: [SortDescriptor(\Category.name)]) private var allCategories: [Category]
+    @State private var isPresentingIconPicker: Bool = false
+    @State private var isPresentingColorPicker: Bool = false
 
     private var usedColorsExcludingCurrent: Set<ActivityColor> { Set(allCategories.filter { $0.id != category.id }.map { $0.color }) }
     private var usedNamesExcludingCurrent: Set<String> { Set(allCategories.filter { $0.id != category.id }.map { $0.name }) }
@@ -171,15 +243,21 @@ struct EditCategoryView: View {
                 }
                 .contentShape(Rectangle())
                 .onTapGesture { isPresentingIconPicker = true }
-                TextField("Symbol name", text: $category.icon)
-                Picker("Color", selection: $category.color) {
-                    ForEach(ActivityColor.allCases.filter { !usedColorsExcludingCurrent.contains($0) }, id: \.self) { c in
-                        HStack(spacing: 8) {
-                            Circle().fill(c.colorValue).frame(width: 16, height: 16)
-                            Text(c.rawValue.capitalized)
-                        }.tag(c)
-                    }
+                HStack {
+                    Text("Color")
+                    Spacer()
+                    Circle()
+                        .fill(category.color.colorValue)
+                        .frame(width: 16, height: 16)
+                    Text(category.color.rawValue.capitalized)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    isPresentingColorPicker = true
+                }
+                TextField("Symbol name", text: $category.icon)
             }
         }
         .navigationTitle("Edit Category")
@@ -201,6 +279,38 @@ struct EditCategoryView: View {
         .sheet(isPresented: $isPresentingIconPicker) {
             NavigationStack {
                 IconPickerView(selectedIcon: $category.icon)
+            }
+        }
+        .sheet(isPresented: $isPresentingColorPicker) {
+            NavigationStack {
+                VStack(alignment: .leading) {
+                    Text("Choose Color")
+                        .font(.headline)
+                        .padding(.bottom, 8)
+
+                    ScrollView {
+                        LazyVGrid(columns: [GridItem(.adaptive(minimum: 60), spacing: 16)], spacing: 16) {
+                            ForEach(ActivityColor.allCases.filter { !usedColorsExcludingCurrent.contains($0) }, id: \.self) { colorOption in
+                                Button {
+                                    category.color = colorOption
+                                    isPresentingColorPicker = false
+                                } label: {
+                                    VStack {
+                                        Circle()
+                                            .fill(colorOption.colorValue)
+                                            .frame(width: 32, height: 32)
+                                        Text(colorOption.rawValue.capitalized)
+                                            .font(.caption2)
+                                            .multilineTextAlignment(.center)
+                                    }
+                                    .padding(4)
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        }
+                    }
+                }
+                .padding()
             }
         }
     }
