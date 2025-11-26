@@ -176,7 +176,12 @@ private struct HistoryRow: View {
     
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
-            Image(systemName: iconName)
+//            Image(systemName: iconName)
+            let icon = iconName
+            let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
+            let img = isAsset ? Image(icon) : Image(systemName: icon)
+        
+            img
                 .resizable()
                 .scaledToFit()
                 .frame(width: 28, height: 28)

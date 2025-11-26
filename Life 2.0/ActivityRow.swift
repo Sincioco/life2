@@ -105,7 +105,11 @@ struct ActivityRow: View {
     var body: some View {
         HStack {
             // Activity Icon
-            Image(systemName: activity.icon)
+            let icon = activity.icon
+            let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
+            let img = isAsset ? Image(icon) : Image(systemName: icon)
+        
+            img
                 .resizable()
                 .scaledToFit()
                 .foregroundStyle(activity.color.colorValue)
