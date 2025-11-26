@@ -18,8 +18,9 @@ struct OptionsView: View {
     @State private var showDeleteForActivitySheet = false
     @State private var selectedActivityToDelete: Activity? = nil
     @State private var showDeleteForActivityConfirm = false
-    
+
     @AppStorage("showMonthHistogram") private var showMonthHistogram: Bool = true
+    @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
 
     var body: some View {
         NavigationStack {
@@ -27,6 +28,9 @@ struct OptionsView: View {
                 Section("Preferences") {
                     Toggle(isOn: $showMonthHistogram) {
                         Label("Show Month Histogram in Activity Rows", systemImage: "chart.xyaxis.line")
+                    }
+                    Toggle(isOn: $useRealisticIcons) {
+                        Label("Use Realistic Icons (Assets)", systemImage: "photo")
                     }
                 }
                 Section("Developer Tools for Testing and Debugging") {
@@ -283,4 +287,3 @@ struct OptionsView: View {
         return Text("Failed to create preview: \\(error.localizedDescription)")
     }
 }
-

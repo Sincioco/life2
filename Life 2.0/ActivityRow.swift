@@ -13,6 +13,7 @@ struct ActivityRow: View {
     @State private var showDeleteConfirm = false
     @State private var isDeletingVisual = false
     @AppStorage("showMonthHistogram") private var showMonthHistogram: Bool = true
+    @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
 
     private var gaugeColor: Color {
         let value = activity.progress
@@ -107,9 +108,15 @@ struct ActivityRow: View {
         HStack {
             // Activity Icon
             let icon = activity.icon
-            let isAsset = UIImage(named: icon) != nil     // detect if image exists in Assets
-            let img = isAsset ? Image(icon) : Image(systemName: icon)
-        
+            let assetExists = UIImage(named: icon) != nil // detect if image exists in Assets
+            let img: Image = {
+                if useRealisticIcons, assetExists {
+                    return Image(icon) // use asset image
+                } else {
+                    return Image(systemName: icon) // SF Symbol fallback or forced by toggle off
+                }
+            }()
+
             img
                 .resizable()
                 .scaledToFit()
