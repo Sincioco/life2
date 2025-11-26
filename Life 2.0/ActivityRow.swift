@@ -25,7 +25,10 @@ struct ActivityRow: View {
     }
 
     private var isModifiedToday: Bool {
-        Calendar.current.isDateInToday(activity.dateModified)
+        guard let latest = activity.histories.sorted(by: { $0.dateCompleted > $1.dateCompleted }).first else {
+            return false
+        }
+        return Calendar.current.isDateInToday(latest.dateCompleted)
     }
 
     // Build a daily series for this activity for the current month (1 if any history that day)

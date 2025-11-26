@@ -252,11 +252,11 @@ extension Activity {
                 dateModified: randomizedDate(for: .daily, now: now)
             ),
             Activity(
-                name: "Play Elden Ring",
+                name: "Play Video Games",
                 icon: "gamecontroller.fill",
                 recurrence: .weekly,
                 categoryName: "Fun",
-                notes: "I'm stuck at the final boss",
+                notes: "I'm stuck in Elden Ring's final boss",
                 color: ActivityColor.yellow,
                 maxCount: 3,
                 dateCreated: randomizedDate(for: .weekly, now: now),
