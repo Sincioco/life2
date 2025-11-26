@@ -411,3 +411,55 @@ extension Activity {
     }
 }
 
+
+
+// MARK: - Backup Export / Import (Activity)
+extension Activity {
+    struct ActivityBackup: Codable {
+        let name: String
+        let icon: String
+        let recurrence: Recurrence
+        let maxCount: Int
+        let color: ActivityColor
+        let categoryName: String
+        let notes: String
+        let dateCreated: Date
+        let dateModified: Date
+    }
+
+    static func exportAll(in context: ModelContext) throws -> [ActivityBackup] {
+        let descriptor = FetchDescriptor<Activity>()
+        let all = try context.fetch(descriptor)
+        return all.map { activity in
+            ActivityBackup(
+                name: activity.name,
+                icon: activity.icon,
+                recurrence: activity.recurrence,
+                maxCount: activity.maxCount,
+                color: activity.color,
+                categoryName: activity.categoryName,
+                notes: activity.notes,
+                dateCreated: activity.dateCreated,
+                dateModified: activity.dateModified
+            )
+        }
+    }
+
+    static func importAll(_ items: [ActivityBackup], in context: ModelContext) throws {
+        for item in items {
+            let activity = Activity(
+                name: item.name,
+                icon: item.icon,
+                recurrence: item.recurrence,
+                categoryName: item.categoryName,
+                notes: item.notes,
+                color: item.color,
+                maxCount: item.maxCount,
+                dateCreated: item.dateCreated,
+                dateModified: item.dateModified
+            )
+            context.insert(activity)
+        }
+        try context.save()
+    }
+}

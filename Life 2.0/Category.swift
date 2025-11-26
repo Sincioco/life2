@@ -45,3 +45,43 @@ extension Category {
         }
     }
 }
+
+
+// MARK: - Backup Export / Import (Category)
+extension Category {
+    struct CategoryBackup: Codable {
+        let name: String
+        let icon: String
+        let color: ActivityColor
+        let dateCreated: Date
+        let dateModified: Date
+    }
+
+    static func exportAll(in context: ModelContext) throws -> [CategoryBackup] {
+        let descriptor = FetchDescriptor<Category>()
+        let all = try context.fetch(descriptor)
+        return all.map { category in
+            CategoryBackup(
+                name: category.name,
+                icon: category.icon,
+                color: category.color,
+                dateCreated: category.dateCreated,
+                dateModified: category.dateModified
+            )
+        }
+    }
+
+    static func importAll(_ items: [CategoryBackup], in context: ModelContext) throws {
+        for item in items {
+            let category = Category(
+                name: item.name,
+                icon: item.icon,
+                color: item.color,
+                dateCreated: item.dateCreated,
+                dateModified: item.dateModified
+            )
+            context.insert(category)
+        }
+        try context.save()
+    }
+}
