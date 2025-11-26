@@ -5,7 +5,7 @@ import UIKit
 struct CategoryListView: View {
     @Environment(\.modelContext) private var modelContext
     @Query(sort: [SortDescriptor(\Category.name, order: .forward)]) private var categories: [Category]
-
+    
     @State private var isPresentingAdd: Bool = false
     @State private var newName: String = ""
     @State private var newIcon: String = "figure.run"
@@ -13,10 +13,10 @@ struct CategoryListView: View {
     @State private var isPresentingIconPicker: Bool = false
     @State private var isPresentingColorPicker: Bool = false
     @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
-
+    
     private var usedCategoryNames: Set<String> { Set(categories.map { $0.name }) }
     private var usedCategoryColors: Set<ActivityColor> { Set(categories.map { $0.color }) }
-
+    
     private func nextUnusedColor() -> ActivityColor {
         let used = Set(categories.map { $0.color })
         if let available = ActivityColor.allCases.first(where: { !used.contains($0) }) {
@@ -25,7 +25,7 @@ struct CategoryListView: View {
         // If all colors are used, fallback to a default (e.g., blue)
         return .blue
     }
-
+    
     private func randomUnusedIcon() -> String {
         // Build the set of used icons from existing categories
         let used = Set(categories.map { $0.icon })
@@ -43,7 +43,7 @@ struct CategoryListView: View {
         let available = candidates.filter { !used.contains($0) }
         return available.randomElement() ?? (candidates.randomElement() ?? "figure.run")
     }
-
+    
     var body: some View {
         NavigationStack {
             Group {
@@ -68,8 +68,20 @@ struct CategoryListView: View {
                                         .scaledToFit()
                                         .frame(width: 24, height: 24)
                                         .foregroundStyle(category.color.colorValue)
-                                    Text(category.name)
-                                        .font(.body)
+                                    
+                                    HStack(spacing: 6) {
+                                        
+                                        Circle()
+                                            .fill(category.color.colorValue)
+                                            .frame(width: 12, height: 12)
+                                        
+                                        Text(category.name)
+                                            .font(.body)
+                                            .lineLimit(1)
+                                            .truncationMode(.tail)
+                                        
+                                        
+                                    }
                                 }
                             }
                         }
@@ -160,7 +172,7 @@ struct CategoryListView: View {
                                 Text("Choose Color")
                                     .font(.headline)
                                     .padding(.bottom, 8)
-
+                                
                                 ScrollView {
                                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 60), spacing: 16)], spacing: 16) {
                                         ForEach(ActivityColor.allCases.filter { !usedCategoryColors.contains($0) }, id: \.self) { colorOption in
@@ -190,7 +202,7 @@ struct CategoryListView: View {
             }
         }
     }
-
+    
     private func addCategory() {
         let now = Date()
         let trimmed = newName.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -203,7 +215,7 @@ struct CategoryListView: View {
         newIcon = randomUnusedIcon()
         isPresentingAdd = false
     }
-
+    
     private func delete(at offsets: IndexSet) {
         for index in offsets { modelContext.delete(categories[index]) }
         try? modelContext.save()
@@ -218,10 +230,10 @@ struct EditCategoryView: View {
     @Query(sort: [SortDescriptor(\Category.name)]) private var allCategories: [Category]
     @State private var isPresentingIconPicker: Bool = false
     @State private var isPresentingColorPicker: Bool = false
-
+    
     private var usedColorsExcludingCurrent: Set<ActivityColor> { Set(allCategories.filter { $0.id != category.id }.map { $0.color }) }
     private var usedNamesExcludingCurrent: Set<String> { Set(allCategories.filter { $0.id != category.id }.map { $0.name }) }
-
+    
     var body: some View {
         Form {
             Section("Category") {
@@ -287,7 +299,7 @@ struct EditCategoryView: View {
                     Text("Choose Color")
                         .font(.headline)
                         .padding(.bottom, 8)
-
+                    
                     ScrollView {
                         LazyVGrid(columns: [GridItem(.adaptive(minimum: 60), spacing: 16)], spacing: 16) {
                             ForEach(ActivityColor.allCases.filter { !usedColorsExcludingCurrent.contains($0) }, id: \.self) { colorOption in
