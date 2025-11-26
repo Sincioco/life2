@@ -1,8 +1,8 @@
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 //                                         Life 2.0 - Graph View
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
-// Programmed By:  Louiery R. Sincioco                                                     Version: 1.2
-// Programmed Date:  November 25, 2025                                                      For: iOS 26
+// Programmed By:  Louiery R. Sincioco                                                     Version: 1.3
+// Programmed Date:  November 26, 2025                                                      For: iOS 26
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
 // Purpose:  Graph view of activities (bar + pie chart only).
 // ————————————————————————————————————————————————————————————————————————————————————————————————————
@@ -10,7 +10,7 @@ import SwiftUI
 import SwiftData
 import UIKit
 import Charts
-
+ 
 // Summary model for category-based pie chart
 private struct CategorySummary: Identifiable {
     let id = UUID()
@@ -30,8 +30,6 @@ struct GraphView: View {
     @State private var tappedPieCategory: String? = nil
     @State private var showBarAlert: Bool = false
     @State private var showPieAlert: Bool = false
-    
-    @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
     
     init() {
         let now = Date()
@@ -69,7 +67,7 @@ struct GraphView: View {
     
     // MARK: - Data builders
     
-    // Bar chart: count per activity icon
+    // Bar chart: count per activity icon (TOP 10 only)
     private func monthlyActivityCounts() -> [(icon: String, count: Int)] {
         var counts: [String: Int] = [:]
         
@@ -79,15 +77,18 @@ struct GraphView: View {
             }
         }
         
-        return counts
+        let sorted = counts
             .map { (icon: $0.key, count: $0.value) }
             .sorted { lhs, rhs in
                 if lhs.count != rhs.count { return lhs.count > rhs.count }
                 return lhs.icon < rhs.icon
             }
+        
+        // Only keep the top 10
+        return Array(sorted.prefix(10))
     }
     
-    // Look up a color for a given SF Symbol icon from any activity that uses it
+    // Look up a color for a given SF Symbol / icon from any activity that uses it
     private func colorForIcon(_ icon: String) -> Color {
         for history in historyEntries {
             if let activity = history.activity, activity.icon == icon {
@@ -97,39 +98,34 @@ struct GraphView: View {
         return .blue
     }
     
-    // Pie chart: count per category with color from dominant activity in that category
+    // Pie chart: count per category, but ONLY from the top 10 activities for the month
     private func monthlyCategorySummaries() -> [CategorySummary] {
-        var totalsByCategory: [String: Int] = [:]
-        var perActivityCounts: [String: [String: Int]] = [:]
-        var colorByIcon: [String: Color] = [:]
+        // Get the same top-10 activities used by the bar chart
+        let topActivities = monthlyActivityCounts()
+        let topIcons = Set(topActivities.map { $0.icon })
         
+        guard !topIcons.isEmpty else { return [] }
+        
+        var totalsByCategory: [String: Int] = [:]
+        
+        // Only count histories whose activity.icon is in the top-10 set
         for history in historiesThisMonth {
             guard let activity = history.activity else { continue }
-            let category = activity.categoryName
-            let icon = activity.icon
-            let color = activity.color.colorValue
+            guard topIcons.contains(activity.icon) else { continue }
             
-            totalsByCategory[category, default: 0] += 1
-            
-            var perActivity = perActivityCounts[category] ?? [:]
-            perActivity[icon, default: 0] += 1
-            perActivityCounts[category] = perActivity
-            
-            colorByIcon[icon] = color
+            let categoryName = activity.categoryName
+            totalsByCategory[categoryName, default: 0] += 1
         }
         
         var result: [CategorySummary] = []
         
-        for (category, total) in totalsByCategory {
-            guard let perActivity = perActivityCounts[category], !perActivity.isEmpty else {
-                continue
-            }
-            
-            // Look up the Category model to get its color
-            let categoryColor: Color = categories.first(where: { $0.name == category })?.color.colorValue ?? .blue
+        for (categoryName, total) in totalsByCategory {
+            // Use Category model color for the slice
+            let categoryColor: Color =
+                categories.first(where: { $0.name == categoryName })?.color.colorValue ?? .blue
             
             result.append(
-                CategorySummary(category: category, count: total, color: categoryColor)
+                CategorySummary(category: categoryName, count: total, color: categoryColor)
             )
         }
         
@@ -173,7 +169,7 @@ struct GraphView: View {
                     let monthCounts = monthlyActivityCounts()
                     if !monthCounts.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Activity Count")
+                            Text("Top 10 Activities")
                                 .font(.headline)
                                 .padding(.bottom, 8)
                             
@@ -194,14 +190,8 @@ struct GraphView: View {
                                 AxisMarks(values: .automatic) { value in
                                     if let icon = value.as(String.self) {
                                         AxisValueLabel {
-                                            
-                                            let isAsset = UIImage(named: icon) != nil
-                                            let img = isAsset && useRealisticIcons ? Image(icon) : Image(systemName: icon)
-                                            
-                                            img
-                                                .resizable()                     // allow resizing
-                                                .scaledToFit()                   // keep aspect ratio
-                                                .frame(width: 16, height: 16)    // 👈 adjust size here
+                                            Image(systemName: icon)
+                                                .font(.caption)
                                                 .foregroundStyle(colorForIcon(icon))
                                         }
                                     }
@@ -233,7 +223,7 @@ struct GraphView: View {
                     let categoryData = monthlyCategorySummaries()
                     if !categoryData.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("Activity Count by Category")
+                            Text("Top 10 Activities by Category")
                                 .font(.headline)
                                 .padding(.bottom, 8)
                             
@@ -259,7 +249,7 @@ struct GraphView: View {
                                     }
                                 }
                             }
-                            // Map category → color (dominant activity color)
+                            // Map category → color (category color)
                             .chartForegroundStyleScale(
                                 domain: categoryData.map { $0.category },
                                 range: categoryData.map { $0.color }
