@@ -115,41 +115,49 @@ struct ActivitiesView: View {
             Group {
                 VStack(spacing: 0) {
                     // Custom animated "hard refresh" banner
-//                    if isRefreshing {
-//                        HStack(spacing: 8) {
-//                            Image(systemName: "arrow.clockwise.circle.fill")
-//                                .symbolRenderingMode(.hierarchical)
-//                                .font(.title3)
-//                                .rotationEffect(.degrees(refreshRotation))
-//                            
-//                            VStack(alignment: .leading, spacing: 2) {
-//                                Text("Refreshing activities")
-//                                    .font(.caption)
-//                                    .fontWeight(.semibold)
-//                                    .textCase(.uppercase)
-//                                Text("Pull-to-refresh triggered a hard data reload.")
-//                                    .font(.caption2)
-//                                    .foregroundStyle(.secondary)
-//                            }
-//                            
-//                            Spacer(minLength: 0)
-//                        }
-//                        .padding(.horizontal, 12)
-//                        .padding(.vertical, 8)
-//                        .frame(maxWidth: .infinity)
-//                        .background(.thinMaterial)
-//                        .overlay(
-//                            Divider()
-//                                .offset(y: 12),
-//                            alignment: .bottom
-//                        )
-//                        .transition(.move(edge: .top).combined(with: .opacity))
-//                        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isRefreshing)
-//                    }
+                    //                    if isRefreshing {
+                    //                        HStack(spacing: 8) {
+                    //                            Image(systemName: "arrow.clockwise.circle.fill")
+                    //                                .symbolRenderingMode(.hierarchical)
+                    //                                .font(.title3)
+                    //                                .rotationEffect(.degrees(refreshRotation))
+                    //
+                    //                            VStack(alignment: .leading, spacing: 2) {
+                    //                                Text("Refreshing activities")
+                    //                                    .font(.caption)
+                    //                                    .fontWeight(.semibold)
+                    //                                    .textCase(.uppercase)
+                    //                                Text("Pull-to-refresh triggered a hard data reload.")
+                    //                                    .font(.caption2)
+                    //                                    .foregroundStyle(.secondary)
+                    //                            }
+                    //
+                    //                            Spacer(minLength: 0)
+                    //                        }
+                    //                        .padding(.horizontal, 12)
+                    //                        .padding(.vertical, 8)
+                    //                        .frame(maxWidth: .infinity)
+                    //                        .background(.thinMaterial)
+                    //                        .overlay(
+                    //                            Divider()
+                    //                                .offset(y: 12),
+                    //                            alignment: .bottom
+                    //                        )
+                    //                        .transition(.move(edge: .top).combined(with: .opacity))
+                    //                        .animation(.spring(response: 0.35, dampingFraction: 0.85), value: isRefreshing)
+                    //                    }
                     
                     List {
                         ForEach(groupedByCategory.keys.sorted(), id: \.self) { category in
-                            Section(header: Text(category)) {
+                            Section(
+                                header:
+                                    HStack(spacing: 6) {
+                                        Circle()
+                                            .fill(colorForCategoryName(category))
+                                            .frame(width: 12, height: 12)
+                                        Text(category)
+                                    }
+                            ) {
                                 
                                 if let activitiesInSection = groupedByCategory[category] {
                                     ForEach(activitiesInSection) { activity in
@@ -165,14 +173,14 @@ struct ActivitiesView: View {
                                             //let isDisabled = activity.count >= activity.maxCount
                                             Button {
                                                 //if activity.count < activity.maxCount {
-                                                    activity.increment(in: modelContext)
-                                                    NotificationCenter.default.post(name: .activityDidChange, object: nil)
-                                                    let success = UINotificationFeedbackGenerator()
-                                                    success.notificationOccurred(.success)
-//                                                } else {
-//                                                    let warning = UINotificationFeedbackGenerator()
-//                                                    warning.notificationOccurred(.warning)
-//                                                }
+                                                activity.increment(in: modelContext)
+                                                NotificationCenter.default.post(name: .activityDidChange, object: nil)
+                                                let success = UINotificationFeedbackGenerator()
+                                                success.notificationOccurred(.success)
+                                                //                                                } else {
+                                                //                                                    let warning = UINotificationFeedbackGenerator()
+                                                //                                                    warning.notificationOccurred(.warning)
+                                                //                                                }
                                             } label: {
                                                 Label("Done", systemImage: "checkmark")
                                             }
@@ -317,6 +325,11 @@ struct ActivitiesView: View {
         activity.increment(in: modelContext)
         NotificationCenter.default.post(name: .activityDidChange, object: nil)
     }
+    
+    private func colorForCategoryName(_ name: String) -> Color {
+        categories.first(where: { $0.name == name })?.color.colorValue ?? .secondary
+    }
+    
 }
 
 // MARK: - Notifications
