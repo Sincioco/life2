@@ -95,9 +95,9 @@ struct ActivitiesView: View {
             if Activities.isEmpty && showEmptyPrompt {
                 VStack(spacing: 0) {
                     ContentUnavailableView(
-                        "No Activities Created",
+                        "Welcome!  Let's get started!",
                         systemImage: "text.pad.header.badge.plus",
-                        description: Text("Would you like to add activites by tapping the + button above or should I create starter activities for you to get started?")
+                        description: Text("You may add activities by tapping the + button above or I could create starter activities for you.  Which do you prefer?")
                     )
                     Button("Create Starter Activities") {
                         withAnimation {
