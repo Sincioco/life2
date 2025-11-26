@@ -1,44 +1,56 @@
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+//                                         Life 2.0 - Options View
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// Programmed By:  Louiery R. Sincioco                                                     Version: 1.0
+// Programmed Date:  November 25, 2025                                                      For: iOS 26
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
+// Purpose:  Setup the main Tab view of the application.
+// ————————————————————————————————————————————————————————————————————————————————————————————————————
 import SwiftUI
 import SwiftData
 import UIKit
 
 struct OptionsView: View {
     @Environment(\.modelContext) private var modelContext
-
+    
     @Query private var activities: [Activity]
-
+    
     @State private var showGenerateConfirm = false
     @State private var showDeleteAllActivitiesConfirm = false
     @State private var showDeleteAllHistoryConfirm = false
-
+    
     @State private var showGenerateForActivitySheet = false
     @State private var selectedActivity: Activity? = nil
     @State private var showGenerateForActivityConfirm = false
-
+    
     @State private var showDeleteForActivitySheet = false
     @State private var selectedActivityToDelete: Activity? = nil
     @State private var showDeleteForActivityConfirm = false
-
+    
     @AppStorage("showMonthHistogram") private var showMonthHistogram: Bool = true
     @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
-    @AppStorage("animateActivityBars") private var animateActivityBars: Bool = true   // NEW
+    @AppStorage("animateActivityBars") private var animateActivityBars: Bool = true
     @AppStorage("useActivityColorForBar") private var useActivityColorForBar: Bool = true
-
+    @AppStorage("showAdjacentMonthIcons") private var showAdjacentMonthIcons: Bool = false
+    
     var body: some View {
         NavigationStack {
             List {
                 Section("Preferences") {
                     Toggle(isOn: $showMonthHistogram) {
-                        Label("Show Month Histogram in Activity Rows", systemImage: "chart.xyaxis.line")
-                    }
-                    Toggle(isOn: $useRealisticIcons) {
-                        Label("Realistic Icons (when available)", systemImage: "photo")
+                        Label("In Activities View, show Month Histogram for each row.", systemImage: "chart.xyaxis.line")
                     }
                     Toggle(isOn: $animateActivityBars) {      // NEW
-                        Label("Enable Activity Bar Animation", systemImage: "waveform.path.ecg")
+                        Label("In Activities View, enable Activity Bar Animation.", systemImage: "waveform.path.ecg")
                     }
                     Toggle(isOn: $useActivityColorForBar) {
-                        Label("Use Activity Color for Gauge", systemImage: "paintpalette")
+                        Label("In Activities View, use the Activity Color to fill the Gauge", systemImage: "paintpalette")
+                    }
+                    Toggle(isOn: $showAdjacentMonthIcons) {
+                        Label("In Calendar View, show adjacent month Icons.", systemImage: "calendar.badge.plus")
+                    }
+                    Toggle(isOn: $useRealisticIcons) {
+                        Label("Use realistic icons if available.", systemImage: "photo")
                     }
                 }
                 Section("Developer Tools for Testing and Debugging") {
@@ -67,7 +79,7 @@ struct OptionsView: View {
                     } label: {
                         Label("Generate Random Histories for all Activities", systemImage: "sparkles")
                     }
-
+                    
                     Button(role: .destructive) {
                         showDeleteAllHistoryConfirm = true
                     } label: {
@@ -77,7 +89,7 @@ struct OptionsView: View {
             }
             .navigationTitle("Options")
             // ... rest of file unchanged ...
-
+            
             // Alerts
             .alert("Generate random history for this month?", isPresented: $showGenerateConfirm) {
                 Button("Generate", role: .destructive) {
@@ -187,9 +199,9 @@ struct OptionsView: View {
             }
         }
     }
-
+    
     // MARK: - Actions
-
+    
     private func deleteAllActivities() {
         do {
             let descriptor = FetchDescriptor<Activity>()
@@ -206,7 +218,7 @@ struct OptionsView: View {
             error.notificationOccurred(.error)
         }
     }
-
+    
     private func deleteAllHistory() {
         do {
             let descriptor = FetchDescriptor<ActivityHistory>()
@@ -224,7 +236,7 @@ struct OptionsView: View {
             error.notificationOccurred(.error)
         }
     }
-
+    
     private func deleteHistory(for activity: Activity) {
         do {
             let descriptor = FetchDescriptor<ActivityHistory>()
@@ -242,18 +254,18 @@ struct OptionsView: View {
             error.notificationOccurred(.error)
         }
     }
-
+    
     private func generateRandomHistories(for activity: Activity) {
         let cal = Calendar.current
         let now = Date()
-
+        
         let startOfCurrentMonth: Date = {
             let comps = cal.dateComponents([.year, .month], from: now)
             return cal.date(from: comps).map { cal.startOfDay(for: $0) } ?? cal.startOfDay(for: now)
         }()
         let startOfLastMonth = cal.date(byAdding: .month, value: -1, to: startOfCurrentMonth) ?? startOfCurrentMonth
         let startOfNextMonth = cal.date(byAdding: .month, value: 1, to: startOfCurrentMonth) ?? startOfCurrentMonth
-
+        
         func randomDateInRange() -> Date {
             let start = startOfLastMonth.timeIntervalSince1970
             let end = startOfNextMonth.timeIntervalSince1970
@@ -261,7 +273,7 @@ struct OptionsView: View {
             let random = Double.random(in: start..<end)
             return Date(timeIntervalSince1970: random)
         }
-
+        
         for _ in 0..<30 {
             let randomDate = randomDateInRange()
             let entry = ActivityHistory(activity: activity, dateCompleted: randomDate)
