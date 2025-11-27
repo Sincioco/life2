@@ -28,9 +28,6 @@ struct MainView: View {
             Tab("History", systemImage: "line.3.horizontal") {
                 ActivityHistoryView()
             }
-            //            Tab("Pie", systemImage: "line.3.horizontal") {
-            //                SimplePieChartView()
-            //            }
             Tab("Categories", systemImage: "folder") {
                 CategoryListView()
             }
@@ -43,18 +40,31 @@ struct MainView: View {
             Tab("Icon Viewer", systemImage: "xmark.triangle.circle.square") {
                 IconPickerView(selectedIcon: $icon)
             }
-            Tab("Mesh Gradient", systemImage: "arrow.up.arrow.down.circle") {
-                AnimatedGradientMeshBackground()
-            }
-            Tab("Mesh Gradient 2", systemImage: "arrow.up.arrow.down.circle") {
-                //GradientMeshMotionBackground()
-                GradientMeshBackground();
+            Tab("SF Symbol Exporter", systemImage: "xmark.triangle.circle.square") {
+                SymbolExporter()
             }
             
+            //
             
-//            Tab("Mesh Gradient 3", systemImage: "arrow.up.arrow.down.circle") {
-//                GradientMeshMotionBackground()
-//            }
+            //            Tab("Pie", systemImage: "line.3.horizontal") {
+            //                SimplePieChartView()
+            //            }
+            //            Tab("Mesh Gradient", systemImage: "arrow.up.arrow.down.circle") {
+            //                AnimatedGradientMeshBackground()
+            //            }
+            //            Tab("Mesh Gradient 2", systemImage: "arrow.up.arrow.down.circle") {
+            //                //GradientMeshMotionBackground()
+            //                GradientMeshBackground();
+            //            }
+            //            Tab("Mesh Gradient 3", systemImage: "arrow.up.arrow.down.circle") {
+            //                GradientMeshMotionBackground()
+            //            }
+            //            Tab("Mesh Gradient 4", systemImage: "gear") {
+            //                UnderwaterGradientMeshBackground()
+            //            }
+            //
+            
+            
         }
     }
     
