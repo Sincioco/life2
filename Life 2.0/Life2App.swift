@@ -19,8 +19,5 @@ struct Life2App: App {
         }
         
         .modelContainer(for: [Activity.self, ActivityHistory.self, Category.self])
-        
-        let output = QuotedSymbolExporter.generateQuotedString()
-        //print(output)
     }
 }

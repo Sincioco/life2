@@ -40,8 +40,8 @@ struct MainView: View {
             Tab("Icon Viewer", systemImage: "xmark.triangle.circle.square") {
                 IconPickerView(selectedIcon: $icon)
             }
-            Tab("SF Symbol Exporter", systemImage: "xmark.triangle.circle.square") {
-                SymbolExporter()
+            Tab("SF Symbol Formatter", systemImage: "xmark.triangle.circle.square") {
+                SymbolFormatterView()
             }
             
             //
