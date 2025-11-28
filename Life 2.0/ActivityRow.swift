@@ -12,6 +12,7 @@ struct ActivityRow: View {
     @State private var hasAnimated = false
     @State private var showDeleteConfirm = false
     @State private var isDeletingVisual = false
+    @State private var isShowingIconSheet: Bool = false
     @AppStorage("showMonthHistogram") private var showMonthHistogram: Bool = true
     @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
     @AppStorage("animateActivityBars") private var animateActivityBars: Bool = true   // NEW
@@ -127,26 +128,17 @@ struct ActivityRow: View {
                 }
             }()
 
-            img
-                .resizable()
-                .scaledToFit()
-                .foregroundStyle(activity.color.colorValue)
-                .frame(width: 40, height: 40)
-                .padding(0)
-//                .overlay {
-//                    if (activity.count > 0 && isCompletedForToday) {
-//                        Image(systemName: "checkmark.circle.fill")
-//                            .resizable()
-//                            .scaledToFit()
-//                            .frame(width: 14, height: 14)
-//                            .foregroundStyle(.green)
-//                            .background(
-//                                Circle()
-//                                    .fill(.background)
-//                            )
-//                            .offset(x: 26, y: -27)
-//                    }
-//                }
+            Button {
+                isShowingIconSheet = true
+            } label: {
+                img
+                    .resizable()
+                    .scaledToFit()
+                    .foregroundStyle(activity.color.colorValue)
+                    .frame(width: 40, height: 40)
+                    .padding(0)
+            }
+            .buttonStyle(.plain)
 
             Spacer(minLength: 20)
 
@@ -269,6 +261,59 @@ struct ActivityRow: View {
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This action cannot be undone.")
+        }
+        .sheet(isPresented: $isShowingIconSheet) {
+            VStack(spacing: 16) {
+                let icon = activity.icon
+                let assetExists = UIImage(named: icon) != nil
+                let img: Image = {
+                    if useRealisticIcons, assetExists {
+                        return Image(icon)
+                    } else {
+                        return Image(systemName: icon)
+                    }
+                }()
+
+                img
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: 220, maxHeight: 220)
+                    .padding(.top, 24)
+
+                VStack(spacing: 6) {
+                    Text(activity.name)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+
+                    // Created date
+                    HStack(spacing: 6) {
+                        Image(systemName: "calendar")
+                        Text(activity.dateCreated, style: .date)
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+
+                    // Total completions (sum of histories)
+                    HStack(spacing: 6) {
+                        Image(systemName: "checkmark.circle")
+                        Text("Completed \(activity.histories.count) times total")
+                    }
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                }
+                .padding(.top, 4)
+
+                Spacer(minLength: 0)
+
+                Button("Close", role: .cancel) {
+                    isShowingIconSheet = false
+                }
+                .buttonStyle(.bordered)
+                .padding([.horizontal, .bottom])
+            }
+            .presentationDetents([.medium])
         }
     }
 }
