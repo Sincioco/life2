@@ -1,0 +1,13 @@
+basketball.fill
+bicycle
+calendar.badge.clock
+dog.fill
+dog.fill0
+dumbbell.fill
+figure.pool.swim
+figure.run
+gamecontroller.fill
+person.3.fill
+figure.run.circle
+figure.run.circle.fill
+book.pages
