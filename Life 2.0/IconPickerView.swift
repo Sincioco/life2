@@ -127,7 +127,8 @@ struct IconPickerView: View {
         "gamecontroller.fill",
         "person.3.fill",
         "figure.run.circle",
-        "figure.run.circle.fill"
+        "figure.run.circle.fill",
+        "book.pages"
     ]
     
     private let gamingSymbols = [
