@@ -22,6 +22,7 @@ struct SymbolItem: Identifiable, Hashable {
 enum IconCategory: String, CaseIterable, Identifiable {
     case recent
     case all
+    case photo
     case gaming
     case fitness
     case nature
@@ -52,6 +53,7 @@ enum IconCategory: String, CaseIterable, Identifiable {
         switch self {
         case .recent:      return "Recent"
         case .all:         return "All"
+        case .photo:       return "AI Generated"
         case .gaming:      return "Gaming"
         case .fitness:     return "Fitness"
         case .nature:      return "Nature"
@@ -83,6 +85,7 @@ enum IconCategory: String, CaseIterable, Identifiable {
 struct IconPickerView: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selectedIcon: String
+    @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
     
     @State private var searchText: String = ""
     @State private var allSymbols: [SymbolItem] = []
@@ -112,6 +115,21 @@ struct IconPickerView: View {
     
     // MARK: Category symbol lists (~30 each)
 
+    private let photoSymbols = [
+        "basketball.fill",
+        "bicycle",
+        "calendar.badge.clock",
+        "dog.fill",
+        "dog.fill0",
+        "dumbbell.fill",
+        "figure.pool.swim",
+        "figure.run",
+        "gamecontroller.fill",
+        "person.3.fill",
+        "figure.run.circle",
+        "figure.run.circle.fill"
+    ]
+    
     private let gamingSymbols = [
         "a.circle", "a.circle.fill", "arcade.stick", "arcade.stick.and.arrow.down", "arcade.stick.and.arrow.left", "arcade.stick.and.arrow.left.and.arrow.right.outward", "arcade.stick.and.arrow.right", "arcade.stick.and.arrow.up", "arcade.stick.and.arrow.up.and.arrow.down", "arcade.stick.console",
         "arcade.stick.console.fill", "arrowkeys", "arrowkeys.down.filled", "arrowkeys.fill", "arrowkeys.left.filled", "arrowkeys.right.filled", "arrowkeys.up.filled", "arrowtriangle.down.circle", "arrowtriangle.down.circle.fill", "arrowtriangle.left.circle",
@@ -6384,6 +6402,7 @@ struct IconPickerView: View {
     
     private var allBaseNames: [String] {
         Array(Set(
+            photoSymbols +
             gamingSymbols +
             fitnessSymbols +
             natureSymbols +
@@ -6460,7 +6479,18 @@ struct IconPickerView: View {
                                 select(symbol.name)
                             } label: {
                                 VStack(spacing: 8) {
-                                    Image(systemName: symbol.name)
+                                    
+                                    let icon = symbol.name
+                                    let assetExists = UIImage(named: icon) != nil // detect if image exists in Assets
+                                    let img: Image = {
+                                        if useRealisticIcons, assetExists {
+                                            return Image(icon) // use asset image
+                                        } else {
+                                            return Image(systemName: icon) // SF Symbol fallback or forced by toggle off
+                                        }
+                                    }()
+
+                                    img
                                         .resizable()
                                         .scaledToFit()
                                         .frame(height: 28)
@@ -6513,6 +6543,8 @@ struct IconPickerView: View {
             return allSymbols.filter { recentSet.contains($0.name) }
         case .all:
             return allSymbols
+        case .photo:
+            return allSymbols.filter { photoSymbols.contains($0.name)}
         case .gaming:
             return allSymbols.filter { gamingSymbols.contains($0.name)}
         case .fitness:
