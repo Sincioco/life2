@@ -93,6 +93,9 @@ struct IconPickerView: View {
     
     @State private var selectedCategory: IconCategory = .all
     @Environment(\.verticalSizeClass) private var verticalSizeClass
+
+    @State private var pendingSelection: String? = nil
+    @State private var isShowingConfirmSheet: Bool = false
     
     // Persist recent icon names (comma-separated)
     @AppStorage("recentIconNames") private var recentIconNamesStorage: String = ""
@@ -441,7 +444,8 @@ struct IconPickerView: View {
                     LazyVGrid(columns: columns, spacing: 16) {
                         ForEach(displayedSymbols) { symbol in
                             Button {
-                                select(symbol.name)
+                                pendingSelection = symbol.name
+                                isShowingConfirmSheet = true
                             } label: {
                                 VStack(spacing: 8) {
                                     
@@ -490,6 +494,59 @@ struct IconPickerView: View {
                 loadAllSymbols()
             }
             loadRecentIcons()
+        }
+        .sheet(isPresented: $isShowingConfirmSheet) {
+            VStack(spacing: 24) {
+                if let icon = pendingSelection {
+                    let assetExists = UIImage(named: icon) != nil
+                    let img: Image = {
+                        if useRealisticIcons, assetExists {
+                            return Image(icon)
+                        } else {
+                            return Image(systemName: icon)
+                        }
+                    }()
+
+                    img
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: 200, maxHeight: 200)
+                        .padding(.top, 24)
+
+                    Text(icon)
+                        .font(.headline)
+                        .foregroundStyle(.secondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal)
+
+                    Spacer(minLength: 0)
+
+                    HStack(spacing: 16) {
+                        Button(role: .cancel) {
+                            isShowingConfirmSheet = false
+                            pendingSelection = nil
+                        } label: {
+                            Text("Cancel")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+
+                        Button {
+                            if let icon = pendingSelection {
+                                select(icon)
+                            }
+                            isShowingConfirmSheet = false
+                            pendingSelection = nil
+                        } label: {
+                            Text("Select")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                    }
+                    .padding([.horizontal, .bottom])
+                }
+            }
+            .presentationDetents([.medium])
         }
     }
     
