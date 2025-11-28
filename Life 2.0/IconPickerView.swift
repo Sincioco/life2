@@ -397,9 +397,13 @@ struct IconPickerView: View {
         ))
     }
     
-    private let columns: [GridItem] = [
-        GridItem(.adaptive(minimum: 56), spacing: 16)
-    ]
+    private var columns: [GridItem] {
+        if selectedCategory == .photo {
+            return [GridItem(.adaptive(minimum: 56 * 2), spacing: 16)]
+        } else {
+            return [GridItem(.adaptive(minimum: 56), spacing: 16)]
+        }
+    }
     
     // MARK: - Body
     
@@ -462,7 +466,7 @@ struct IconPickerView: View {
                                     img
                                         .resizable()
                                         .scaledToFit()
-                                        .frame(height: 28)
+                                        .frame(height: selectedCategory == .photo ? 28 * 4 : 28)
                                     
                                     Text(symbol.name)
                                         .font(.caption2)
