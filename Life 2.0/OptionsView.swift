@@ -32,15 +32,19 @@ struct OptionsView: View {
     @AppStorage("animateActivityBars") private var animateActivityBars: Bool = true
     @AppStorage("useActivityColorForBar") private var useActivityColorForBar: Bool = true
     @AppStorage("showAdjacentMonthIcons") private var showAdjacentMonthIcons: Bool = false
+    @AppStorage("enlargeActivityIcons") private var enlargeActivityIcons: Bool = true
     
     var body: some View {
         NavigationStack {
             List {
                 Section("Preferences") {
+                    Toggle(isOn: $enlargeActivityIcons) {
+                        Label("In Activities, use icons.", systemImage: "rectangle.expand.vertical")
+                    }
                     Toggle(isOn: $showMonthHistogram) {
                         Label("In Activities View, show Month Histogram for each row.", systemImage: "chart.xyaxis.line")
                     }
-                    Toggle(isOn: $animateActivityBars) {      // NEW
+                    Toggle(isOn: $animateActivityBars) {
                         Label("In Activities View, enable Activity Bar Animation.", systemImage: "waveform.path.ecg")
                     }
                     Toggle(isOn: $useActivityColorForBar) {
@@ -307,3 +311,4 @@ struct OptionsView: View {
         return Text("Failed to create preview: \\(error.localizedDescription)")
     }
 }
+

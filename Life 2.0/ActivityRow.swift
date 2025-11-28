@@ -17,6 +17,7 @@ struct ActivityRow: View {
     @AppStorage("useRealisticIcons") private var useRealisticIcons: Bool = true
     @AppStorage("animateActivityBars") private var animateActivityBars: Bool = true   // NEW
     @AppStorage("useActivityColorForBar") private var useActivityColorForBar: Bool = true
+    @AppStorage("enlargeActivityIcons") private var enlargeActivityIcons: Bool = true
 
     private var gaugeColor: Color {
         if useActivityColorForBar {
@@ -135,12 +136,12 @@ struct ActivityRow: View {
                     .resizable()
                     .scaledToFit()
                     .foregroundStyle(activity.color.colorValue)
-                    .frame(width: 40, height: 40)
+                    .frame(width: enlargeActivityIcons ? 80 : 40) // width responds to toggle
                     .padding(0)
             }
             .buttonStyle(.plain)
 
-            Spacer(minLength: 20)
+            Spacer(minLength: 15)
 
             // Activity Name and Progress
             VStack(alignment: .leading) {
