@@ -291,6 +291,7 @@ struct ActivityRow: View {
                     // Created date
                     HStack(spacing: 6) {
                         Image(systemName: "calendar")
+                        Text("Created on")
                         Text(activity.dateCreated, style: .date)
                     }
                     .font(.subheadline)
@@ -299,7 +300,7 @@ struct ActivityRow: View {
                     // Total completions (sum of histories)
                     HStack(spacing: 6) {
                         Image(systemName: "checkmark.circle")
-                        Text("Completed \(activity.histories.count) times total")
+                        Text("Completed \(activity.histories.count) times total (lifetime)")
                     }
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
@@ -311,7 +312,7 @@ struct ActivityRow: View {
                 Button("Close", role: .cancel) {
                     isShowingIconSheet = false
                 }
-                .buttonStyle(.bordered)
+                .buttonStyle(.automatic)
                 .padding([.horizontal, .bottom])
             }
             .presentationDetents([.medium])
