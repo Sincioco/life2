@@ -39,7 +39,7 @@ struct OptionsView: View {
             List {
                 Section("Preferences") {
                     Toggle(isOn: $enlargeActivityIcons) {
-                        Label("In Activities, use icons.", systemImage: "rectangle.expand.vertical")
+                        Label("In Activities, use large icons.", systemImage: "rectangle.expand.vertical")
                     }
                     Toggle(isOn: $showMonthHistogram) {
                         Label("In Activities View, show Month Histogram for each row.", systemImage: "chart.xyaxis.line")
