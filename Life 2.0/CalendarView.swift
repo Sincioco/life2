@@ -446,19 +446,28 @@ struct CalendarView: View {
                                 }
                             )
                             .padding()
-                            
-                            //                            MonthlySummaryChart(
-                            //                                monthActivities: monthlyActivityCounts(),
-                            //                                colorForIcon: colorForIcon
-                            //                            )
-                            //                            .padding()
-                            //
-                            //                            MonthlyCategoryPieChart(
-                            //                                categorySummaries: monthlyCategorySummaries()
-                            //                            )
-                            //                            .padding([.horizontal, .bottom])
                         }
                         .frame(maxWidth: .infinity)
+                        .highPriorityGesture(
+                            DragGesture(minimumDistance: 20, coordinateSpace: .local)
+                                .onEnded { value in
+                                    let horizontal = value.translation.width
+                                    let vertical = abs(value.translation.height)
+                                    // Ensure mostly horizontal movement to avoid conflict with vertical scrolling
+                                    guard abs(horizontal) > vertical else { return }
+                                    // Threshold and simple velocity consideration
+                                    let threshold: CGFloat = 40
+                                    let predicted = value.predictedEndTranslation.width
+                                    let effective = abs(predicted) > abs(horizontal) ? predicted : horizontal
+                                    if effective < -threshold {
+                                        // Swipe left: go to next month
+                                        goToNextMonth()
+                                    } else if effective > threshold {
+                                        // Swipe right: go to previous month
+                                        goToPreviousMonth()
+                                    }
+                                }
+                        )
                     }
                 }
             }
@@ -944,3 +953,4 @@ private struct DayActivitySheet: View {
 #Preview {
     CalendarView()
 }
+
