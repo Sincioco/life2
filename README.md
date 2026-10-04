@@ -88,4 +88,8 @@ The project uses Apple frameworks and has no external package dependencies. AI i
 | Categories, preferences, and backups | `Life 2.0/CategoryListView.swift`, `Life 2.0/OptionsView.swift`, `Life 2.0/ExportImportView.swift` |
 | README screenshots | `docs/screenshots/` |
 
-Created by **Louiery R. Sincioco**.
+## License
+
+Life 2.0 is licensed under the **GNU Affero General Public License v3.0 (AGPL-3.0)**, the same license used by [PMT](https://github.com/Sincioco/PMT). See [LICENSE](LICENSE) for the full terms.
+
+Copyright (c) 2025–2026 **Louiery R. Sincioco**.
